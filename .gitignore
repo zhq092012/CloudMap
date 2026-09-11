@@ -1,0 +1,33 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 自动生成产物（unplugin 在每次 dev/build 时重新生成，未被 tsconfig 纳入编译程序）
+auto-imports.d.ts
+components.d.ts
+
+# 大体积静态资源（约 1.9GB 离线城市瓦片、已弃用 tiles、cesium 构建产物）
+public/
+.env
+.env.production
