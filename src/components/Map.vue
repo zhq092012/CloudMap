@@ -807,7 +807,7 @@ const fetchWarningData = async () => {
       const warningMarkers = res.map((item) => {
         let lat = 27.18;
         let lng = 56.26;
-        const coords = parseTrajectoryData(item.trajectoryData)
+        const coords = parseTrajectoryData(item.assetData)
           || parseLocationCoords(item.location);
         if (coords) { lat = coords.lat; lng = coords.lng; }
 

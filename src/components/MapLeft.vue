@@ -185,7 +185,7 @@ import { Management, List, TrendCharts } from '@element-plus/icons-vue'
 import { FACILITY_TYPES, FACILITY_TYPE_LABELS_ZH } from "@/assets/facilities.js";
 import WarningDialog from "./Dialogs/WarningDialog.vue";
 import { ElMessage } from "element-plus";
-import { getArticleAnalysis, saveArticleAnalysis } from "@/api/article-analyses";
+import { getArticleAnalysis, saveArticleAnalysis } from "@/api/article-analyses"
 import { listAgents, stream } from "@/agents-hub/api";
 
 // 与 homeStore.mapLeftTab 双向绑定：点击地图聚合时 Map.vue 会把它切到 "second"（开源情报）

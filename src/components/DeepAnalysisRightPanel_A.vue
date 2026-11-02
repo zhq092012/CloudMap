@@ -38,7 +38,8 @@
         <span class="w-2 h-2 rounded-full bg-[#0ea5e9] shrink-0"></span>
         <span class="text-[11px] text-[#0ea5e9] font-semibold tracking-wider">当前选中 · 进攻方案节点</span>
       </div>
-      <div class="text-white font-medium text-sm leading-relaxed tracking-wide">
+      <div class="text-white font-medium text-sm leading-relaxed tracking-wide cursor-pointer hover:text-sky-300"
+        title="点击查看完整方案" @click="openDetailDialog(store.selectedNode)">
         {{
           store.selectedNode.text || store.selectedNode.title || "未命名节点"
         }}
@@ -862,15 +863,29 @@
     </el-collapse>
     -->
     <DetailSectionAccordion :detail="resultDataText?.details" append-suffix="（推断）" />
+
+    <AnalysisNodeDetailDialog v-model:visible="detailDialogVisible" :node="detailDialogNode" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { More, Warning, Document } from "@element-plus/icons-vue";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { useAgentStore } from "@/store/modules/agentStore";
 import DetailSectionAccordion from "@/components/DetailSectionAccordion.vue";
+import AnalysisNodeDetailDialog from "@/components/analysisNodeDetailDialog.vue";
+
+/* 点击方案名 → 完整方案弹窗（与画布节点名点击同一组件） */
+const detailDialogVisible = ref(false);
+const detailDialogNode = ref<any>(null);
+
+function openDetailDialog(node: any) {
+  const t = node?.type;
+  if (t !== "Attack" && t !== "Defense" && t !== "Evaluation") return;
+  detailDialogNode.value = node;
+  detailDialogVisible.value = true;
+}
 const store = useAnalysisStore();
 const agentStore = useAgentStore();
 

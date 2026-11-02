@@ -216,7 +216,7 @@
         <div class="dialog-subtitle">轨迹目标</div>
         <div class="dialog-meta">
           <span class="dialog-country">呼号：{{ detailEvent?.source || "--" }}</span>
-          <span class="dialog-country">资产 ID：{{ detailSigint?.assetId || detailEvent?.trajectoryId || "--" }}</span>
+          <span class="dialog-country">资产 ID：{{ detailSigint?.assetId || detailEvent?.assetId || "--" }}</span>
           <span v-if="detailSigint?.aircraftType" class="dialog-country">机型：{{ detailSigint.aircraftType }}</span>
         </div>
         <div v-if="detailSigint" class="dialog-meta">
@@ -257,7 +257,7 @@ import type { WarningItem } from "@/types/home";
 import { ref, computed, onMounted } from "vue";
 import { searchAnomalies, getAnomalyById } from "@/api/anomalies";
 import type { AnomalyEvent } from "@/api/anomalies";
-const homestore = useHomeStore();
+const homeStore = useHomeStore();
 
 const regionOptions = ["全部", "霍尔木兹", "阿曼湾", "红海", "伊朗"];
 const timeOptions = ["全部", "6小时内", "12小时内", "24小时内"];
@@ -315,18 +315,21 @@ const detailIsTrajectory = computed(() =>
   ["aircraft", "vessel", "satellite"].includes(detailEvent.value?.assetType || ""),
 );
 
-/** 开源情报类：优先取 articles 表实时数据（缓存文章列表按 trajectoryId 中的文章 ID 匹配），回退 anomaly_event.trajectory_data 快照 */
+/** 开源情报类：优先取 articles 表实时数据（缓存文章列表按 assetId 中的文章 ID 匹配），回退 anomaly_event.asset_data 快照 */
 const detailArticle = computed(() => {
-  const ev = detailEvent.value;
-  if (!ev || detailIsTrajectory.value) return null;
-  if (ev.trajectoryId) {
-    const live = homestore.articles.find(
-      (a: any) => a != null && String(a.id) === String(ev.trajectoryId),
-    );
-    if (live) return live as Record<string, any>;
+  const ev = detailEvent.value as any;
+  if (!ev || ev.assetType !== "article") return null;
+  if (ev.assetId) {
+    const live = homeStore.articles.find(
+      (a: any) => a != null && String(a.id) === String(ev.assetId),
+    ) as any;
+    if (live) return { title: live.title ?? "", content: live.content ?? "", summary: live.summary ?? "", source: live.source ?? "", author: live.author ?? "", country: live.country ?? "", url: live.url ?? "", publishedAt: live.publishedAt ?? "" };
   }
-  const snap = parseJsonField<Record<string, any>>(ev.trajectoryData);
-  return snap && typeof snap === "object" && !Array.isArray(snap) ? snap : null;
+  const snap = parseJsonField<Record<string, any>>(ev.assetData);
+  if (snap && (snap.title || snap.content)) {
+    return { title: snap.title ?? "", content: snap.content ?? "", summary: snap.summary ?? "", source: snap.source ?? "", author: snap.author ?? "", country: snap.country ?? "", url: snap.url ?? "", publishedAt: snap.publishedAt ?? "" };
+  }
+  return null;
 });
 
 const detailSigint = computed(() => {
@@ -335,7 +338,7 @@ const detailSigint = computed(() => {
 });
 
 const detailTrajectoryPoints = computed(() => {
-  const d = parseJsonField<Record<string, any>[]>(detailEvent.value?.trajectoryData);
+  const d = parseJsonField<Record<string, any>[]>(detailEvent.value?.assetData);
   return Array.isArray(d) ? d : [];
 });
 
@@ -385,7 +388,7 @@ const handleViewDetails = async (item: WarningItem) => {
 };
 
 const toggleAnalysisStatus = (item: WarningItem) => {
-  homestore.addToAnalysis(item);
+  homeStore.addToAnalysis(item);
 };
 
 const regionOf = (label: string): string | undefined =>
@@ -442,7 +445,7 @@ const durationSince = (d?: string): string => {
 };
 
 const isAnalyzed = (id: string): boolean =>
-  homestore.warningMarkers.some((m) => m.id === id && m.isAnalyzed);
+  homeStore.warningMarkers.some((m) => m.id === id && m.isAnalyzed);
 
 const toWarningItem = (item: AnomalyEvent): WarningItem => {
   const id = item.anomalyId || `ANM_${item.rowId}`;

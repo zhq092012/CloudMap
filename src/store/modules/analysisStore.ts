@@ -14,11 +14,23 @@ import {
   checkExistingSteps,
   type StepCheckResult,
   getChainsByAnomalies,
+  addAnomaliesToWorkflow,
+  getDeepAnalysisWorkflow,
+  type ByAnomaliesResult,
 } from "@/api/deep-analysis";
 import { confirmAnomaly, getAnomalyById } from "@/api/anomalies";
 import type { EdgeData, NodeData } from "@antv/g6";
 import { ElMessage } from "element-plus";
 import { defineStore } from "pinia";
+
+interface ProgressLogEntry {
+  time: string;
+  text: string;
+  type: "info" | "success" | "error" | "warning";
+  kind?: "dataflow" | "dispatch" | "agent-input";
+  data?: any;
+  expanded?: boolean;
+}
 
 interface AnalysisState {
   rawNodes: NodeData[];
@@ -26,18 +38,82 @@ interface AnalysisState {
   analysisType: "default" | "attack" | "defense" | "evaluation";
   selectedNode: any;
   workflowId: string | null;
+  workflowTitle: string;
   anomalyIds: string[];
   anomalyId: string | null;
   coveredAnomalyIds: string[];
   workflowList: any[];
   currentPhase: number;
   isAnalyzing: boolean;
-  progressLogs: Array<{
-    time: string;
-    text: string;
-    type: "info" | "success" | "error" | "warning";
-  }>;
+  progressLogs: ProgressLogEntry[];
   canAdvance: boolean;
+}
+
+/* progressLogs 条目的到达时间戳（epoch ms），与 progressLogs 平行维护，用于 AGENT_RESULT 耗时估算 */
+const progressLogEpochMs: number[] = [];
+
+function commitProgressLog(logs: ProgressLogEntry[], entry: ProgressLogEntry) {
+  logs.push(entry);
+  progressLogEpochMs.push(Date.now());
+}
+
+/** 首个非空行截断 n 字（超长追加 …） */
+function firstLine(s: unknown, n: number): string {
+  if (typeof s !== "string") return "";
+  const line = s
+    .split("\n")
+    .map((l) => l.trim())
+    .find((l) => l.length > 0);
+  if (!line) return "";
+  return line.length > n ? line.substring(0, n) + "…" : line;
+}
+
+/** 当前 AGENT_RESULT 与该 stepId 对应 dispatch 行的时间差（末条记录 − dispatch 行）；取不到返回 null */
+function stepDurationSinceLastDispatch(logs: ProgressLogEntry[]): number | null {
+  const now = Date.now();
+  for (let i = logs.length - 1; i >= 0; i--) {
+    if (logs[i]?.kind === "dispatch") {
+      const diff = now - progressLogEpochMs[i];
+      return diff >= 0 ? diff : null;
+    }
+  }
+  return null;
+}
+
+/** 展示类型 → 中文文案（键须与 rawNodes[].type 运行时取值一致，未命中走旧回退） */
+const TYPE_LABELS: Record<string, string> = {
+  Intent: "意图",
+  Attack: "蓝方方案",
+  Defense: "红方方案",
+  Evaluation: "评估报告",
+};
+
+/**
+ * 从 startPid（节点 raw.parentNodeId，可能是 nodeId 或 stepId）出发，
+ * 在 rawNodes 中逐跳上溯（r.id === pid || r.raw?.stepId === pid）直至 type === "Origin"。
+ * visited set 防环，最多 8 跳；链根缺失/断链返回 null。
+ */
+function findOrigin(rawNodes: NodeData[], startPid: string): NodeData | null {
+  const visited = new Set<string>();
+  let pid = startPid || "";
+  for (let hop = 0; hop < 8; hop++) {
+    if (!pid || visited.has(pid)) return null;
+    visited.add(pid);
+    const r = rawNodes.find(
+      (x) => x.id === pid || (x as any).raw?.stepId === pid
+    );
+    if (!r) return null;
+    if (r.type === "Origin") return r;
+    pid = ((r as any).raw?.parentNodeId as string) || "";
+  }
+  return null;
+}
+
+/** 截断 n 字（超长追加 …）；非字符串/空白返回 "" */
+function truncateName(s: unknown, n: number): string {
+  const t = typeof s === "string" ? s.trim() : "";
+  if (!t) return "";
+  return t.length > n ? t.substring(0, n) + "…" : t;
 }
 
 export const useAnalysisStore = defineStore("analysis", {
@@ -47,6 +123,7 @@ export const useAnalysisStore = defineStore("analysis", {
     analysisType: "default",
     selectedNode: null,
     workflowId: null,
+    workflowTitle: "",
     anomalyIds: [],
     anomalyId: null,
     coveredAnomalyIds: [],
@@ -83,10 +160,91 @@ export const useAnalysisStore = defineStore("analysis", {
       await selectDeepAnalysisNode(this.workflowId, nodeId, backendType).catch(() => {});
     },
     addLog(text: string, type: "info" | "success" | "error" | "warning" = "info") {
-      this.progressLogs.push({
+      commitProgressLog(this.progressLogs, {
         time: new Date().toLocaleTimeString(),
         text,
         type,
+      });
+    },
+
+    /* dispatch 事件的可展开条目：仅当 SSE 载荷带 sysPrompt 时追加 */
+    pushDispatchLog(data: Record<string, any>) {
+      if (data?.sysPrompt == null) return;
+      commitProgressLog(this.progressLogs, {
+        time: new Date().toLocaleTimeString(),
+        text: `Agent《${data.agentName ?? data.agentId}》系统提示词（点击展开）`,
+        type: "info",
+        kind: "dispatch",
+        data,
+        expanded: false,
+      });
+    },
+
+    /* dataflow 事件的可展开条目：按事件类型生成一行摘要 + 原始载荷 */
+    pushDataflowLog(
+      data: { stepId: string; seq: number; type: string; agentName: string; payload: any }
+    ) {
+      const type = data?.type;
+      const payload =
+        data?.payload && typeof data.payload === "object"
+          ? (data.payload as Record<string, any>)
+          : ({} as Record<string, any>);
+      let text = "";
+      let logType: ProgressLogEntry["type"] = "info";
+      if (type === "TEXT") {
+        text = `模型输出：${firstLine(payload.text, 60)}`;
+      } else if (type === "THINKING") {
+        text = `思考：${firstLine(payload.text, 60)}`;
+      } else if (type === "TOOL_CALL") {
+        text = `工具调用 ${payload.name ?? "?"}（${payload.result?.state ?? "ok"}，${
+          payload.durationMs ?? 0
+        }ms）`;
+      } else if (type === "MODEL_CALL") {
+        text = `模型调用完成：输入 ${payload.usage?.inputTokens ?? 0} / 输出 ${
+          payload.usage?.outputTokens ?? 0
+        } tokens，耗时 ${payload.durationMs ?? 0}ms`;
+      } else if (type === "AGENT_RESULT") {
+        logType = "success";
+        const usage = payload.usage;
+        text = `步骤完成（agent《${data.agentName ?? "?"}》）：输入 ${usage?.inputTokens ?? 0} / 输出 ${
+          usage?.outputTokens ?? 0
+        } tokens`;
+        const stepDurationMs = stepDurationSinceLastDispatch(this.progressLogs);
+        if (stepDurationMs != null) {
+          text += `，耗时 ≈${stepDurationMs}ms`;
+        }
+      } else if (type === "ERROR") {
+        logType = "error";
+        text = `错误：${payload.message ?? "未知错误"}`;
+      } else {
+        text = `事件 ${type}`;
+      }
+      commitProgressLog(this.progressLogs, {
+        time: new Date().toLocaleTimeString(),
+        text,
+        type: logType,
+        kind: "dataflow",
+        data,
+        expanded: false,
+      });
+    },
+
+    /* agent-input 事件的可展开条目：调用 agent 前实际发给它的完整输入（+知识图谱参考段落） */
+    pushAgentInputLog(data: Record<string, any>) {
+      const prompt = typeof data?.prompt === "string" ? data.prompt : "";
+      const name = data?.agentName ?? data?.agentId ?? "?";
+      let text = `Agent《${name}》输入：${firstLine(prompt, 60) || "（无文本）"}`;
+      if (data?.promptTruncated === true && typeof data?.promptTotalChars === "number") {
+        text += `（共 ${data.promptTotalChars} 字，已截断）`;
+      }
+      text += "（点击展开）";
+      commitProgressLog(this.progressLogs, {
+        time: new Date().toLocaleTimeString(),
+        text,
+        type: "info",
+        kind: "agent-input",
+        data,
+        expanded: false,
       });
     },
 
@@ -115,8 +273,10 @@ export const useAnalysisStore = defineStore("analysis", {
     resetNodes() {
       this.rawNodes = [];
       this.rawEdges = [];
+      this.workflowTitle = "";
       this.currentPhase = 0;
       this.progressLogs = [];
+      progressLogEpochMs.length = 0;
       this.canAdvance = false;
       this.selectedNode = null;
       this.analysisType = "default";
@@ -141,6 +301,7 @@ export const useAnalysisStore = defineStore("analysis", {
         this.addLog("创建深度分析工作流...", "info");
         const workflow = await createDeepAnalysisWorkflow(this.anomalyIds);
         this.workflowId = workflow.workflowId;
+        this.workflowTitle = workflow.title || "";
         const workflowId = this.workflowId;
         this.currentPhase = 0;
         if (!workflowId) {
@@ -240,6 +401,19 @@ export const useAnalysisStore = defineStore("analysis", {
             this.addLog(event.data?.message || JSON.stringify(event.data), "info");
           } else if (event.eventType === 'dispatch') {
             this.addLog(`Agent dispatch: step ${event.data?.step ?? '?'}`, "info");
+            this.pushDispatchLog(event.data);
+          } else if (event.eventType === 'dataflow') {
+            this.pushDataflowLog(
+              event.data as {
+                stepId: string;
+                seq: number;
+                type: string;
+                agentName: string;
+                payload: any;
+              }
+            );
+          } else if (event.eventType === 'agent-input') {
+            this.pushAgentInputLog(event.data);
           } else if (event.eventType === 'error') {
             this.addLog(`错误: ${event.data?.error || '未知错误'}`, "error");
           }
@@ -321,6 +495,19 @@ export const useAnalysisStore = defineStore("analysis", {
             this.addLog(event.data?.message || JSON.stringify(event.data), "info");
           } else if (event.eventType === 'dispatch') {
             this.addLog(`Agent dispatch: step ${event.data?.step ?? '?'}`, "info");
+            this.pushDispatchLog(event.data);
+          } else if (event.eventType === 'dataflow') {
+            this.pushDataflowLog(
+              event.data as {
+                stepId: string;
+                seq: number;
+                type: string;
+                agentName: string;
+                payload: any;
+              }
+            );
+          } else if (event.eventType === 'agent-input') {
+            this.pushAgentInputLog(event.data);
           } else if (event.eventType === 'error') {
             this.addLog(`错误: ${event.data?.error || '未知错误'}`, "error");
           }
@@ -398,6 +585,19 @@ export const useAnalysisStore = defineStore("analysis", {
             this.addLog(event.data?.message || JSON.stringify(event.data), "info");
           } else if (event.eventType === 'dispatch') {
             this.addLog(`Agent dispatch: step ${event.data?.step ?? '?'}`, "info");
+            this.pushDispatchLog(event.data);
+          } else if (event.eventType === 'dataflow') {
+            this.pushDataflowLog(
+              event.data as {
+                stepId: string;
+                seq: number;
+                type: string;
+                agentName: string;
+                payload: any;
+              }
+            );
+          } else if (event.eventType === 'agent-input') {
+            this.pushAgentInputLog(event.data);
           } else if (event.eventType === 'error') {
             this.addLog(`错误: ${event.data?.error || '未知错误'}`, "error");
           }
@@ -475,6 +675,19 @@ export const useAnalysisStore = defineStore("analysis", {
             this.addLog(event.data?.message || JSON.stringify(event.data), "info");
           } else if (event.eventType === 'dispatch') {
             this.addLog(`Agent dispatch: step ${event.data?.step ?? '?'}`, "info");
+            this.pushDispatchLog(event.data);
+          } else if (event.eventType === 'dataflow') {
+            this.pushDataflowLog(
+              event.data as {
+                stepId: string;
+                seq: number;
+                type: string;
+                agentName: string;
+                payload: any;
+              }
+            );
+          } else if (event.eventType === 'agent-input') {
+            this.pushAgentInputLog(event.data);
           } else if (event.eventType === 'error') {
             this.addLog(`错误: ${event.data?.error || '未知错误'}`, "error");
           }
@@ -586,7 +799,44 @@ export const useAnalysisStore = defineStore("analysis", {
           if (displayType === "Origin") {
             displayText = parsed.name || parsed.title || parsed.summary || JSON.stringify(parsed).substring(0, 60);
           } else {
-            displayText = parsed.summary || parsed.title || JSON.stringify(parsed).substring(0, 200);
+            /* 回退文案：旧逻辑逐字保留（未知类型 / 链根未找到 / origin 无 name） */
+            const legacyLabel =
+              parsed.summary || parsed.title || JSON.stringify(parsed).substring(0, 200);
+            const phaseLabel = TYPE_LABELS[displayType];
+            const origin = phaseLabel
+              ? findOrigin(this.rawNodes as NodeData[], n.parentNodeId || "")
+              : null;
+            let originName = "";
+            if (origin) {
+              try {
+                const originParsed =
+                  typeof (origin as any).nodeData === "string"
+                    ? JSON.parse((origin as any).nodeData)
+                    : (origin as any).nodeData;
+                originName = truncateName(originParsed?.name, 30);
+              } catch {
+                originName = "";
+              }
+            }
+            /* 名称主体：节点自身分析结果摘要（截 90 字 ≈ 画布框 3 行容量）→ 回退 origin 名前 30 字 */
+            const namePart = truncateName(parsed.summary, 90) || originName;
+            if (phaseLabel && namePart) {
+              /* 序号：同一 Origin 链内同类型下标（1 基，按推送顺序，仅推送时计算一次）；
+                 链根缺失时退化为全画布同类型计数（保持有号） */
+              const seq = origin
+                ? this.rawNodes.filter(
+                    (r) =>
+                      r.type === displayType &&
+                      findOrigin(
+                        this.rawNodes as NodeData[],
+                        ((r as any).raw?.parentNodeId as string) || ""
+                      ) === origin
+                  ).length + 1
+                : this.rawNodes.filter((r) => r.type === displayType).length + 1;
+              displayText = `${phaseLabel}${seq} ${namePart}`;
+            } else {
+              displayText = legacyLabel;
+            }
           }
           confidence =
             n.confidence != null ? n.confidence : parsed.confidence || 0;
@@ -653,7 +903,7 @@ export const useAnalysisStore = defineStore("analysis", {
                 ? "蓝方方案"
                 : displayType === "Defense"
                   ? "红方方案"
-                  : "核验评估";
+                  : "评估报告";
         this.addLog(
           `[${typeLabel}] ${displayText.substring(0, 60)} (置信度 ${Math.round(confidence)}%)`,
           logType
@@ -703,6 +953,7 @@ export const useAnalysisStore = defineStore("analysis", {
       try {
         this.resetNodes();
         this.workflowId = wf.workflowId;
+        this.workflowTitle = wf.title || "";
         this.currentPhase = wf.currentPhase ?? 0;
         this.anomalyIds = wf.anomalyIds || [];
         this.isAnalyzing = wf.status === "RUNNING";
@@ -842,15 +1093,16 @@ export const useAnalysisStore = defineStore("analysis", {
         }
 
         // 顺序添加，保证父节点先于子节点进入画布，边才能正确连上
-        if (res.origins?.length) this.addNodeFromWorkflow(res.origins, "Origin");
-        if (res.intents?.length) this.addNodeFromWorkflow(res.intents, "Intent");
-        if (res.bluePlans?.length) this.addNodeFromWorkflow(res.bluePlans, "Attack");
-        if (res.redPlans?.length) this.addNodeFromWorkflow(res.redPlans, "Defense");
-        if (res.evaluations?.length) this.addNodeFromWorkflow(res.evaluations, "Evaluation");
+        this.appendChainsFromByAnomalies(res);
 
         // 复用最近更新的 ORIGIN 所在工作流作为后续生成目标（避免无内容异常首次分析还要新建）
         if (res.defaultWorkflowId) {
           this.workflowId = res.defaultWorkflowId;
+          getDeepAnalysisWorkflow(res.defaultWorkflowId)
+            .then((wf) => {
+              if (wf?.title) this.workflowTitle = wf.title;
+            })
+            .catch(() => {});
           this.addLog(
             `复用工作流 ${res.defaultWorkflowId.substring(0, 12)}... 作为生成目标`,
             "info"
@@ -872,6 +1124,68 @@ export const useAnalysisStore = defineStore("analysis", {
         this.addLog(`按异常恢复失败: ${e?.message}`, "error");
         return false;
       }
+    },
+
+    /**
+     * 把 by-anomalies 返回的链路节点按阶段顺序「追加」进画布：
+     * addNodeFromWorkflow 内部已按 nodeId 去重，绝不清空现有画布
+     * （父 origin 先于子节点入画布，保证边能正确连上）。
+     * 返回本次实际新增的节点数。
+     */
+    appendChainsFromByAnomalies(res: ByAnomaliesResult | null | undefined): number {
+      if (!res) return 0;
+      const before = this.rawNodes.length;
+      if (res.origins?.length) this.addNodeFromWorkflow(res.origins, "Origin");
+      if (res.intents?.length) this.addNodeFromWorkflow(res.intents, "Intent");
+      if (res.bluePlans?.length) this.addNodeFromWorkflow(res.bluePlans, "Attack");
+      if (res.redPlans?.length) this.addNodeFromWorkflow(res.redPlans, "Defense");
+      if (res.evaluations?.length) this.addNodeFromWorkflow(res.evaluations, "Evaluation");
+      return this.rawNodes.length - before;
+    },
+
+    /**
+     * 1a-UX：已覆盖异常「加入当前分析」——加入工作流（后端幂等去重）+
+     * 仅按 by-anomalies 已有链路追加画布展示，不调 LLM、不清空现有画布。
+     * 返回实际新增的节点数；失败时抛错由调用方提示。
+     */
+    async joinAnomalyToCurrentFlow(anomalyId: string): Promise<number> {
+      const workflowId = this.workflowId;
+      if (!workflowId) throw new Error("当前没有进行中的分析流程");
+
+      this.addLog(`将异常 ${anomalyId} 加入当前分析流程...`, "info");
+      const workflow = await addAnomaliesToWorkflow(workflowId, [anomalyId]);
+      this.anomalyIds = workflow.anomalyIds || [...this.anomalyIds, anomalyId];
+      this.anomalyId = anomalyId;
+      if (workflow.title) this.workflowTitle = workflow.title;
+      if (!this.coveredAnomalyIds.includes(anomalyId)) {
+        this.coveredAnomalyIds.push(anomalyId);
+      }
+
+      const res = await getChainsByAnomalies([anomalyId]);
+      const added = this.appendChainsFromByAnomalies(res);
+      this.addLog(
+        `已加入异常 ${anomalyId}，载入 ${added} 个已有结果节点`,
+        "success"
+      );
+      return added;
+    },
+
+    /**
+     * 1a-UX：已覆盖但无工作流的异常「载入历史分析」——
+     * 只做 by-anomalies 画布展示（不建 workflow、不 confirm、不 LLM）。
+     */
+    async loadHistoryAnomaly(anomalyId: string): Promise<number> {
+      this.addLog(
+        `载入异常 ${anomalyId} 的历史分析结果（不创建/变更工作流）...`,
+        "info"
+      );
+      const res = await getChainsByAnomalies([anomalyId]);
+      const added = this.appendChainsFromByAnomalies(res);
+      this.addLog(
+        `已载入异常 ${anomalyId} 的 ${added} 个历史结果节点`,
+        added > 0 ? "success" : "warning"
+      );
+      return added;
     },
 
     /**

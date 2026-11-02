@@ -21,46 +21,71 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="shrink-0 border-t border-[#1e2d42] bg-[#080d16]/90" style="max-height: 260px; min-height: 120px;">
-      <div class="flex items-center gap-2 px-3 py-1.5 border-b border-[#1e2d42]">
-        <el-icon class="text-[#38bdf8] text-sm"><Document /></el-icon>
-        <span class="text-sm font-semibold text-slate-200">分析执行日志</span>
-        <span v-if="store.progressLogs.length > 0" class="text-[10px] text-slate-500 font-mono">[{{ store.progressLogs.length }} 条]</span>
-        <span v-if="store.isAnalyzing" class="ml-auto text-[10px] text-blue-400 animate-pulse">◉ 分析中...</span>
-        <span v-else-if="store.progressLogs.some(l => l.type === 'success')" class="ml-auto text-[10px] text-emerald-400">✓ 完成</span>
-        <span v-if="store.currentPhase >= 0" class="text-[10px] text-slate-400 font-mono">Phase {{
-          store.currentPhase === 0 ? 'ORIGIN' : store.currentPhase === 1 ? 'INTENT' : store.currentPhase === 2 ? 'BLUE_PLAN' : store.currentPhase === 3 ? 'RED_PLAN' : 'EVALUATION'
-        }}</span>
-      </div>
-      <div ref="logContainer" class="overflow-y-auto font-mono text-[11px] space-y-0.5 px-3" style="max-height: 230px;">
+      <Teleport to="body" :disabled="logMode === 'docked'">
+      <div :class="logPanelClass" :style="logPanelStyle">
+        <div class="flex items-center gap-2 px-3 py-1.5 border-b border-[#1e2d42] shrink-0"
+          :class="{ 'cursor-move': logMode === 'popup' }"
+          @mousedown="startLogHeaderDrag">
+          <el-icon class="text-[#38bdf8] text-sm"><Document /></el-icon>
+          <span class="text-sm font-semibold text-slate-200">分析执行日志</span>
+          <span v-if="store.progressLogs.length > 0" class="text-[10px] text-slate-500 font-mono">[{{ store.progressLogs.length }} 条]</span>
+          <span v-if="store.isAnalyzing" class="ml-auto text-[10px] text-blue-400 animate-pulse">◉ 分析中...</span>
+          <span v-else-if="store.progressLogs.some(l => l.type === 'success')" class="ml-auto text-[10px] text-emerald-400">✓ 完成</span>
+          <span v-if="store.currentPhase >= 0" class="text-[10px] text-slate-400 font-mono">Phase {{
+            store.currentPhase === 0 ? 'ORIGIN' : store.currentPhase === 1 ? 'INTENT' : store.currentPhase === 2 ? 'BLUE_PLAN' : store.currentPhase === 3 ? 'RED_PLAN' : 'EVALUATION'
+          }}</span>
+          <el-icon class="ml-auto cursor-pointer text-slate-400 hover:text-[#38bdf8]"
+            :title="logMode === 'docked' ? '转换为弹出窗口' : '收回到底部'"
+            @click="toggleLogPopup" @mousedown.stop>
+            <Expand v-if="logMode === 'docked'" />
+            <Fold v-else />
+          </el-icon>
+        </div>
+        <div ref="logContainer" class="flex-1 min-h-0 overflow-y-auto font-mono text-[11px] space-y-0.5 px-3 py-1">
         <div v-for="(logItem, idx) in store.progressLogs" :key="idx"
-          class="flex items-start gap-1.5 py-0.5 leading-relaxed"
+          class="py-0.5 leading-relaxed"
           :class="{
             'text-blue-400': logItem.type === 'info',
             'text-emerald-400': logItem.type === 'success',
             'text-red-400': logItem.type === 'error',
             'text-amber-400': logItem.type === 'warning',
           }">
-          <span class="text-slate-600 shrink-0 tabular-nums">{{ logItem.time }}</span>
-          <span>{{ logItem.text }}</span>
+          <div class="flex items-start gap-1.5">
+            <span class="text-slate-600 shrink-0 tabular-nums">{{ logItem.time }}</span>
+            <span class="flex-1 min-w-0"
+              :class="isExpandable(logItem)
+                ? 'underline decoration-slate-500/70 underline-offset-2 cursor-pointer hover:text-sky-300'
+                : ''"
+              @click="isExpandable(logItem) && toggleExpand(logItem)">{{ logItem.text }}</span>
+            <span v-if="isExpandable(logItem)"
+              class="shrink-0 cursor-pointer text-slate-500 hover:text-slate-200 px-0.5 opacity-60"
+              @click="toggleExpand(logItem)">{{ logItem.expanded ? '▾' : '▸' }}</span>
+          </div>
+          <pre v-if="isExpandable(logItem) && logItem.expanded"
+            class="whitespace-pre-wrap break-words text-slate-300 max-h-60 overflow-auto my-1 pl-4 border-l border-slate-700">{{ expandText(logItem) }}</pre>
         </div>
         <div v-if="store.progressLogs.length === 0" class="text-slate-600 text-center py-3">
           等待分析启动...
         </div>
       </div>
+      <div v-if="logMode === 'popup'" class="absolute right-[-1px] top-2 bottom-2 w-1.5 cursor-ew-resize" @mousedown="startLogResize('e', $event)"></div>
+      <div v-if="logMode === 'popup'" class="absolute bottom-[-1px] left-2 right-2 h-1.5 cursor-ns-resize" @mousedown="startLogResize('s', $event)"></div>
+      <div v-if="logMode === 'popup'" class="absolute right-[-2px] bottom-[-2px] w-3.5 h-3.5 cursor-nwse-resize" @mousedown="startLogResize('se', $event)"></div>
+      </div>
+      </Teleport>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { Graph } from "@antv/g6";
 import type { EdgeData, GraphData, NodeData } from "@antv/g6";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { storeToRefs } from "pinia";
-import { Document } from "@element-plus/icons-vue";
+import { Document, Expand, Fold } from "@element-plus/icons-vue";
 
 const store = useAnalysisStore();
 const { rawNodes, rawEdges, selectedNode, progressLogs } = storeToRefs(store);
@@ -82,6 +107,156 @@ watch(
     }
   }
 );
+
+function isExpandable(logItem: any): boolean {
+  return logItem?.kind === "dataflow" || logItem?.kind === "dispatch" || logItem?.kind === "agent-input";
+}
+
+function toggleExpand(logItem: any) {
+  logItem.expanded = !logItem.expanded;
+}
+
+/* ── 4.1.1 执行日志浮动窗口（docked=覆盖画布底部的浮动栏；popup=可拖拽/可调整大小的独立弹出窗口） ── */
+const logMode = ref<"docked" | "popup">("docked");
+const LOG_DOCK_H = 180;
+const POPUP_MIN_W = 360;
+const POPUP_MIN_H = 180;
+const popupPos = ref({ x: 48, y: 48 });
+const popupSize = ref({ w: 720, h: 300 });
+let logDragState:
+  | { mode: "move" | "e" | "s" | "se"; mx: number; my: number; x: number; y: number; w: number; h: number }
+  | null = null;
+
+const logPanelClass = computed(() =>
+  logMode.value === "docked"
+    ? "absolute inset-x-0 bottom-0 z-30 flex flex-col border-t border-[#1e2d42] bg-[#080d16]/95 shadow-[0_-6px_18px_rgba(0,0,0,0.45)]"
+    : "fixed z-[9999] flex flex-col rounded-md border border-[#2a3f5f] bg-[#080d16] shadow-2xl"
+);
+
+const logPanelStyle = computed(() =>
+  logMode.value === "docked"
+    ? { height: `${LOG_DOCK_H}px` }
+    : {
+        left: `${popupPos.value.x}px`,
+        top: `${popupPos.value.y}px`,
+        width: `${popupSize.value.w}px`,
+        height: `${popupSize.value.h}px`,
+      }
+);
+
+function toggleLogPopup() {
+  if (logMode.value === "docked") {
+    const r = containerRef.value?.getBoundingClientRect() ?? null;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const cw = r ? r.width : vw * 0.6;
+    const ch = r ? r.height : vh * 0.6;
+    const w = Math.min(Math.max(POPUP_MIN_W, Math.round(cw * 0.82)), 1200, vw - 32);
+    const h = Math.min(LOG_DOCK_H + 160, ch + 60, vh - 48);
+    popupSize.value = { w, h };
+    const x = r ? Math.max(8, Math.round(r.left + (r.width - w) / 2)) : Math.round((vw - w) / 2);
+    const y = r ? Math.max(8, Math.round(r.top + ch - h - 16)) : vh - h - 16;
+    popupPos.value = { x: Math.min(x, Math.max(8, vw - w - 8)), y: Math.min(y, Math.max(8, vh - h - 8)) };
+    logMode.value = "popup";
+  } else {
+    logMode.value = "docked";
+  }
+}
+
+function onLogDragMove(e: MouseEvent) {
+  if (!logDragState) return;
+  const s = logDragState;
+  const dx = e.clientX - s.mx;
+  const dy = e.clientY - s.my;
+  const cw = window.innerWidth;
+  const ch = window.innerHeight;
+  if (s.mode === "move") {
+    const loX = -(s.w - 80);
+    const hiX = Math.max(loX, cw - 80);
+    const loY = -(s.h - 32);
+    const hiY = Math.max(loY, ch - 32);
+    popupPos.value = {
+      x: Math.min(hiX, Math.max(loX, s.x + dx)),
+      y: Math.min(hiY, Math.max(loY, s.y + dy)),
+    };
+  } else {
+    const w = s.mode === "s" ? s.w : Math.max(POPUP_MIN_W, Math.min(Math.max(POPUP_MIN_W, cw - s.x), s.w + dx));
+    const h = s.mode === "e" ? s.h : Math.max(POPUP_MIN_H, Math.min(Math.max(POPUP_MIN_H, ch - s.y), s.h + dy));
+    popupSize.value = { w, h };
+  }
+}
+
+function stopLogDrag() {
+  logDragState = null;
+  window.removeEventListener("mousemove", onLogDragMove);
+  window.removeEventListener("mouseup", stopLogDrag);
+}
+
+function beginLogDrag(e: MouseEvent, mode: "move" | "e" | "s" | "se") {
+  if (logMode.value !== "popup") return;
+  e.preventDefault();
+  logDragState = {
+    mode,
+    mx: e.clientX,
+    my: e.clientY,
+    x: popupPos.value.x,
+    y: popupPos.value.y,
+    w: popupSize.value.w,
+    h: popupSize.value.h,
+  };
+  window.addEventListener("mousemove", onLogDragMove);
+  window.addEventListener("mouseup", stopLogDrag);
+}
+
+function startLogHeaderDrag(e: MouseEvent) {
+  const t = e.target as HTMLElement | null;
+  if (t && t.closest(".cursor-pointer, button")) return;
+  beginLogDrag(e, "move");
+}
+
+function startLogResize(mode: "e" | "s" | "se", e: MouseEvent) {
+  e.stopPropagation();
+  beginLogDrag(e, mode);
+}
+
+/* 完整方案/报告弹窗仅由右侧详情面板的方案名点击触发（画布节点点击易误操作，不再联动）；
+   画布节点点击只负责选中与切换右侧面板 */
+
+/** 日志行展开内容；超过 20000 字符截断并追加 …(已截断) */
+function expandText(logItem: any): string {
+  let content = "";
+  if (logItem?.kind === "dispatch") {
+    content = String(logItem.data?.sysPrompt ?? "");
+  } else if (logItem?.kind === "dataflow") {
+    const data = (logItem.data ?? {}) as { type?: string; payload?: any };
+    const payload = data.payload && typeof data.payload === "object" ? data.payload : {};
+    if (data.type === "TEXT" || data.type === "THINKING" || data.type === "AGENT_RESULT") {
+      content = String(payload?.text ?? "");
+    } else if (data.type === "TOOL_CALL") {
+      content = `[args]\n${payload?.args ?? ""}\n[result ${payload?.result?.state ?? ""}]\n${
+        payload?.result?.text ?? ""
+      }`;
+    } else {
+      content = JSON.stringify(payload, null, 2);
+    }
+  } else if (logItem?.kind === "agent-input") {
+    const d = (logItem.data ?? {}) as Record<string, any>;
+    let c = typeof d.prompt === "string" ? d.prompt : "";
+    if (typeof d.knowledgeGraph === "string" && d.knowledgeGraph.trim()) {
+      // prompt 本体已内嵌同一段知识图谱参考时不重复追加；仅当 prompt 缺失或被 8000 字截断导致 KG 段缺失时补充展示
+      if (!c.includes(d.knowledgeGraph)) {
+        const n =
+          typeof d.knowledgeGraphChars === "number" ? d.knowledgeGraphChars : d.knowledgeGraph.length;
+        c += (c ? "\n\n" : "") + `—— 知识图谱参考（${n} 字）——\n${d.knowledgeGraph}`;
+      }
+    }
+    content = c || JSON.stringify(d, null, 2);
+  }
+  if (content.length > 20000) {
+    content = content.substring(0, 20000) + "…(已截断)";
+  }
+  return content;
+}
 // Handlers removed as they are currently unused in the template
 async function doRenderGraph(fitView = false) {
   if (!graphInstance) return;
@@ -122,6 +297,54 @@ watch(
     }
   }
 );
+
+/* 节点标签(名字+摘要)：手动折行，最多 3 行，超出追加省略号。
+   按 labelWordWrapWidth 340 / 字号 10 估算行宽（CJK≈1 单位、ASCII≈0.55，每行 32 单位留余量）插入显式换行。
+   注意：G6 5.1.1 标签 Text 元素默认 maxLines=1，必须显式设 labelMaxLines=3，
+   否则 wordWrap（含手动 \n）会在首行后截断，导致只显示一行。 */
+function wrapLabelTo3Lines(text: string, unitsPerLine = 32, maxLines = 3): string {
+  let out = "";
+  let lineUnits = 0;
+  let lines = 1;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charAt(i);
+    const w = /[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef\u3000-\u303f\u2014\u2018\u2019\u201c\u201d]/.test(ch)
+      ? 1
+      : 0.55;
+    if (lineUnits + w > unitsPerLine) {
+      lines++;
+      if (lines > maxLines) return out + "…";
+      out += "\n";
+      lineUnits = w;
+    } else {
+      lineUnits += w;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+/* 标签文本：直接从 nodeData 读取完整摘要（90 字截断）。
+   不依赖 store 缓存的 node.text —— 其由 addNodeFromWorkflow 在页面加载时生成，
+   pinia 的 HMR 不会替换已注册 store 的 actions，旧版 30 字截断文字可能长期残留 */
+function buildLabelText(node: any): string {
+  const t = node.type;
+  const raw = String(node.text || "");
+  if (t === "Attack" || t === "Defense" || t === "Evaluation") {
+    let full = "";
+    try {
+      const nd = typeof node.nodeData === "string" ? JSON.parse(node.nodeData) : node.nodeData;
+      full = nd && typeof nd === "object" ? String((nd as any).summary ?? "") : "";
+    } catch {
+      full = "";
+    }
+    if (full) {
+      const m = raw.match(/^(蓝方方案|红方方案|校验评估)\d+\s/);
+      if (m) return wrapLabelTo3Lines(m[0] + full.slice(0, 90));
+    }
+  }
+  return wrapLabelTo3Lines(raw);
+}
 
 function buildNodeData(node: NodeData): NodeData {
   let strokeColor = "#d97706"; // 默认边框颜色
@@ -217,7 +440,7 @@ function buildNodeData(node: NodeData): NodeData {
       lineDash: isDashed ? [8, 4] : undefined,
       shadowColor: isSelected ? strokeColor : "rgba(0,0,0,0.4)",
       shadowBlur: isSelected ? 18 : 8,
-      labelText: String(node.text),
+      labelText: buildLabelText(node),
       labelFill: labelFillColor,
       labelFontSize: 10,
       labelFontFamily: "monospace, sans-serif",
@@ -225,7 +448,8 @@ function buildNodeData(node: NodeData): NodeData {
       labelTextAlign: "left" as const,
       labelTextBaseline: "top" as const,
       labelWordWrap: true,
-      labelMaxWidth: 340,
+      labelWordWrapWidth: 340,
+      labelMaxLines: 3,
       labelLineHeight: 15,
       labelOffsetX: 12,
       labelOffsetY: 10,

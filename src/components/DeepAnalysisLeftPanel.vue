@@ -5,6 +5,13 @@
       🧠 深度分析栏
     </h2>
 
+    <div v-if="analysisStore.workflowTitle"
+      class="shrink-0 mb-2 px-2 py-1 rounded border border-slate-700/50 bg-slate-800/40">
+      <div class="text-[10px] text-slate-400 truncate" :title="analysisStore.workflowTitle">
+        当前流程：{{ analysisStore.workflowTitle }}
+      </div>
+    </div>
+
     <div class="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
       <div v-for="(item, idx) in listData" :key="idx"
         class="p-2.5 bg-[#161c2e]/50 border border-slate-800/80 rounded hover:border-slate-700/80 transition-colors">
@@ -49,9 +56,17 @@
               class="px-2.5 py-0.5 bg-blue-950/60 border border-blue-500/30 text-blue-300 rounded text-[10px] transition-all cursor-not-allowed shadow-sm font-medium opacity-60">
               ⏳ 分析中
             </button>
-            <span v-else class="text-[10px] text-emerald-400 font-bold flex items-center gap-0.5">
+            <span v-else-if="isAlreadyLoaded(item) && isInCurrentFlow(item)" class="text-[10px] text-emerald-400 font-bold flex items-center gap-0.5">
               ✓ 已载入图谱
             </span>
+            <button v-else-if="analysisStore.workflowId" :disabled="isJoiningItem(item)" @click.stop="joinToCurrentFlow(item)"
+              class="px-2.5 py-0.5 bg-amber-950/60 hover:bg-amber-600/60 border border-amber-500/30 text-amber-400 hover:text-white rounded text-[10px] transition-all cursor-pointer shadow-sm font-medium disabled:cursor-not-allowed disabled:opacity-60">
+              {{ isJoiningItem(item) ? "⏳ 载入中" : "加入当前分析" }}
+            </button>
+            <button v-else :disabled="isJoiningItem(item)" @click.stop="loadHistoryAnomaly(item)"
+              class="px-2.5 py-0.5 bg-slate-800/80 hover:bg-slate-600/60 border border-slate-500/30 text-slate-300 hover:text-white rounded text-[10px] transition-all cursor-pointer shadow-sm font-medium disabled:cursor-not-allowed disabled:opacity-60">
+              {{ isJoiningItem(item) ? "⏳ 载入中" : "载入历史分析" }}
+            </button>
           </div>
         </div>
       </div>
@@ -74,6 +89,7 @@ const homestore = useHomeStore();
 const analysisStore = useAnalysisStore();
 const agentStore = useAgentStore();
 const analyzingAnomalyIds = ref<Set<string>>(new Set());
+const joiningAnomalyIds = ref<Set<string>>(new Set());
 const isAlreadyLoaded = (item: any) => {
   const itemId = item.anomalyId || item.id;
   return analysisStore.coveredAnomalyIds.includes(itemId);
@@ -81,6 +97,14 @@ const isAlreadyLoaded = (item: any) => {
 const isAnalyzingItem = (item: any) => {
   const itemId = item.anomalyId || item.id;
   return analyzingAnomalyIds.value.has(itemId);
+};
+const isInCurrentFlow = (item: any) => {
+  const itemId = item.anomalyId || item.id;
+  return !!itemId && analysisStore.anomalyIds.includes(itemId);
+};
+const isJoiningItem = (item: any) => {
+  const itemId = item.anomalyId || item.id;
+  return joiningAnomalyIds.value.has(itemId);
 };
 
 const startAnalysis = async (item: any) => {
@@ -106,6 +130,7 @@ const startAnalysis = async (item: any) => {
       const workflow = await addAnomaliesToWorkflow(analysisStore.workflowId as string, [anomalyId])
       analysisStore.anomalyIds = workflow.anomalyIds || [...analysisStore.anomalyIds, anomalyId]
       analysisStore.anomalyId = anomalyId
+      if (workflow.title) analysisStore.workflowTitle = workflow.title
       await confirmAnomaly(anomalyId)
       ElMessage.success("已添加异常到当前分析")
 
@@ -130,6 +155,43 @@ const startAnalysis = async (item: any) => {
     analyzingAnomalyIds.value.delete(anomalyId);
   }
 }
+
+// 1a-UX：已覆盖异常「加入当前分析」——不调 LLM，仅并入工作流并追加展示已有链路
+const joinToCurrentFlow = async (item: any) => {
+  const anomalyId = item.anomalyId || item.id;
+  if (!anomalyId || !analysisStore.workflowId || isJoiningItem(item)) return;
+  joiningAnomalyIds.value.add(anomalyId);
+  try {
+    await analysisStore.joinAnomalyToCurrentFlow(anomalyId);
+    ElMessage.success("已加入当前分析");
+  } catch (e: any) {
+    analysisStore.addLog(
+      `加入当前分析失败 (${anomalyId}): ${e?.message || "未知错误"}`,
+      "error"
+    );
+    ElMessage.error(`加入当前分析失败: ${e?.message}`);
+  } finally {
+    joiningAnomalyIds.value.delete(anomalyId);
+  }
+};
+
+// 1a-UX：已覆盖但无工作流的异常「载入历史分析」——仅画布展示，不建工作流
+const loadHistoryAnomaly = async (item: any) => {
+  const anomalyId = item.anomalyId || item.id;
+  if (!anomalyId || isJoiningItem(item)) return;
+  joiningAnomalyIds.value.add(anomalyId);
+  try {
+    await analysisStore.loadHistoryAnomaly(anomalyId);
+  } catch (e: any) {
+    analysisStore.addLog(
+      `载入历史分析失败 (${anomalyId}): ${e?.message || "未知错误"}`,
+      "error"
+    );
+    ElMessage.error(`载入历史分析失败: ${e?.message}`);
+  } finally {
+    joiningAnomalyIds.value.delete(anomalyId);
+  }
+};
 
 // 完美匹配图片中的 8 条核心看板模拟数据
 // const listData = ref([

@@ -23,7 +23,8 @@
         <span class="w-2 h-2 rounded-full bg-[#a855f7] shrink-0"></span>
         <span class="text-[11px] text-[#a855f7] font-semibold tracking-wider">当前选中 · 核验评估节点</span>
       </div>
-      <div class="text-white font-medium text-sm leading-relaxed tracking-wide">
+      <div class="text-white font-medium text-sm leading-relaxed tracking-wide cursor-pointer hover:text-purple-300"
+        title="点击查看完整报告" @click="openDetailDialog(analysisStore.selectedNode)">
         {{
           analysisStore.selectedNode.text || analysisStore.selectedNode.title || "未命名节点"
         }}
@@ -228,7 +229,8 @@
       class="border border-[#16253b] bg-[#111622]/60 rounded p-3 mb-4 mt-4">
       <div class="text-xs font-semibold text-gray-300 mb-3">红方方案排序</div>
       <div v-for="(n, i) in sortedEvalNodes" :key="n.id"
-        class="flex items-center justify-between py-1.5 px-2 rounded mb-1"
+        class="flex items-center justify-between py-1.5 px-2 rounded mb-1 cursor-pointer"
+        title="点击查看完整报告" @click="openDetailDialog(n)"
         :class="[
           n.isRecommended ? 'bg-[#22c55e]/10 border border-[#22c55e]/30' :
           n._selected ? 'bg-[#a855f7]/10 border border-[#a855f7]/30' :
@@ -253,15 +255,29 @@
         </span>
       </div>
     </div>
+
+    <AnalysisNodeDetailDialog v-model:visible="detailDialogVisible" :node="detailDialogNode" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Document } from "@element-plus/icons-vue";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { useComparisonStore } from "@/store/modules/comparisionStore";
 import DetailSectionAccordion from "@/components/DetailSectionAccordion.vue";
+import AnalysisNodeDetailDialog from "@/components/analysisNodeDetailDialog.vue";
+
+/* 点击方案名/排序行 → 完整方案弹窗（与画布节点名点击同一组件） */
+const detailDialogVisible = ref(false);
+const detailDialogNode = ref<any>(null);
+
+function openDetailDialog(node: any) {
+  const t = node?.type;
+  if (t !== "Attack" && t !== "Defense" && t !== "Evaluation") return;
+  detailDialogNode.value = node;
+  detailDialogVisible.value = true;
+}
 
 const analysisStore = useAnalysisStore();
 const comparisonStore = useComparisonStore();

@@ -24,7 +24,7 @@ export interface AnomalyEvent {
   source?: string
   status?: 'POTENTIAL' | 'CONFIRMED' | 'REJECTED'
   /** 关联资产 ID：轨迹类 = sigint_latest.asset_id；article 类 = articles.id */
-  trajectoryId?: string
+  assetId?: string
   agentResult?: string
   executionId?: string
   confirmedBy?: string
@@ -33,7 +33,7 @@ export interface AnomalyEvent {
   updatedAt?: string
   duration?: string
   /** 关联数据快照：轨迹类 = 轨迹点数组；article 类 = 文章 JSON（字符串，需 JSON.parse） */
-  trajectoryData?: Record<string, any> | string
+  assetData?: Record<string, any> | string
   evidenceJson?: Record<string, any>
   /** 详情接口联查 sigint_latest 得到的目标最新快照（列表接口不返回） */
   sigintData?: SigintData | null

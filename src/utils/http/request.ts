@@ -174,7 +174,7 @@ class HttpRequest {
     }
 
     try {
-      return await this.axiosInstance.request<unknown, T>(axiosConfig);
+      return (await this.axiosInstance.request<unknown, T>(axiosConfig)) as T;
     } catch (error) {
       return Promise.reject(error);
     } finally {

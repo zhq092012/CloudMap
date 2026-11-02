@@ -169,7 +169,7 @@ export interface ExecutionStatusResponse {
 }
 
 export interface AnalysisSSEEvent {
-  eventType: 'dispatch' | 'log' | 'done' | 'error'
+  eventType: 'dispatch' | 'log' | 'done' | 'error' | 'dataflow' | 'agent-input'
   data: Record<string, any>
 }
 
@@ -237,22 +237,34 @@ export function startPhaseAnalysisWithSSE(
               currentData = line.substring(5).trim()
             } else if (line === '' && currentData) {
               // Empty line = end of SSE frame
-              try {
-                const data = JSON.parse(currentData)
-                onEvent({
-                  eventType: (currentEventType as any) || 'log',
-                  data,
-                })
+              if (
+                currentEventType &&
+                !['dispatch', 'log', 'done', 'error', 'dataflow', 'agent-input'].includes(currentEventType)
+              ) {
+                // Unknown event type: skip with a warning, never crash the phase
+                console.warn('[deep-analysis SSE] skip unknown event type:', currentEventType)
+              } else {
+                try {
+                  const data = JSON.parse(currentData)
+                  onEvent({
+                    eventType: (currentEventType as any) || 'log',
+                    data,
+                  })
 
-                // Check for terminal events
-                if (data.status === 'COMPLETED' || data.status === 'FAILED') {
-                  done = true
+                  // Check for terminal events
+                  if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+                    done = true
+                  }
+                  if (currentEventType === 'error') {
+                    done = true
+                  }
+                } catch (e: any) {
+                  // Corrupt data frame: skip with a warning, never crash the phase
+                  console.warn(
+                    '[deep-analysis SSE] skip corrupt data frame (JSON parse failed):',
+                    e?.message
+                  )
                 }
-                if (currentEventType === 'error') {
-                  done = true
-                }
-              } catch {
-                /* skip invalid JSON */
               }
               currentEventType = ''
               currentData = ''

@@ -31,3 +31,4 @@ components.d.ts
 public/
 .env
 .env.production
+.env.test
