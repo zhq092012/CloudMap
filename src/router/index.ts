@@ -19,6 +19,11 @@ const routes = [
         component: () => import("@/pages/Home.vue"),
       },
       {
+        path: "anomaly",
+        name: "Anomaly",
+        component: () => import("@/pages/Home.vue"),
+      },
+      {
         path: "deepanalysis",
         name: "DeepAnalysis",
         component: () => import("@/pages/DeepAnalysis.vue"),

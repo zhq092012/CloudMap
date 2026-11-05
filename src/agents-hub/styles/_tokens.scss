@@ -1,0 +1,86 @@
+// ============================================================
+// 智能体中心（agents-hub）统一视觉 token
+// 与 src/agents-hub/AgentsHub.vue、主站 src/style.css 同一套：
+// 石墨底 + 蓝主色 + 低饱和中性文本
+// 用法：@use "../styles/tokens" as *;   （pages/ 下为 ../styles/tokens）
+// ============================================================
+
+// ---- 底 / 面 ----
+$bg-root: #0a0e17;
+$bg-panel: #1a2332;
+$bg-sunken: #111827;
+$bg-raised: #253141;
+$bg-elevated: #1b2637;
+
+// ---- 描边 ----
+$border: #2d3a4d;
+$border-strong: #3d4d64;
+
+// ---- 文本 ----
+$text: #e5e7eb;
+$text-2: #cbd5e1;
+$text-3: #9ca3af;
+$text-4: #6b7280;
+
+// ---- 主色 ----
+$accent: #3b82f6;
+$accent-deep: #2563eb;
+$accent-dark: #1d4ed8;
+$accent-text: #93c5fd;
+$accent-soft: rgba(59, 130, 246, 0.12);
+$accent-line: rgba(59, 130, 246, 0.45);
+
+// ---- 语义色 ----
+$green: #10b981;
+$green-soft: rgba(16, 185, 129, 0.12);
+$green-line: rgba(16, 185, 129, 0.35);
+$orange: #f59e0b;
+$orange-text: #fbbf24; // 深底上的警示文本色，比 $orange 更亮
+$orange-soft: rgba(245, 158, 11, 0.12);
+$orange-line: rgba(245, 158, 11, 0.35);
+$red: #ef4444;
+$red-soft: rgba(239, 68, 68, 0.12);
+$red-line: rgba(239, 68, 68, 0.4);
+
+// ---- 尺寸 ----
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$ease: 0.15s ease;
+
+// 渐变主按钮底
+@mixin accent-gradient {
+  background: linear-gradient(135deg, $accent 0%, $accent-deep 100%);
+}
+
+// 细滚动条
+@mixin thin-scroll($size: 8px) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 77, 100, 0.9) transparent;
+
+  &::-webkit-scrollbar {
+    width: $size;
+    height: $size;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: $size * 0.5;
+    background: rgba(45, 58, 77, 0.9);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: $border-strong;
+  }
+}
+
+// 卡片
+@mixin card {
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  background: $bg-panel;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

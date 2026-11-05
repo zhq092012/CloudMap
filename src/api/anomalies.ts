@@ -22,7 +22,7 @@ export interface AnomalyEvent {
   location?: string
   relatedEntities?: string
   source?: string
-  status?: 'POTENTIAL' | 'CONFIRMED' | 'REJECTED'
+  status?: 'POTENTIAL' | 'CONFIRMED' | 'ANALYSIS' | 'REJECTED'
   /** 关联资产 ID：轨迹类 = sigint_latest.asset_id；article 类 = articles.id */
   assetId?: string
   agentResult?: string
@@ -76,6 +76,16 @@ export async function confirmAnomaly(
 
 export async function rejectAnomaly(anomalyId: string): Promise<AnomalyEvent> {
   return requestAPI.post(`/api/v1/anomalies/${anomalyId}/reject`)
+}
+
+/** 批量确认：一次提交多个异常事件 ID（POST /api/v1/anomalies/confirm，body: { anomalyIds: [] }） */
+export async function confirmAnomalies(anomalyIds: string[]): Promise<unknown> {
+  return requestAPI.post('/api/v1/anomalies/confirm', { anomalyIds })
+}
+
+/** 批量置为分析中：POST /api/v1/anomalies/analyze，body: { anomalyIds: [] } */
+export async function analyzeAnomalies(anomalyIds: string[]): Promise<unknown> {
+  return requestAPI.post('/api/v1/anomalies/analyze', { anomalyIds })
 }
 
 export async function triggerDeviationCheck(): Promise<{ success: boolean; message: string }> {

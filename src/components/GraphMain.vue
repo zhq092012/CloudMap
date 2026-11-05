@@ -482,7 +482,7 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .graph-wrapper {
   overflow: hidden;
-  color: #e2e8f0;
+  color: #e5e7eb;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -502,22 +502,23 @@ onBeforeUnmount(() => {
   min-width: 200px;
   max-width: 280px;
   padding: 10px 14px;
-  background: rgba(11, 15, 26, 0.85);
-  border: 1px solid #c1a465;
-  border-radius: 6px;
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid #2d3a4d;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   z-index: 10;
 
   .info-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #f8fafc;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #e5e7eb;
     word-break: break-all;
   }
 
   .info-type {
     margin-top: 4px;
-    font-size: 12px;
-    color: #f0d9a8;
+    font-size: 11.5px;
+    color: #93c5fd;
   }
 
   .info-breaking {
@@ -529,7 +530,7 @@ onBeforeUnmount(() => {
   .info-hint {
     margin-top: 6px;
     font-size: 11px;
-    color: #94a3b8;
+    color: #9ca3af;
   }
 }
 
@@ -539,8 +540,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  color: #94a3b8;
+  font-size: 13px;
+  color: #9ca3af;
   z-index: 5;
   text-align: center;
   padding: 0 24px;
@@ -556,15 +557,15 @@ onBeforeUnmount(() => {
   font-size: 13px;
   letter-spacing: 0.5px;
   color: #94a3b8;
-  background: rgba(11, 15, 26, 0.5);
+  background: rgba(17, 24, 39, 0.55);
   z-index: 6;
   pointer-events: none;
 
   .graph-loading-spinner {
     width: 14px;
     height: 14px;
-    border: 2px solid rgba(193, 164, 101, 0.35);
-    border-top-color: #c1a465;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-top-color: #3b82f6;
     border-radius: 50%;
     animation: graph-spin 0.8s linear infinite;
   }

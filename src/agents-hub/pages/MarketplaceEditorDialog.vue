@@ -155,16 +155,16 @@ async function handleSave() {
 <template>
   <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60" @click="emit('close')">
     <div
-      class="bg-[#0f1927] border border-[#1e324f] rounded-xl p-6 w-[90%] max-w-[560px] max-h-[85vh] overflow-y-auto shadow-2xl"
+      class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-6 w-[90%] max-w-[560px] max-h-[85vh] overflow-y-auto shadow-2xl"
       @click.stop
     >
-      <h3 class="m-0 mb-4 text-[1.05rem] font-bold text-white">
+      <h3 class="m-0 mb-4 text-[14px] font-bold text-white">
         {{ isEdit ? 'Edit marketplace' : 'Add marketplace' }}
       </h3>
 
       <div class="flex flex-col gap-3.5">
         <div>
-          <label class="block mb-1 text-[0.78rem] font-semibold uppercase tracking-wider text-[#708aa6]"
+          <label class="block mb-1 text-[11.5px] font-semibold uppercase tracking-wider text-[#9ca3af]"
             >ID</label
           >
           <input
@@ -172,21 +172,21 @@ async function handleSave() {
             v-model="id"
             :disabled="isEdit"
             placeholder="team-skills-git"
-            class="w-full px-2.5 py-2 bg-[#0b131f] border border-[#1e324f] rounded-lg text-sm text-[#a3b8cc] placeholder-[#526e8c] focus:outline-none focus:border-[#2b5384] disabled:bg-[#0b131f]/50 disabled:text-[#526e8c]"
+            class="w-full px-2.5 py-2 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[12.5px] text-[#cbd5e1] placeholder-[#6b7280] focus:outline-none focus:border-[#3d4d64] disabled:bg-[#111827]/50 disabled:text-[#6b7280]"
           />
-          <div v-if="!isEdit" class="text-[0.75rem] text-[#526e8c] mt-1">
+          <div v-if="!isEdit" class="text-[11px] text-[#6b7280] mt-1">
             Stable identifier. Cannot be changed after creation.
           </div>
         </div>
 
         <div>
-          <label class="block mb-1 text-[0.78rem] font-semibold uppercase tracking-wider text-[#708aa6]"
+          <label class="block mb-1 text-[11.5px] font-semibold uppercase tracking-wider text-[#9ca3af]"
             >Type</label
           >
           <select
             v-model="type"
             :disabled="isEdit"
-            class="w-full px-2.5 py-2 bg-[#0b131f] border border-[#1e324f] rounded-lg text-sm text-[#a3b8cc] focus:outline-none focus:border-[#2b5384] disabled:bg-[#0b131f]/50 disabled:text-[#526e8c]"
+            class="w-full px-2.5 py-2 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[12.5px] text-[#cbd5e1] focus:outline-none focus:border-[#3d4d64] disabled:bg-[#111827]/50 disabled:text-[#6b7280]"
           >
             <option value="git">git</option>
             <option value="nacos">nacos</option>
@@ -194,7 +194,7 @@ async function handleSave() {
         </div>
 
         <div v-for="f in fields" :key="f.key">
-          <label class="block mb-1 text-[0.78rem] font-semibold uppercase tracking-wider text-[#708aa6]">
+          <label class="block mb-1 text-[11.5px] font-semibold uppercase tracking-wider text-[#9ca3af]">
             {{ f.label }}<span v-if="f.required" class="text-[#ef4444] ml-1">*</span>
           </label>
           <input
@@ -202,12 +202,12 @@ async function handleSave() {
             v-model="props_[f.key]"
             :placeholder="f.placeholder"
             autocomplete="off"
-            class="w-full px-2.5 py-2 bg-[#0b131f] border border-[#1e324f] rounded-lg text-sm text-[#a3b8cc] placeholder-[#526e8c] focus:outline-none focus:border-[#2b5384]"
+            class="w-full px-2.5 py-2 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[12.5px] text-[#cbd5e1] placeholder-[#6b7280] focus:outline-none focus:border-[#3d4d64]"
           />
-          <div v-if="f.hint" class="text-[0.75rem] text-[#526e8c] mt-1">{{ f.hint }}</div>
+          <div v-if="f.hint" class="text-[11px] text-[#6b7280] mt-1">{{ f.hint }}</div>
           <div
             v-if="f.secret && isEdit"
-            class="text-[0.75rem] text-[#526e8c] mt-1"
+            class="text-[11px] text-[#6b7280] mt-1"
           >
             Leave blank to keep the previously saved value (current value is never shown).
           </div>
@@ -215,10 +215,10 @@ async function handleSave() {
 
         <div
           v-if="testResult"
-          class="p-2.5 rounded-lg text-[0.85rem]"
+          class="p-2.5 rounded-lg text-[12.5px]"
           :class="
             testResult.ok
-              ? 'bg-[#00ffc4]/10 border border-[#00ffc4]/40 text-[#00ffc4]'
+              ? 'bg-[#10b981]/10 border border-[#10b981]/40 text-[#10b981]'
               : 'bg-[#ef4444]/10 border border-[#ef4444]/40 text-[#ef4444]'
           "
         >
@@ -231,7 +231,7 @@ async function handleSave() {
 
         <div
           v-if="error"
-          class="p-2.5 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/40 text-[#ef4444] text-[0.85rem]"
+          class="p-2.5 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/40 text-[#ef4444] text-[12.5px]"
         >
           {{ error }}
         </div>
@@ -240,7 +240,7 @@ async function handleSave() {
       <div class="flex justify-between items-center mt-5 gap-2">
         <button
           :disabled="testing || saving"
-          class="px-4 py-2 rounded-lg border border-[#1e324f] bg-[#0b131f] text-[#a3b8cc] text-[0.88rem] font-medium cursor-pointer hover:border-[#2b5384] disabled:opacity-50"
+          class="px-4 py-2 rounded-lg border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] text-[13px] font-medium cursor-pointer hover:border-[#3d4d64] disabled:opacity-50"
           @click="handleTest"
         >
           {{ testing ? 'Testing…' : 'Test connection' }}
@@ -248,14 +248,14 @@ async function handleSave() {
         <div class="flex gap-2">
           <button
             :disabled="saving"
-            class="px-4 py-2 rounded-lg border border-[#1e324f] bg-[#0b131f] text-[#a3b8cc] text-[0.88rem] font-medium cursor-pointer hover:border-[#2b5384] disabled:opacity-50"
+            class="px-4 py-2 rounded-lg border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] text-[13px] font-medium cursor-pointer hover:border-[#3d4d64] disabled:opacity-50"
             @click="emit('close')"
           >
             Cancel
           </button>
           <button
             :disabled="saving || testing"
-            class="px-4 py-2 rounded-lg border border-[#3b82f6] bg-[#3b82f6] text-white text-[0.88rem] font-semibold cursor-pointer hover:bg-[#2b5384] disabled:opacity-60"
+            class="px-4 py-2 rounded-lg border border-[#3b82f6] bg-[#3b82f6] text-white text-[13px] font-semibold cursor-pointer hover:bg-[#3d4d64] disabled:opacity-60"
             @click="handleSave"
           >
             {{ saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add' }}

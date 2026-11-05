@@ -1,69 +1,50 @@
 <template>
   <HubAuthGate>
-    <div class="h-full flex flex-col bg-[#060c14] text-[#a3b8cc] min-h-0">
-      <div v-if="!id" class="p-8 text-[#708aa6]">缺少智能体 id。</div>
+    <div class="agent-shell">
+      <div v-if="!id" class="agent-missing">缺少智能体 id。</div>
 
       <!-- header -->
-      <div v-else class="px-8 pt-5 pb-0 border-b border-[#1a2b42] bg-[#0b131f]/60 flex-shrink-0">
-        <div class="flex items-center gap-3.5 mb-4 flex-wrap">
-          <span class="w-11 h-11 rounded-xl flex items-center justify-center text-2xl border border-[#2b5384]"
-            style="background: linear-gradient(135deg,#0b2030 0%,#102a44 100%);">🤖</span>
-          <div class="flex flex-col gap-0.5 min-w-0">
-            <span class="text-xl font-bold text-white tracking-tight">{{ agent?.name ?? id }}</span>
-            <span v-if="agent?.description" class="text-[13px] text-[#708aa6] truncate max-w-[520px]">{{ agent.description }}</span>
+      <header v-else class="agent-head">
+        <div class="agent-head-main">
+          <span class="agent-avatar">🤖</span>
+          <div class="agent-identity">
+            <span class="agent-name">{{ agent?.name ?? id }}</span>
+            <span v-if="agent?.description" class="agent-desc">{{ agent.description }}</span>
           </div>
 
-          <span v-if="agent" class="ml-1.5 px-3 py-1 rounded-full text-xs font-semibold border"
-            :class="agent.scope === 'global'
-              ? 'bg-[#0b1e2e] text-[#7fd4ff] border-[#1d3a57]'
-              : 'bg-[#0f1927] text-[#708aa6] border-[#1e324f]'">
+          <span v-if="agent" class="agent-chip" :class="agent.scope === 'global' ? 'is-accent' : 'is-muted'">
             {{ agent.scope }}
           </span>
-          <span v-if="tier && tier !== 'EDIT' && agent && !isGlobal"
-            class="px-2.5 py-1 rounded-full text-xs font-semibold border"
-            :class="tier === 'RUN' ? 'bg-[#0b2e1f] text-[#00ffc4] border-[#1d4a38]' : 'bg-[#2e240b] text-[#fbbf24] border-[#4a3a1d]'">
+          <span v-if="tier && tier !== 'EDIT' && agent && !isGlobal" class="agent-chip"
+            :class="tier === 'RUN' ? 'is-ok' : 'is-warn'">
             {{ tier === 'RUN' ? '共享 · 可运行' : '🔁 仅可克隆' }}
           </span>
 
-          <span class="flex-1"></span>
-          <button @click="close"
-            title="关闭并返回智能体中心"
-            class="w-9 h-9 rounded-lg border border-[#1e324f] text-[#708aa6] hover:text-white hover:border-[#2b5384] hover:bg-[#10243a] flex items-center justify-center text-lg leading-none transition-colors flex-shrink-0">
-            ✕
-          </button>
-          <button v-if="canEdit" @click="shareOpen = true"
-            class="px-3.5 py-1.5 rounded-lg border border-[#2b5384] text-[#7fd4ff] hover:bg-[#10243a] text-sm font-semibold transition-colors">
-            ↗ 共享
-          </button>
-          <span v-if="err" class="ml-3 text-[#ef4444] text-sm">{{ err }}</span>
+          <span class="agent-spacer"></span>
+          <button @click="close" title="关闭并返回智能体中心" class="agent-icon-btn">✕</button>
+          <button v-if="canEdit" @click="shareOpen = true" class="agent-soft-btn">↗ 共享</button>
+          <span v-if="err" class="agent-err">{{ err }}</span>
         </div>
 
         <!-- tabs -->
-        <div v-if="!isCloneOnly" class="flex gap-1 overflow-x-auto">
-          <button v-for="t in visibleTabs" :key="t.key" @click="go(t)"
-            class="flex items-center gap-2 px-4 py-3 border-b-2 transition-colors text-sm font-medium"
-            :class="activeKey === t.key
-              ? 'text-white border-[#00f3ff]'
-              : 'text-[#708aa6] border-transparent hover:text-[#a3b8cc]'">
-            <span>{{ t.icon }}</span> {{ t.label }}
+        <nav v-if="!isCloneOnly" class="agent-tabs">
+          <button v-for="t in visibleTabs" :key="t.key" @click="go(t)" class="agent-tab"
+            :class="{ 'is-active': activeKey === t.key }">
+            <span class="agent-tab-icon">{{ t.icon }}</span>{{ t.label }}
           </button>
-        </div>
-      </div>
+        </nav>
+      </header>
 
       <!-- body -->
-      <div v-if="id" class="flex-1 min-h-0 overflow-auto bg-[#060c14]">
-        <div v-if="isCloneOnly" class="p-12">
-          <div class="bg-[#0f1927] border border-[#4a3a1d] rounded-xl p-7 max-w-2xl"
-            style="box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
-            <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#2e240b] text-[#fbbf24] border border-[#4a3a1d] text-xs font-semibold mb-3">🔁 仅可克隆</span>
-            <h2 class="text-2xl font-bold text-white m-0 mb-2">{{ agent?.name }}</h2>
-            <p class="text-[#708aa6] text-sm leading-relaxed m-0 mb-4">
+      <div v-if="id" class="agent-body">
+        <div v-if="isCloneOnly" class="agent-clone-wrap">
+          <div class="agent-clone-card">
+            <span class="agent-chip is-warn agent-clone-tag">🔁 仅可克隆</span>
+            <h2 class="agent-clone-title">{{ agent?.name }}</h2>
+            <p class="agent-clone-text">
               {{ agent?.description || '拥有者已授予你克隆权限。将此智能体复制到你的命名空间后即可运行或编辑。' }}
             </p>
-            <button @click="cloneAndGo" class="px-5 py-2.5 rounded-lg font-semibold text-white text-sm transition-all"
-              style="background: linear-gradient(135deg,#00f3ff 0%,#3b82f6 100%); box-shadow: 0 2px 6px rgba(0,243,255,0.35);">
-              🔁 克隆智能体
-            </button>
+            <button @click="cloneAndGo" class="agent-primary-btn">🔁 克隆智能体</button>
           </div>
         </div>
         <router-view v-else />
@@ -151,3 +132,269 @@ async function cloneAndGo() {
   }
 }
 </script>
+
+<style scoped lang="scss">
+@use "./styles/tokens" as *;
+
+.agent-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: $bg-root;
+  color: $text-2;
+}
+
+.agent-missing {
+  padding: 32px;
+  font-size: 13px;
+  color: $text-3;
+}
+
+/* ---------- 头部 ---------- */
+.agent-head {
+  flex: none;
+  padding: 18px 30px 0;
+  border-bottom: 1px solid $border;
+  background: linear-gradient(180deg, rgba(26, 35, 50, 0.85) 0%, rgba(17, 24, 39, 0.35) 100%);
+}
+
+.agent-head-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.agent-avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-lg;
+  font-size: 18px;
+  line-height: 1;
+  background: linear-gradient(135deg, $accent 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.28);
+}
+
+.agent-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.agent-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  line-height: 1.25;
+  color: $text;
+}
+
+.agent-desc {
+  max-width: 520px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: $text-3;
+}
+
+.agent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 10px;
+  border: 1px solid $border;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.7;
+  white-space: nowrap;
+
+  &.is-muted {
+    background: $bg-panel;
+    color: $text-3;
+  }
+
+  &.is-accent {
+    background: $accent-soft;
+    border-color: $accent-line;
+    color: $accent-text;
+  }
+
+  &.is-ok {
+    background: $green-soft;
+    border-color: $green-line;
+    color: $green;
+  }
+
+  &.is-warn {
+    background: $orange-soft;
+    border-color: $orange-line;
+    color: $orange;
+  }
+}
+
+.agent-spacer {
+  flex: 1;
+}
+
+.agent-icon-btn {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  background: transparent;
+  color: $text-3;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover {
+    color: $text;
+    border-color: $border-strong;
+    background: $accent-soft;
+  }
+}
+
+.agent-soft-btn {
+  flex: none;
+  height: 32px;
+  padding: 0 13px;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  background: transparent;
+  color: $text-2;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover {
+    color: $accent-text;
+    border-color: $accent-line;
+    background: $accent-soft;
+  }
+}
+
+.agent-err {
+  margin-left: 4px;
+  font-size: 12.5px;
+  color: $red;
+}
+
+/* ---------- 页签 ---------- */
+.agent-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  @include thin-scroll(6px);
+
+  &::-webkit-scrollbar {
+    height: 0;
+  }
+}
+
+.agent-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: $text-3;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover {
+    color: $text;
+    background: rgba(59, 130, 246, 0.06);
+  }
+
+  &.is-active {
+    color: $accent-text;
+    border-bottom-color: $accent;
+    font-weight: 600;
+  }
+}
+
+.agent-tab-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ---------- 主体 ---------- */
+.agent-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: $bg-root;
+}
+
+.agent-clone-wrap {
+  padding: 44px 34px;
+}
+
+.agent-clone-card {
+  @include card;
+  max-width: 620px;
+  padding: 26px 28px;
+  border-color: $orange-line;
+}
+
+.agent-clone-tag {
+  margin-bottom: 12px;
+}
+
+.agent-clone-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: $text;
+}
+
+.agent-clone-text {
+  margin: 0 0 18px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: $text-3;
+}
+
+.agent-primary-btn {
+  height: 34px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: $radius-md;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  @include accent-gradient;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.32);
+  transition: box-shadow $ease;
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.42);
+  }
+}
+</style>

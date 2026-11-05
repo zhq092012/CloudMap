@@ -12,10 +12,13 @@ import AiDescribeForm from './AiDescribeForm.vue';
 
 type Mode = 'blank' | 'template' | 'ai';
 
+// 类型取值沿用后端既有枚举（scheduling / simulation / functional），新增执行类与校验类
 const CATEGORIES = [
-  { value: 'simulation', label: '角色模拟型' },
-  { value: 'functional', label: '功能型' },
-  { value: 'scheduling', label: '调度型' },
+  { value: 'scheduling', label: '调度类' },
+  { value: 'simulation', label: '角色类' },
+  { value: 'executor', label: '执行类' },
+  { value: 'validator', label: '校验类' },
+  { value: 'functional', label: '仿真类' },
 ];
 
 const TAG_OPTIONS = [
@@ -119,52 +122,52 @@ function cancel() {
 }
 
 const inputClass =
-  'w-full box-border px-[14px] py-[11px] bg-[#060c14] border border-[#1e324f] rounded-[9px] text-[#a3b8cc] text-[0.95rem] outline-none focus:border-[#2b5384] placeholder:text-[#526e8c]';
-const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
+  'w-full box-border px-[14px] py-[11px] bg-[#0a0e17] border border-[#2d3a4d] rounded-md text-[#cbd5e1] text-[13px] outline-none focus:border-[#3d4d64] placeholder:text-[#6b7280]';
+const labelClass = 'block text-[13px] text-[#cbd5e1] mb-2 font-medium';
 </script>
 
 <template>
   <div class="relative min-h-full flex flex-col items-center px-[40px] py-[36px]">
     <!-- 关闭按钮（右上角） -->
     <button @click="cancel" title="关闭并返回智能体中心"
-      class="absolute top-[20px] right-[24px] w-9 h-9 rounded-lg border border-[#1e324f] text-[#708aa6] hover:text-white hover:border-[#2b5384] hover:bg-[#10243a] flex items-center justify-center text-lg leading-none transition-colors flex-shrink-0">
+      class="absolute top-[20px] right-[24px] w-9 h-9 rounded-lg border border-[#2d3a4d] text-[#9ca3af] hover:text-white hover:border-[#3d4d64] hover:bg-[#253141] flex items-center justify-center text-[15px] leading-none transition-colors flex-shrink-0">
       ✕
     </button>
 
     <div class="w-full max-w-[880px]">
-      <h1 class="m-0 mb-6 text-[1.6rem] font-bold text-white tracking-[-0.02em]">新建智能体</h1>
+      <h1 class="m-0 mb-6 text-[22px] font-bold text-white tracking-[-0.02em]">新建智能体</h1>
 
     <!-- Mode tabs -->
-    <div class="flex gap-1 border-b border-[#1e324f] mb-7">
+    <div class="flex gap-1 border-b border-[#2d3a4d] mb-7">
       <button
-        class="bg-transparent border-none border-b-2 px-5 py-3 text-[0.95rem] cursor-pointer -mb-px"
+        class="bg-transparent border-0 border-b-2 px-5 py-3 text-[13px] cursor-pointer -mb-px"
         :class="
           mode === 'blank'
-            ? 'text-white border-b-[#00f3ff] font-semibold'
-            : 'text-[#708aa6] border-b-transparent font-medium hover:text-[#a3b8cc]'
+            ? 'text-white border-b-[#3b82f6] font-semibold'
+            : 'text-[#9ca3af] border-b-transparent font-medium hover:text-[#cbd5e1]'
         "
         @click="setMode('blank')"
       >
         空白模板
       </button>
       <button
-        class="bg-transparent border-none border-b-2 px-5 py-3 text-[0.95rem] cursor-pointer -mb-px"
+        class="bg-transparent border-0 border-b-2 px-5 py-3 text-[13px] cursor-pointer -mb-px"
         :class="
           mode === 'template'
-            ? 'text-white border-b-[#00f3ff] font-semibold'
-            : 'text-[#708aa6] border-b-transparent font-medium hover:text-[#a3b8cc]'
+            ? 'text-white border-b-[#3b82f6] font-semibold'
+            : 'text-[#9ca3af] border-b-transparent font-medium hover:text-[#cbd5e1]'
         "
         @click="setMode('template')"
       >
         从模板创建
       </button>
       <button
-        class="bg-transparent border-none border-b-2 px-5 py-3 text-[0.95rem] -mb-px"
+        class="bg-transparent border-0 border-b-2 px-5 py-3 text-[13px] -mb-px"
         :class="[
           mode === 'ai'
-            ? 'text-white border-b-[#00f3ff] font-semibold'
-            : 'text-[#708aa6] border-b-transparent font-medium',
-          aiAvailable ? 'cursor-pointer hover:text-[#a3b8cc]' : 'opacity-50 cursor-not-allowed',
+            ? 'text-white border-b-[#3b82f6] font-semibold'
+            : 'text-[#9ca3af] border-b-transparent font-medium',
+          aiAvailable ? 'cursor-pointer hover:text-[#cbd5e1]' : 'opacity-50 cursor-not-allowed',
         ]"
         :disabled="!aiAvailable"
         :title="aiAvailable ? '' : '配置 DashScope 后可用'"
@@ -175,13 +178,13 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
     </div>
 
     <!-- Card -->
-    <div class="bg-[#0f1927] border border-[#1e324f] rounded-[14px] px-[30px] py-7">
-      <div v-if="mode === 'blank'" class="text-[0.88rem] text-[#708aa6] mb-5 leading-[1.55]">
+    <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg px-[30px] py-7">
+      <div v-if="mode === 'blank'" class="text-[13px] text-[#9ca3af] mb-5 leading-[1.55]">
         从干净的脚手架开始 —— AGENTS.md、tools.json 以及一个示例技能。
       </div>
 
       <template v-else-if="mode === 'template'">
-        <div class="text-[0.88rem] text-[#708aa6] mb-5 leading-[1.55]">
+        <div class="text-[13px] text-[#9ca3af] mb-5 leading-[1.55]">
           选择一个起始模板；下方仍可自定义身份信息。
         </div>
         <div class="mb-6">
@@ -190,7 +193,7 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
       </template>
 
       <template v-else-if="mode === 'ai'">
-        <div class="text-[0.88rem] text-[#708aa6] mb-5 leading-[1.55]">
+        <div class="text-[13px] text-[#9ca3af] mb-5 leading-[1.55]">
           描述你的需求，模型将建议名称、系统提示词、工具与技能。
         </div>
         <div class="mb-6">
@@ -218,9 +221,9 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
           :class="inputClass"
           placeholder="~/.agentscope/builder/workspace/users/<userId>/agents/<agentId>"
         />
-        <div class="text-[0.8rem] text-[#526e8c] mt-[6px] leading-[1.5]">
+        <div class="text-[12px] text-[#6b7280] mt-[6px] leading-[1.5]">
           留空则使用默认的按用户路径
-          <code class="px-[5px] py-[1px] rounded bg-[#060c14] text-[#708aa6] font-mono text-[0.76rem]">
+          <code class="px-[5px] py-[1px] rounded bg-[#0a0e17] text-[#9ca3af] font-mono text-[11px]">
             ~/.agentscope/builder/workspace/users/&lt;userId&gt;/agents/&lt;agentId&gt;
           </code>
           。绝对路径按原样使用。仅在创建时可设置。
@@ -232,7 +235,7 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
         <label :class="labelClass">系统提示词</label>
         <textarea
           v-model="sysPrompt"
-          class="w-full box-border px-[14px] py-3 bg-[#060c14] border border-[#1e324f] rounded-[9px] text-[#a3b8cc] text-[0.95rem] leading-[1.55] min-h-[130px] resize-y outline-none focus:border-[#2b5384] placeholder:text-[#526e8c]"
+          class="w-full box-border px-[14px] py-3 bg-[#0a0e17] border border-[#2d3a4d] rounded-md text-[#cbd5e1] text-[13px] leading-[1.55] min-h-[130px] resize-y outline-none focus:border-[#3d4d64] placeholder:text-[#6b7280]"
           placeholder="高层行为约定。创建后也可继续编辑 AGENTS.md。"
         />
       </div>
@@ -255,11 +258,11 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
             <button
               v-for="opt in TAG_OPTIONS"
               :key="opt.value"
-              class="px-4 py-2 rounded-[9px] text-[0.88rem] cursor-pointer border transition-colors"
+              class="px-4 py-2 rounded-md text-[13px] cursor-pointer border transition-colors"
               :class="
                 tags.includes(opt.value)
-                  ? 'bg-[#142338] border-[#2b5384] text-[#00f3ff] font-medium'
-                  : 'bg-[#060c14] border-[#1e324f] text-[#708aa6] hover:border-[#2b5384]'
+                  ? 'bg-[#253141] border-[#3d4d64] text-[#93c5fd] font-medium'
+                  : 'bg-[#0a0e17] border-[#2d3a4d] text-[#9ca3af] hover:border-[#3d4d64]'
               "
               @click="toggleTag(opt.value)"
             >
@@ -272,11 +275,11 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
       <!-- Actions -->
       <div class="mt-6 flex gap-3 items-center flex-wrap">
         <button
-          class="px-6 py-[11px] rounded-[9px] text-[0.95rem] font-semibold border-none transition-colors"
+          class="px-6 py-[11px] rounded-md text-[13px] font-semibold border-none transition-colors"
           :class="
             canSubmit
-              ? 'bg-[linear-gradient(135deg,#00f3ff_0%,#3b82f6_100%)] text-[#060c14] cursor-pointer'
-              : 'bg-[#142338] text-[#526e8c] cursor-not-allowed'
+              ? 'bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white cursor-pointer'
+              : 'bg-[#253141] text-[#6b7280] cursor-not-allowed'
           "
           :disabled="!canSubmit"
           @click="handleSubmit"
@@ -285,13 +288,13 @@ const labelClass = 'block text-[0.88rem] text-[#a3b8cc] mb-2 font-medium';
         </button>
 
         <button
-          class="px-5 py-[11px] rounded-[9px] bg-transparent border border-[#1e324f] text-[#a3b8cc] text-[0.92rem] font-medium cursor-pointer hover:border-[#2b5384]"
+          class="px-5 py-[11px] rounded-md bg-transparent border border-[#2d3a4d] text-[#cbd5e1] text-[13px] font-medium cursor-pointer hover:border-[#3d4d64]"
           @click="cancel"
         >
           取消
         </button>
 
-        <span v-if="err" class="text-[#ef4444] text-[0.88rem]">{{ err }}</span>
+        <span v-if="err" class="text-[#ef4444] text-[13px]">{{ err }}</span>
       </div>
     </div>
     </div>

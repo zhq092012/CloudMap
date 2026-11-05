@@ -1,51 +1,39 @@
 <template>
-  <div class="h-full flex flex-col min-h-0 bg-[#060c14]">
+  <div class="cp-page">
     <!-- header -->
-    <div class="flex items-center gap-2.5 px-7 py-2.5 border-b border-[#1a2b42] bg-[#0b131f] text-xs text-[#708aa6] flex-shrink-0">
-      <span>会话</span>
-      <span v-if="sessionKey" class="font-mono px-2 py-0.5 rounded bg-[#0f1927] text-[#7fd4ff] border border-[#1d3a57]"
-        :title="sessionKey">{{ sessionKey.slice(0, 24) }}{{ sessionKey.length > 24 ? '…' : '' }}</span>
-      <span v-else-if="restoring" class="font-mono px-2 py-0.5 rounded bg-[#0f1927] text-[#526e8c] opacity-60">解析中…</span>
-      <span v-else class="font-mono px-2 py-0.5 rounded bg-[#0f1927] text-[#526e8c] opacity-60">新会话 — 发送开始</span>
-      <span class="flex-1"></span>
-      <button class="px-3 py-1 rounded-lg border border-[#1e324f] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors"
-        @click="goSessions">📋 全部会话</button>
-      <button class="px-3 py-1 rounded-lg border border-[#1e324f] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors disabled:opacity-60"
-        :disabled="busy" @click="handleNewChat">✨ 新对话</button>
+    <div class="cp-head">
+      <span class="cp-head-label">会话</span>
+      <span v-if="sessionKey" class="cp-session-chip is-live" :title="sessionKey"
+        >{{ sessionKey.slice(0, 24) }}{{ sessionKey.length > 24 ? '…' : '' }}</span>
+      <span v-else-if="restoring" class="cp-session-chip is-idle">解析中…</span>
+      <span v-else class="cp-session-chip is-idle">新会话 · 发送开始</span>
+      <span class="cp-grow"></span>
+      <button class="cp-ghost" @click="goSessions">📋 全部会话</button>
+      <button class="cp-ghost" :disabled="busy" @click="handleNewChat">✨ 新对话</button>
     </div>
 
     <!-- thread -->
-    <div ref="threadRef" class="flex-1 overflow-y-auto custom-scrollbar px-9 py-7 flex flex-col gap-4">
-      <div v-if="restoring && messages.length === 0" class="text-[#526e8c] text-sm text-center mt-24">加载对话中…</div>
-      <div v-else-if="!restoring && messages.length === 0" class="text-[#526e8c] text-sm text-center mt-24">
-        开始新对话。试试 <code class="px-1.5 py-0.5 rounded bg-[#0f1927] text-[#00f3ff] text-xs">/reset</code> 清除会话。
+    <div ref="threadRef" class="cp-thread">
+      <div v-if="restoring && messages.length === 0" class="cp-placeholder">加载对话中…</div>
+      <div v-else-if="!restoring && messages.length === 0" class="cp-placeholder">
+        开始新对话。试试 <code>/reset</code> 清除会话。
       </div>
 
-      <div v-for="m in messages" :key="m.id"
-        class="max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words"
-        :class="m.role === 'user'
-          ? 'self-end text-white'
-          : m.role === 'system'
-            ? 'self-center text-[#526e8c] italic text-xs'
-            : 'self-start bg-[#0f1927] text-[#a3b8cc] border border-[#1e324f]'"
-        :style="m.role === 'user' ? { background: 'linear-gradient(135deg,#00f3ff 0%,#3b82f6 100%)', boxShadow: '0 2px 6px rgba(0,243,255,0.25)' } : {}">
-        <div v-if="m.tools.length" class="mb-2.5">
+      <div v-for="m in messages" :key="m.id" class="cp-msg" :class="`is-${m.role}`">
+        <div v-if="m.tools.length" class="cp-tools">
           <ToolCallBlock v-for="t in m.tools" :key="t.id" :tool-name="t.name" :tool-call-id="t.id" :result="t.result" />
         </div>
         <span v-if="m.text">{{ m.text }}</span>
-        <span v-else-if="m.pending" class="text-[#526e8c]">…</span>
+        <span v-else-if="m.pending" class="cp-pending">…</span>
       </div>
     </div>
 
     <!-- composer -->
-    <div class="flex gap-3 px-7 py-4 border-t border-[#1a2b42] bg-[#0b131f]">
-      <textarea ref="inputRef" v-model="input" rows="1" :disabled="restoring" :placeholder="restoring ? '加载中…' : `给 ${agentId} 发消息…`"
-        class="flex-1 px-4 py-3 rounded-xl bg-[#0c1624] border border-[#203554] text-white placeholder-[#526e8c] focus:outline-none focus:border-[#00f3ff]/60 text-sm resize-none min-h-[48px] max-h-[200px] leading-relaxed"
-        @keydown="handleKeyDown" />
-      <button :disabled="!canSend"
-        class="px-6 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-60 self-end"
-        style="background: linear-gradient(135deg,#00f3ff 0%,#3b82f6 100%); box-shadow: 0 2px 6px rgba(0,243,255,0.35);"
-        @click="handleSend">
+    <div class="cp-composer">
+      <textarea ref="inputRef" v-model="input" rows="1" :disabled="restoring"
+        :placeholder="restoring ? '加载中…' : `给 ${agentId} 发消息…`" class="cp-input"
+        @keydown="handleKeyDown"></textarea>
+      <button :disabled="!canSend" class="cp-send" @click="handleSend">
         {{ busy ? '…' : '发送' }}
       </button>
     </div>
@@ -290,3 +278,216 @@ function goSessions() {
 onMounted(() => { inputRef.value?.focus(); });
 onBeforeUnmount(() => { stopTyper(); });
 </script>
+
+<style scoped lang="scss">
+@use "./styles/tokens" as *;
+
+.cp-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: $bg-root;
+}
+
+/* ---- 顶部会话条 ---- */
+.cp-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 26px;
+  border-bottom: 1px solid $border;
+  background: $bg-sunken;
+}
+
+.cp-head-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $text-4;
+}
+
+.cp-session-chip {
+  padding: 2px 9px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $bg-panel;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+
+  &.is-live {
+    border-color: $accent-line;
+    background: $accent-soft;
+    color: $accent-text;
+  }
+
+  &.is-idle {
+    color: $text-4;
+  }
+}
+
+.cp-grow {
+  flex: 1;
+}
+
+.cp-ghost {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  background: $bg-panel;
+  color: $text-2;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover:not(:disabled) {
+    color: $accent-text;
+    border-color: $accent-line;
+    background: $accent-soft;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+/* ---- 消息流 ---- */
+.cp-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding: 24px 32px 28px;
+  @include thin-scroll;
+}
+
+.cp-placeholder {
+  margin-top: 96px;
+  text-align: center;
+  font-size: 12.5px;
+  color: $text-3;
+
+  code {
+    padding: 1px 6px;
+    border-radius: $radius-sm;
+    border: 1px solid $accent-line;
+    background: $bg-panel;
+    color: $accent-text;
+    font-size: 11.5px;
+  }
+}
+
+.cp-msg {
+  max-width: 78%;
+  padding: 12px 15px;
+  border-radius: $radius-lg;
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  &.is-user {
+    align-self: flex-end;
+    border: 1px solid $accent-line;
+    color: #fff;
+    @include accent-gradient;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.28);
+  }
+
+  &.is-assistant {
+    align-self: flex-start;
+    border: 1px solid $border;
+    background: $bg-panel;
+    color: $text-2;
+  }
+
+  &.is-system {
+    align-self: center;
+    border: 1px dashed $border;
+    background: transparent;
+    color: $text-4;
+    font-size: 11.5px;
+    font-style: italic;
+  }
+}
+
+.cp-tools {
+  margin-bottom: 10px;
+}
+
+.cp-pending {
+  color: $text-4;
+}
+
+/* ---- 输入区 ---- */
+.cp-composer {
+  flex: none;
+  display: flex;
+  gap: 10px;
+  padding: 14px 26px;
+  border-top: 1px solid $border;
+  background: $bg-sunken;
+}
+
+.cp-input {
+  flex: 1;
+  min-height: 48px;
+  max-height: 200px;
+  padding: 12px 14px;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  background: $bg-root;
+  color: $text;
+  font-size: 12.5px;
+  line-height: 1.7;
+  resize: none;
+  outline: none;
+  transition: border-color $ease, box-shadow $ease;
+
+  &::placeholder {
+    color: $text-4;
+  }
+
+  &:focus {
+    border-color: $accent-line;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.cp-send {
+  align-self: flex-end;
+  height: 44px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: $radius-md;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  @include accent-gradient;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  transition: box-shadow $ease, opacity $ease;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.42);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+    box-shadow: none;
+  }
+}
+</style>

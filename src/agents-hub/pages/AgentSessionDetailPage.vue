@@ -1,43 +1,21 @@
 <template>
-  <div v-if="!agentId" class="p-8 text-[#708aa6]">缺少智能体 id。</div>
-  <div v-else-if="!sessionKey" class="p-8 text-[#708aa6]">缺少会话 key。</div>
-  <div v-else class="flex flex-col h-full min-h-0 bg-[#060c14]">
+  <div v-if="!agentId" class="sd-missing">缺少智能体 id。</div>
+  <div v-else-if="!sessionKey" class="sd-missing">缺少会话 key。</div>
+  <div v-else class="sd-page">
     <!-- toolbar -->
-    <div class="flex items-center gap-3 px-5 py-3 border-b border-[#142338] bg-[#0b131f] flex-shrink-0">
-      <button
-        type="button"
-        @click="back"
-        class="px-3 py-1.5 rounded-lg border border-[#2b5384] text-[#7fd4ff] hover:bg-[#10243a] text-sm font-semibold"
-      >
-        ← 返回
-      </button>
-      <h2 class="text-white text-lg font-bold m-0">会话详情</h2>
-      <span class="flex-1"></span>
-      <button
-        type="button"
-        :disabled="busy"
-        @click="onReset"
-        class="px-3 py-1.5 rounded-lg border border-[#2b5384] text-[#a3b8cc] hover:bg-[#10243a] text-sm disabled:opacity-40"
-      >
-        重置
-      </button>
-      <button
-        type="button"
-        :disabled="busy"
-        @click="onDelete"
-        class="px-3 py-1.5 rounded-lg border border-[#ef4444]/50 text-[#ef4444] hover:bg-[#2a0f12] text-sm disabled:opacity-40"
-      >
-        删除
-      </button>
+    <div class="sd-toolbar">
+      <button type="button" class="sd-ghost is-accent" @click="back">← 返回</button>
+      <h2 class="sd-title">会话详情</h2>
+      <span class="sd-grow"></span>
+      <button type="button" class="sd-ghost" :disabled="busy" @click="onReset">重置</button>
+      <button type="button" class="sd-ghost is-danger" :disabled="busy" @click="onDelete">删除</button>
     </div>
 
-    <div class="px-5 pt-3 pb-1 text-xs text-[#526e8c] font-mono truncate" :title="sessionKey">
-      {{ sessionKey }}
-    </div>
-    <div v-if="err" class="px-5 text-[#ef4444] text-sm">{{ err }}</div>
+    <div class="sd-key" :title="sessionKey">{{ sessionKey }}</div>
+    <div v-if="err" class="sd-err">{{ err }}</div>
 
     <!-- transcript -->
-    <div class="flex-1 min-h-0 overflow-auto px-5 py-4">
+    <div class="sd-transcript">
       <SessionTranscript :entries="entries" />
     </div>
   </div>
@@ -121,3 +99,105 @@ watch([agentId, sessionKey], () => {
   markReadSafe();
 });
 </script>
+
+<style scoped lang="scss">
+@use "../styles/tokens" as *;
+
+.sd-missing {
+  padding: 32px;
+  font-size: 13px;
+  color: $text-3;
+}
+
+.sd-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: $bg-root;
+}
+
+.sd-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid $border;
+  background: $bg-sunken;
+}
+
+.sd-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: $text;
+}
+
+.sd-grow {
+  flex: 1;
+}
+
+.sd-ghost {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  background: $bg-panel;
+  color: $text-2;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover:not(:disabled) {
+    color: $accent-text;
+    border-color: $accent-line;
+    background: $accent-soft;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &.is-accent {
+    color: $accent-text;
+    border-color: $accent-line;
+  }
+
+  &.is-danger:hover:not(:disabled) {
+    color: #fca5a5;
+    border-color: $red-line;
+    background: $red-soft;
+  }
+}
+
+.sd-key {
+  flex: none;
+  padding: 10px 20px 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: $text-4;
+}
+
+.sd-err {
+  flex: none;
+  padding: 0 20px 4px;
+  font-size: 12px;
+  color: $red;
+}
+
+.sd-transcript {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 20px 24px;
+  @include thin-scroll;
+}
+</style>

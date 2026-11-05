@@ -945,13 +945,22 @@ export const useAnalysisStore = defineStore("analysis", {
     },
 
     /**
-     * 载入某一个未完成工作流到画布（工作流切换器使用）。
-     * 直接按该工作流本身的所有节点类型加载，完整还原其链路（不依赖全局去重）。
+     * 载入某一个未完成工作流到画布（工作流切换器使用）：
+     * 先清空画布，再完整还原该工作流本身的链路（不依赖全局去重）。
      */
     async loadWorkflow(wf: any): Promise<boolean> {
       if (!wf || !wf.workflowId) return false;
+      this.resetNodes();
+      return this.loadWorkflowCore(wf);
+    },
+
+    /**
+     * 把一个工作流实例完整还原到画布（前提：调用方已清理画布，日志保留）：
+     * 按该工作流自身的所有节点类型加载重建链路，RUNNING 时恢复阶段轮询。
+     * restoreByAnomalies 仅按「最新工作流实例」恢复画布时直接使用它。
+     */
+    async loadWorkflowCore(wf: any): Promise<boolean> {
       try {
-        this.resetNodes();
         this.workflowId = wf.workflowId;
         this.workflowTitle = wf.title || "";
         this.currentPhase = wf.currentPhase ?? 0;
@@ -1017,10 +1026,12 @@ export const useAnalysisStore = defineStore("analysis", {
 
     /**
      * 进入深度分析页面时，按「所选异常」而非「某个工作流」恢复画布：
-     * 调后端 by-anomalies 接口，跨工作流全局查每个异常已生成的完整链路
-     * (ORIGIN→意图→蓝方→红方→校验)，按阶段顺序直接展示到画布；
-     * 没有任何已生成内容的异常不在画布画节点，仅保留在左侧列表供「开始分析」。
-     * 同时把最近更新的 ORIGIN 所在工作流作为后续生成目标复用（defaultWorkflowId）。
+     * 调后端 by-anomalies 接口检查所选异常的已有分析结果（跨工作流），
+     * 画布上只展示「最新执行的」工作流实例
+     *（defaultWorkflowId = 最近更新 ORIGIN 所在的工作流）；
+     * 所选异常跨多个工作流时不合并其链路，其余异常不画节点，
+     * 仅保留在左侧列表供「加入当前分析 / 开始分析」，
+     * 同时把该最新工作流实例复用为后续生成目标。
      * @param queryIds 从首页跳转时路由携带的异常ID列表；为空时从 homeStore.analysisList 恢复（页面刷新场景）
      */
     async restoreByAnomalies(queryIds?: string[]): Promise<boolean> {
@@ -1092,32 +1103,40 @@ export const useAnalysisStore = defineStore("analysis", {
           return false;
         }
 
-        // 顺序添加，保证父节点先于子节点进入画布，边才能正确连上
-        this.appendChainsFromByAnomalies(res);
-
-        // 复用最近更新的 ORIGIN 所在工作流作为后续生成目标（避免无内容异常首次分析还要新建）
-        if (res.defaultWorkflowId) {
-          this.workflowId = res.defaultWorkflowId;
-          getDeepAnalysisWorkflow(res.defaultWorkflowId)
-            .then((wf) => {
-              if (wf?.title) this.workflowTitle = wf.title;
-            })
-            .catch(() => {});
-          this.addLog(
-            `复用工作流 ${res.defaultWorkflowId.substring(0, 12)}... 作为生成目标`,
-            "info"
-          );
-        }
-
         // 标记哪些异常已有内容（用于左栏「开始分析」按钮的显隐）
         this.coveredAnomalyIds = res.coveredAnomalyIds || [];
 
-        const hasContent = (res.origins?.length || 0) > 0;
-        this.canAdvance = hasContent;
+        if (res.defaultWorkflowId) {
+          // 画布只展示「最新执行的」工作流实例，不跨工作流合并：
+          // by-anomalies 的链路是跨工作流的全局结果，直接追加会把多个
+          // 工作流的链路同时画进画布；这里改用 loadWorkflowCore 按
+          // defaultWorkflowId（最近更新 ORIGIN 所在工作流）完整还原，
+          // 与左栏「载入分析」、tab 进入的「最新工作流」逻辑一致；
+          // 属于其他工作流的异常不画节点，继续通过左栏
+          // 「加入当前分析 / 开始分析」并入。
+          this.addLog(
+            `画布展示最新工作流实例 ${res.defaultWorkflowId.substring(0, 12)}...`,
+            "info"
+          );
+          try {
+            const wf = await getDeepAnalysisWorkflow(res.defaultWorkflowId);
+            await this.loadWorkflowCore(wf);
+          } catch (e: any) {
+            // 加载失败时仍把该实例记为后续生成目标
+            this.workflowId = res.defaultWorkflowId;
+            this.addLog(
+              `加载最新工作流实例失败: ${e?.message || "未知错误"}`,
+              "error"
+            );
+          }
+        }
+
         this.addLog(
-          `已恢复 ${res.origins?.length || 0} 个异常的已有分析结果` +
-            (hasContent ? "" : "（所选异常均无已生成内容，可点击开始分析）"),
-          hasContent ? "success" : "info"
+          `已载入所选异常的分析结果` +
+            (res.defaultWorkflowId
+              ? `（最新工作流实例，画布共 ${this.rawNodes.length} 个节点）`
+              : "（所选异常均无已生成内容，可点击开始分析）"),
+          res.defaultWorkflowId ? "success" : "info"
         );
         return true;
       } catch (e: any) {

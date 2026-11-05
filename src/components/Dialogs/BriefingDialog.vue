@@ -1,7 +1,7 @@
 <template>
   <div class="bd">
     <div class="bd-header">
-      <div class="bd-title">📄 全局异常态势简报</div>
+      <div class="bd-title">📄 {{ heading }}</div>
       <div class="bd-meta">
         <span v-if="briefing" class="bd-chip">简报日期：{{ briefing.briefingDate }}</span>
         <span v-if="briefing" class="bd-chip">纳入异常：{{ briefing.anomalyCount }} 条（过去24小时）</span>
@@ -38,11 +38,17 @@
 import MarkdownIt from "markdown-it";
 import type { AnomalyBriefing } from "@/api/briefings";
 
-defineProps<{
-  state: "loading" | "generating" | "ready" | "error";
-  briefing: AnomalyBriefing | null;
-  error?: string;
-}>();
+withDefaults(
+  defineProps<{
+    state: "loading" | "generating" | "ready" | "error";
+    briefing: AnomalyBriefing | null;
+    error?: string;
+    /** 简报标题（按调用方语境：态势监控 / 异常征候） */
+    heading?: string;
+  }>(),
+  // 兜底保持旧文案，避免遗漏调用方时标题变空
+  { heading: "全局异常态势简报" },
+);
 defineEmits<{ (e: "regenerate"): void; (e: "close"): void }>();
 
 // Markdown 渲染器：禁用原始 HTML（防 XSS），与 WarningDialog 一致
@@ -69,7 +75,7 @@ const formatTime = (iso: string) => {
   .bd-title {
     font-size: 15px;
     font-weight: 700;
-    color: #f8fafc;
+    color: #e5e7eb;
     line-height: 1.4;
     margin-bottom: 8px;
     word-break: break-word;
@@ -86,8 +92,8 @@ const formatTime = (iso: string) => {
     padding: 2px 8px;
     border-radius: 3px;
     color: #cbd5e1;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid #334155;
+    background: #111827;
+    border: 1px solid #2d3a4d;
   }
 }
 
@@ -96,8 +102,8 @@ const formatTime = (iso: string) => {
   max-height: 56vh;
   overflow-y: auto;
   padding: 10px 12px;
-  background: rgba(11, 15, 26, 0.5);
-  border: 1px solid #1e293b;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 6px;
 }
 
@@ -107,7 +113,7 @@ const formatTime = (iso: string) => {
   justify-content: center;
   min-height: 100px;
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .bd-error {
@@ -131,7 +137,7 @@ const formatTime = (iso: string) => {
 .markdown-body {
   font-size: 12px;
   line-height: 1.75;
-  color: #e2e8f0;
+  color: #cbd5e1;
   word-break: break-word;
 }
 .markdown-body :deep(h1),
@@ -140,7 +146,7 @@ const formatTime = (iso: string) => {
 .markdown-body :deep(h4) {
   font-weight: 700;
   margin: 8px 0 4px;
-  color: #fbbf24;
+  color: #93c5fd;
   line-height: 1.35;
 }
 .markdown-body :deep(h1) { font-size: 14px; }
@@ -156,12 +162,12 @@ const formatTime = (iso: string) => {
 .markdown-body :deep(li) { margin: 2px 0; }
 .markdown-body :deep(ul li) { list-style: disc; }
 .markdown-body :deep(ol li) { list-style: decimal; }
-.markdown-body :deep(strong) { color: #fcd34d; font-weight: 700; }
+.markdown-body :deep(strong) { color: #bfdbfe; font-weight: 700; }
 .markdown-body :deep(em) { color: #cbd5e1; }
-.markdown-body :deep(a) { color: #38bdf8; text-decoration: underline; }
+.markdown-body :deep(a) { color: #93c5fd; text-decoration: underline; }
 .markdown-body :deep(code) {
-  background: #0c121f;
-  border: 1px solid #2d3748;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 11px;
@@ -169,8 +175,8 @@ const formatTime = (iso: string) => {
   color: #fca5a5;
 }
 .markdown-body :deep(pre) {
-  background: #0c121f;
-  border: 1px solid #2d3748;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 4px;
   padding: 8px 10px;
   overflow-x: auto;
@@ -180,18 +186,18 @@ const formatTime = (iso: string) => {
   background: none;
   border: none;
   padding: 0;
-  color: #e2e8f0;
+  color: #cbd5e1;
   font-size: 11px;
 }
 .markdown-body :deep(blockquote) {
-  border-left: 3px solid #f59e0b;
+  border-left: 3px solid #3b82f6;
   padding-left: 8px;
   color: #cbd5e1;
   margin: 6px 0;
 }
 .markdown-body :deep(hr) {
   border: none;
-  border-top: 1px solid #2d3748;
+  border-top: 1px solid #2d3a4d;
   margin: 8px 0;
 }
 </style>

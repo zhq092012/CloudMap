@@ -208,111 +208,111 @@ watch(channelId, () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#060c14] text-[#a3b8cc] p-9">
+  <div class="min-h-screen bg-[#0a0e17] text-[#cbd5e1] p-9">
     <div class="max-w-[1100px] mx-auto">
       <button
-        class="bg-none border-none cursor-pointer p-0 text-[#00f3ff] text-sm mb-3"
+        class="bg-none border-none cursor-pointer p-0 text-[#93c5fd] text-[12.5px] mb-3"
         @click="router.push({ name: 'AgentHubChannels' })"
       >← All channels</button>
-      <h1 class="text-white text-2xl font-bold m-0 mb-1.5">{{ channelId }}</h1>
-      <div class="text-[#708aa6] text-sm">
+      <h1 class="text-white text-[19px] font-bold m-0 mb-1.5">{{ channelId }}</h1>
+      <div class="text-[#9ca3af] text-[12.5px]">
         Channel-scoped configuration. Saving any field hot-reloads the channel in place.
       </div>
 
-      <div v-if="err" class="text-[#ef4444] text-sm mt-4">{{ err }}</div>
-      <div v-if="info" class="text-[#00ffc4] text-sm mt-4">{{ info }}</div>
+      <div v-if="err" class="text-[#ef4444] text-[12.5px] mt-4">{{ err }}</div>
+      <div v-if="info" class="text-[#10b981] text-[12.5px] mt-4">{{ info }}</div>
 
-      <div v-if="!detail && !err" class="text-[#708aa6] text-sm mt-6">Loading…</div>
+      <div v-if="!detail && !err" class="text-[#9ca3af] text-[12.5px] mt-6">Loading…</div>
 
       <template v-if="detail">
-        <div class="bg-[#0f1927] border border-[#1e324f] rounded-[14px] p-5 mb-4 mt-4">
+        <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-5 mb-4 mt-4">
           <div class="flex items-center gap-3 mb-3.5">
-            <h2 class="text-white text-base font-semibold m-0">Configuration</h2>
-            <span class="px-2.5 py-1 rounded-full text-[0.72rem] font-semibold bg-[#0f1927] text-[#a3b8cc] border border-[#1e324f]">{{ status }}</span>
+            <h2 class="text-white text-[13.5px] font-semibold m-0">Configuration</h2>
+            <span class="px-2.5 py-1 rounded-full text-[10.5px] font-semibold bg-[#1a2332] text-[#cbd5e1] border border-[#2d3a4d]">{{ status }}</span>
             <span class="flex-1"></span>
             <button
-              class="px-4 py-2 text-[0.86rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0b131f] text-[#a3b8cc]"
+              class="px-4 py-2 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1]"
               @click="toggleDisabled"
             >{{ detail.disabled ? 'Enable' : 'Disable' }}</button>
             <button
-              class="px-4 py-2 text-[0.86rem] font-medium rounded-lg cursor-pointer border border-[#5a1f1f] bg-[#0b131f] text-[#ef4444]"
+              class="px-4 py-2 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[rgba(239,68,68,0.4)] bg-[#111827] text-[#ef4444]"
               @click="handleDeleteChannel"
             >Delete</button>
           </div>
 
           <div class="grid grid-cols-2 gap-3.5">
             <div>
-              <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">Type</label>
+              <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">Type</label>
               <select
                 v-model="type"
-                class="w-full box-border px-3 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm"
+                class="w-full box-border px-3 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               >
                 <option v-for="t in types" :key="t" :value="t">{{ t }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">DM scope</label>
+              <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">DM scope</label>
               <select
                 v-model="dmScope"
-                class="w-full box-border px-3 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm"
+                class="w-full box-border px-3 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               >
                 <option value="">— default —</option>
                 <option v-for="s in SCOPES" :key="s" :value="s">{{ s }}</option>
               </select>
             </div>
             <div class="col-span-2">
-              <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">Default agent id (used when no binding matches)</label>
+              <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">Default agent id (used when no binding matches)</label>
               <input
                 v-model="defaultAgentId"
-                class="w-full box-border px-3 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm placeholder-[#526e8c]"
+                class="w-full box-border px-3 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 placeholder="e.g. default"
               />
             </div>
           </div>
 
           <div class="mt-3.5">
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">Properties (JSON object, type-specific)</label>
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">Properties (JSON object, type-specific)</label>
             <textarea
               v-model="propsJson"
-              class="w-full box-border px-3 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm font-mono min-h-[180px] resize-y"
+              class="w-full box-border px-3 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] font-mono min-h-[180px] resize-y"
             ></textarea>
           </div>
 
           <div class="flex justify-end mt-4">
             <button
-              class="px-4 py-2 text-[0.86rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
+              class="px-4 py-2 text-[12.5px] font-semibold rounded-lg cursor-pointer border-none bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white"
               @click="persist()"
             >Save configuration</button>
           </div>
         </div>
 
-        <div class="bg-[#0f1927] border border-[#1e324f] rounded-[14px] p-5">
+        <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-5">
           <div class="flex items-center gap-3 mb-3.5">
-            <h2 class="text-white text-base font-semibold m-0">Bindings</h2>
-            <span class="text-[#708aa6] text-sm">({{ bindings.length }})</span>
+            <h2 class="text-white text-[13.5px] font-semibold m-0">Bindings</h2>
+            <span class="text-[#9ca3af] text-[12.5px]">({{ bindings.length }})</span>
             <span class="flex-1"></span>
             <button
-              class="px-4 py-2 text-[0.86rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
+              class="px-4 py-2 text-[12.5px] font-semibold rounded-lg cursor-pointer border-none bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white"
               @click="startAddBinding"
             >+ Add binding</button>
           </div>
 
-          <div v-if="bindings.length === 0" class="text-[0.85rem] text-[#526e8c]">
+          <div v-if="bindings.length === 0" class="text-[12.5px] text-[#6b7280]">
             No bindings. Inbound messages will route to <code>defaultAgentId</code> if set.
           </div>
           <div
             v-for="(b, i) in bindings"
             :key="i"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#a3b8cc] bg-[#0b131f] mb-1.5 border border-[#142338]"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12.5px] text-[#cbd5e1] bg-[#111827] mb-1.5 border border-[#2d3a4d]"
           >
-            <span class="px-2.5 py-1 rounded-full text-[0.72rem] font-semibold bg-[#10233f] text-[#00f3ff] border border-[#2b5384]">#{{ b.index }}</span>
-            <span class="flex-1 font-mono text-[0.86rem] text-[#708aa6]">{{ describe(b) }}</span>
+            <span class="px-2.5 py-1 rounded-full text-[10.5px] font-semibold bg-[rgba(59,130,246,0.16)] text-[#93c5fd] border border-[#3d4d64]">#{{ b.index }}</span>
+            <span class="flex-1 font-mono text-[12.5px] text-[#9ca3af]">{{ describe(b) }}</span>
             <button
-              class="px-3 py-1.5 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0f1927] text-[#a3b8cc]"
+              class="px-3 py-1.5 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[#2d3a4d] bg-[#1a2332] text-[#cbd5e1]"
               @click="startEditBinding(i)"
             >Edit</button>
             <button
-              class="px-3 py-1.5 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#5a1f1f] bg-[#0f1927] text-[#ef4444]"
+              class="px-3 py-1.5 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[rgba(239,68,68,0.4)] bg-[#1a2332] text-[#ef4444]"
               @click="deleteBindingAt(i)"
             >Delete</button>
           </div>
@@ -323,32 +323,32 @@ watch(channelId, () => {
     <!-- binding dialog -->
     <div
       v-if="editForm && editIdx != null"
-      class="fixed inset-0 bg-[#060c14]/70 backdrop-blur-sm flex items-center justify-center z-50"
+      class="fixed inset-0 bg-[#0a0e17]/70 backdrop-blur-sm flex items-center justify-center z-50"
       @click.self="editForm = null; editIdx = null"
     >
-      <div class="bg-[#0b131f] border border-[#1e324f] rounded-2xl p-7 w-[620px] max-w-[92vw] shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-        <h3 class="text-white text-lg font-bold m-0 mb-4">{{ editIdx >= bindings.length ? 'Add binding' : 'Edit binding' }}</h3>
-        <p class="text-[#708aa6] text-sm m-0 mb-3.5">
+      <div class="bg-[#111827] border border-[#2d3a4d] rounded-2xl p-7 w-[620px] max-w-[92vw] shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+        <h3 class="text-white text-[15px] font-bold m-0 mb-4">{{ editIdx >= bindings.length ? 'Add binding' : 'Edit binding' }}</h3>
+        <p class="text-[#9ca3af] text-[12.5px] m-0 mb-3.5">
           Fill the most-specific selector you need; leave others blank. Routing tries
           peer → parentPeer → guild+roles → guild → team → account in that order.
         </p>
 
         <div class="grid grid-cols-2 gap-3.5" v-if="editForm">
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">Tier</label>
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">Tier</label>
             <select
               :value="editForm.tier"
-              class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm"
+              class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               @change="editForm.tier = ($event.target as HTMLSelectElement).value as BindingTier"
             >
               <option v-for="t in TIERS" :key="t" :value="t">{{ t }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">Session scope (optional)</label>
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">Session scope (optional)</label>
             <select
               :value="editForm.sessionScope"
-              class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm"
+              class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               @change="editForm.sessionScope = ($event.target as HTMLSelectElement).value"
             >
               <option value="">— inherit channel —</option>
@@ -356,42 +356,42 @@ watch(channelId, () => {
             </select>
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">peer</label>
-            <input v-model="editForm.peer" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">peer</label>
+            <input v-model="editForm.peer" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">parentPeer</label>
-            <input v-model="editForm.parentPeer" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">parentPeer</label>
+            <input v-model="editForm.parentPeer" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">guild</label>
-            <input v-model="editForm.guild" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">guild</label>
+            <input v-model="editForm.guild" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">roles (comma-separated)</label>
-            <input v-model="editForm.roles" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">roles (comma-separated)</label>
+            <input v-model="editForm.roles" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">team</label>
-            <input v-model="editForm.team" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">team</label>
+            <input v-model="editForm.team" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">account</label>
-            <input v-model="editForm.account" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">account</label>
+            <input v-model="editForm.account" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
           <div>
-            <label class="block text-[0.85rem] text-[#708aa6] mb-1.5 font-medium">channel</label>
-            <input v-model="editForm.channel" class="w-full box-border px-3 py-2.5 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm" />
+            <label class="block text-[12.5px] text-[#9ca3af] mb-1.5 font-medium">channel</label>
+            <input v-model="editForm.channel" class="w-full box-border px-3 py-2.5 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]" />
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
           <button
-            class="px-3.5 py-2 text-[0.86rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0b131f] text-[#a3b8cc]"
+            class="px-3.5 py-2 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1]"
             @click="editForm = null; editIdx = null"
           >Cancel</button>
           <button
-            class="px-4 py-2 text-[0.86rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
+            class="px-4 py-2 text-[12.5px] font-semibold rounded-lg cursor-pointer border-none bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white"
             @click="saveBinding"
           >{{ editIdx >= bindings.length ? 'Create' : 'Save' }}</button>
         </div>

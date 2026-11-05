@@ -1,34 +1,34 @@
 <template>
   <div
-    class="w-90 bg-[#111625]/90 border border-slate-800/80 rounded p-2.5 flex flex-col h-[calc(100%-24px)] min-h-0 shadow-xl select-none">
-    <div class="text-base font-bold text-slate-100 mb-2.5 shrink-0 flex items-center gap-2">
-      📊 异常列表
+    class="w-90 bg-[#111827]/95 border border-[#2d3a4d] rounded p-2.5 flex flex-col h-[calc(100%-24px)] min-h-0 shadow-xl select-none">
+    <div class="text-base font-bold text-[#e5e7eb] mb-2.5 shrink-0 flex items-center gap-2">
+      <span class="w-1 h-3.5 rounded-sm bg-[#3b82f6]"></span>异常列表
     </div>
 
-    <div class="bg-[#161c2e] p-2 rounded border border-slate-800 text-[12px] space-y-2 mb-3 shrink-0">
+    <div class="bg-[#1a2332] p-2 rounded border border-[#2d3a4d] text-[12px] space-y-2 mb-3 shrink-0">
       <div class="flex items-start gap-2">
-        <span class="text-slate-400 w-14 shrink-0 h-5 flex items-center">区域</span>
+        <span class="text-[#9ca3af] w-14 shrink-0 h-5 flex items-center">区域</span>
         <div class="flex gap-1 flex-wrap flex-1">
           <span v-for="opt in regionOptions" :key="opt" @click="activeRegion = opt" :class="[
             'px-1.5 py-0.5 rounded-sm cursor-pointer scale-90 origin-left transition-colors border',
             activeRegion === opt
-              ? 'bg-amber-600/20 text-amber-400 border-amber-500/50'
-              : 'bg-slate-800 text-slate-400 border-transparent hover:bg-slate-700',
+              ? 'bg-[rgba(59,130,246,0.12)] text-[#93c5fd] border-[rgba(59,130,246,0.45)]'
+              : 'bg-[#111827] text-[#9ca3af] border-transparent hover:bg-[#1b2637]',
           ]">
             {{ opt }}
           </span>
-          <!-- <span class="text-slate-500 cursor-pointer scale-90">···</span> -->
+          <!-- <span class="text-[#6b7280] cursor-pointer scale-90">···</span> -->
         </div>
       </div>
 
       <div class="flex items-start gap-2">
-        <span class="text-slate-400 w-14 shrink-0 h-5 flex items-center">时间</span>
+        <span class="text-[#9ca3af] w-14 shrink-0 h-5 flex items-center">时间</span>
         <div class="flex gap-1 flex-wrap flex-1">
           <span v-for="opt in timeOptions" :key="opt" @click="activeTime = opt" :class="[
             'px-1.5 py-0.5 rounded-sm cursor-pointer scale-90 origin-left transition-colors border',
             activeTime === opt
-              ? 'bg-amber-600/20 text-amber-400 border-amber-500/50'
-              : 'bg-slate-800 text-slate-400 border-transparent hover:bg-slate-700',
+              ? 'bg-[rgba(59,130,246,0.12)] text-[#93c5fd] border-[rgba(59,130,246,0.45)]'
+              : 'bg-[#111827] text-[#9ca3af] border-transparent hover:bg-[#1b2637]',
           ]">
             {{ opt }}
           </span>
@@ -36,49 +36,49 @@
       </div>
 
       <div class="flex items-start gap-2">
-        <span class="text-slate-400 w-14 shrink-0 h-5 flex items-center">异常类型</span>
+        <span class="text-[#9ca3af] w-14 shrink-0 h-5 flex items-center">异常类型</span>
         <div class="flex gap-1 flex-wrap flex-1">
           <span v-for="opt in typeOptions" :key="opt" @click="activeType = opt" :class="[
             'px-1.5 py-0.5 rounded-sm cursor-pointer scale-90 origin-left transition-colors border',
             activeType === opt
-              ? 'bg-amber-600/20 text-amber-400 border-amber-500/50'
-              : 'bg-slate-800 text-slate-400 border-transparent hover:bg-slate-700',
+              ? 'bg-[rgba(59,130,246,0.12)] text-[#93c5fd] border-[rgba(59,130,246,0.45)]'
+              : 'bg-[#111827] text-[#9ca3af] border-transparent hover:bg-[#1b2637]',
           ]">
             {{ opt }}
           </span>
         </div>
       </div>
 
-      <div class="space-y-1 pt-1 border-t border-slate-800/60">
+      <div class="space-y-1 pt-1 border-t border-[#2d3a4d]">
         <div class="flex items-center gap-2">
-          <span class="text-slate-400 w-14 shrink-0">威胁度</span>
+          <span class="text-[#9ca3af] w-14 shrink-0">威胁度</span>
           <div class="flex-1 flex items-center gap-2">
             <el-slider v-model="sliderThreat" :min="0" :max="100" size="small" class="custom-slider-amber flex-1" />
             <span
-              class="text-amber-500 font-mono w-8 text-right bg-slate-900/60 px-1 rounded border border-slate-800">{{
+              class="text-[#f59e0b] font-mono w-8 text-right bg-[#111827] px-1 rounded border border-[#2d3a4d]">{{
                 sliderThreat }}</span>
           </div>
         </div>
 
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-slate-400 w-14 shrink-0">威胁置信</span>
+          <span class="text-[#9ca3af] w-14 shrink-0">威胁置信</span>
           <div class="flex-1 flex items-center gap-2">
             <el-slider v-model="sliderConfidence" :min="0" :max="100" size="small"
               class="custom-slider-emerald flex-1" />
             <span
-              class="text-emerald-400 font-mono w-8 text-right bg-slate-900/60 px-1 rounded border border-slate-800">{{
+              class="text-[#10b981] font-mono w-8 text-right bg-[#111827] px-1 rounded border border-[#2d3a4d]">{{
                 sliderConfidence }}</span>
           </div>
         </div>
 
         <div class="flex items-center gap-2 pt-1.5">
-          <span class="text-slate-400 w-14 shrink-0">深度分析</span>
+          <span class="text-[#9ca3af] w-14 shrink-0">深度分析</span>
           <div class="flex gap-1 flex-1">
             <span v-for="opt in analysisOptions" :key="opt" @click="activeAnalysis = opt" :class="[
               'px-1.5 py-0.5 rounded-sm cursor-pointer scale-90 origin-left transition-colors border',
               activeAnalysis === opt
-                ? 'bg-amber-600/20 text-amber-400 border-amber-500/50'
-                : 'bg-slate-800 text-slate-400 border-transparent hover:bg-slate-700',
+                ? 'bg-[rgba(59,130,246,0.12)] text-[#93c5fd] border-[rgba(59,130,246,0.45)]'
+                : 'bg-[#111827] text-[#9ca3af] border-transparent hover:bg-[#1b2637]',
             ]">
               {{ opt }}
             </span>
@@ -86,7 +86,7 @@
         </div>
 
         <div class="flex items-center gap-2 pt-1">
-          <span class="text-slate-400 w-14 shrink-0">排序方式</span>
+          <span class="text-[#9ca3af] w-14 shrink-0">排序方式</span>
           <div class="flex-1 custom-select-container">
             <el-select v-model="sortBy" placeholder="请选择" size="small" effect="dark" class="w-full">
               <el-option label="威胁度降序" value="threat-desc" />
@@ -99,27 +99,27 @@
     </div>
 
     <button
-      class="w-full py-1.5 bg-[#1d3557] hover:bg-blue-600 text-blue-300 text-xs rounded border border-blue-500/30 font-medium mb-3 shrink-0"
+      class="w-full py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs rounded border border-transparent font-medium mb-3 shrink-0"
       @click="doSearch">
       异常搜索
     </button>
 
-    <div class="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+    <div class="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar" data-mark="异常列表">
       <div v-for="(item, idx) in leftListData" :key="idx" @click="toggleExpand(idx)" :class="[
-        'p-2 bg-[#151a29] border rounded transition-all cursor-pointer relative',
+        'p-2 bg-[#1a2332] border rounded transition-all cursor-pointer relative',
         expandedIndex === idx
-          ? 'border-amber-500/60 shadow-lg bg-[#1a2032]'
-          : 'border-slate-800 hover:border-slate-700',
+          ? 'border-[rgba(59,130,246,0.45)] shadow-lg bg-[#253141]'
+          : 'border-[#2d3a4d] hover:border-[#3d4d64]',
       ]">
         <div :class="[
           'absolute left-0 top-0 bottom-0 w-1 rounded-l',
-          item.level === 'high' ? 'bg-amber-500' : 'bg-blue-500',
+          item.level === 'high' ? 'bg-[#f59e0b]' : 'bg-[#3b82f6]',
         ]"></div>
 
         <div class="pl-1.5">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-slate-200 flex items-center gap-1">
-              <span :class="item.level === 'high' ? 'text-amber-500' : 'text-blue-400'
+            <span class="text-xs font-bold text-[#e5e7eb] flex items-center gap-1">
+              <span :class="item.level === 'high' ? 'text-[#f59e0b]' : 'text-[#93c5fd]'
                 ">
                 {{
                   expandedIndex === idx && item.level === "high" ? "⚡" : "◆"
@@ -128,58 +128,58 @@
               {{ item.title }}
             </span>
             <span v-if="item.count && expandedIndex !== idx"
-              class="text-[12px] bg-amber-600/20 text-amber-500 px-1 rounded">
+              class="text-[12px] bg-[rgba(245,158,11,0.14)] text-[#fbbf24] border border-[rgba(245,158,11,0.3)] px-1 rounded-sm">
               {{ item.count }}
             </span>
           </div>
 
           <div :class="[
-            'flex items-center gap-4 gap-y-0.5 text-[12px] text-slate-400 p-1 rounded',
+            'flex items-center gap-4 gap-y-0.5 text-[12px] text-[#9ca3af] p-1 rounded',
             expandedIndex === idx
-              ? 'bg-slate-900/60 my-2 border border-slate-800'
+              ? 'bg-[#111827] my-2 border border-[#2d3a4d]'
               : '',
           ]">
             <div>
               综合威胁度
-              <span class="text-amber-500 font-mono font-bold">{{
+              <span class="text-[#f59e0b] font-mono font-bold">{{
                 item.threat
               }}</span>
             </div>
             <div>
               综合异常度
-              <span class="text-blue-400 font-mono font-bold">{{
+              <span class="text-[#93c5fd] font-mono font-bold">{{
                 item.anomaly
               }}</span>
-              <span class="text-slate-400">&nbsp;(置信度 {{ item.anomalyConf }})</span>
+              <span class="text-[#9ca3af]">&nbsp;(置信度 {{ item.anomalyConf }})</span>
             </div>
           </div>
 
-          <div v-if="expandedIndex === idx" class="space-y-2 mt-2 pt-1 border-t border-slate-800/50 text-[12px]">
-            <div class="space-y-1 text-slate-400">
+          <div v-if="expandedIndex === idx" class="space-y-2 mt-2 pt-1 border-t border-[#2d3a4d] text-[12px]">
+            <div class="space-y-1 text-[#9ca3af]">
               <div class="flex items-center">
-                <span class="w-16 shrink-0 text-slate-500">异常类型</span>
-                <span class="text-slate-200">{{ assetTypeLabel(item.assetType) }}</span>
+                <span class="w-16 shrink-0 text-[#6b7280]">异常类型</span>
+                <span class="text-[#e5e7eb]">{{ assetTypeLabel(item.assetType) }}</span>
               </div>
               <div class="flex items-center">
-                <span class="w-16 shrink-0 text-slate-500">区域</span>
-                <span class="text-slate-200">{{ item.region }}</span>
+                <span class="w-16 shrink-0 text-[#6b7280]">区域</span>
+                <span class="text-[#e5e7eb]">{{ item.region }}</span>
               </div>
             </div>
 
-            <div class="text-[12px] text-slate-400 font-mono pt-0.5">
+            <div class="text-[12px] text-[#9ca3af] font-mono pt-0.5">
               {{ item.discoverTime }} 发现 | 已持续{{ item.duration }}
             </div>
 
             <div class="flex gap-2 pt-1">
               <button @click.stop="handleViewDetails(item)"
-                class="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[12px] rounded border border-slate-700 transition-colors">
+                class="flex-1 py-1 bg-[#111827] hover:bg-[#1b2637] text-[#cbd5e1] text-[12px] rounded border border-[#2d3a4d] transition-colors">
                 查看详情
               </button>
               <button @click.stop="toggleAnalysisStatus(item)" :class="[
                 'flex-1 py-1 text-[12px] rounded border transition-colors',
                 item.isAnalyzed
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
-                  : 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20',
+                  ? 'border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.12)] text-[#10b981] hover:bg-[rgba(16,185,129,0.2)]'
+                  : 'border-[rgba(59,130,246,0.45)] bg-[rgba(59,130,246,0.12)] text-[#93c5fd] hover:bg-[rgba(59,130,246,0.2)]',
               ]">
                 {{ item.isAnalyzed ? "已加入深度分析" : "加入深度分析" }}
               </button>
@@ -494,41 +494,41 @@ const leftListData = computed(() => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #2d3a4d;
   border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3d4d64;
 }
 
 /* 橙色滑块自定义 */
 :deep(.custom-slider-amber .el-slider__bar) {
-  background-color: #f97316;
+  background-color: #f59e0b;
 }
 
 :deep(.custom-slider-amber .el-slider__button) {
-  border-color: #fff;
-  background-color: #f97316;
+  border-color: #111827;
+  background-color: #f59e0b;
   width: 12px;
   height: 12px;
 }
 
 /* 绿色滑块自定义 */
 :deep(.custom-slider-emerald .el-slider__bar) {
-  background-color: #22c55e;
+  background-color: #10b981;
 }
 
 :deep(.custom-slider-emerald .el-slider__button) {
-  border-color: #fff;
-  background-color: #22c55e;
+  border-color: #111827;
+  background-color: #10b981;
   width: 12px;
   height: 12px;
 }
 
 /* 公共滑块轨道样式修改 */
 :deep(.el-slider__runway) {
-  background-color: #1e293b;
+  background-color: #253141;
   height: 6px !important;
   border-radius: 3px;
 }
@@ -544,16 +544,16 @@ const leftListData = computed(() => {
 
 /* 暗色系下拉框样式定制（兼容 Element Plus） */
 .custom-select-container :deep(.el-select__wrapper) {
-  background-color: #111625 !important;
-  box-shadow: 0 0 0 1px #334155 inset !important;
+  background-color: #111827 !important;
+  box-shadow: 0 0 0 1px #2d3a4d inset !important;
 }
 
 .custom-select-container :deep(.el-select__placeholder) {
-  color: #94a3b8 !important;
+  color: #9ca3af !important;
 }
 
 .custom-select-container :deep(.el-select__selected-item) {
-  color: #e2e8f0 !important;
+  color: #e5e7eb !important;
   font-size: 12px;
 }
 
@@ -566,7 +566,7 @@ const leftListData = computed(() => {
 }
 
 .dialog-title {
-  color: #f8fafc;
+  color: #e5e7eb;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.4;
@@ -577,7 +577,7 @@ const leftListData = computed(() => {
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 12px;
 }
 
@@ -586,28 +586,28 @@ const leftListData = computed(() => {
 }
 
 .dialog-date {
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .dialog-body {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
-  color: #e2e8f0;
-  font-size: 14px;
-  line-height: 1.6;
+  color: #e5e7eb;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .dialog-section {
   padding-top: 10px;
-  border-top: 1px solid #1e293b;
+  border-top: 1px solid #253141;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .dialog-subtitle {
-  color: #f1f5f9;
+  color: #e5e7eb;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
@@ -621,13 +621,14 @@ const leftListData = computed(() => {
 
 .dialog-close-btn {
   min-width: 120px;
-  border-radius: 10px;
-  background: #2a2a2a;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   border-color: transparent;
-  color: #e2e8f0;
+  color: #fff;
+  font-weight: 600;
 }
 
 .dialog-close-btn:hover {
-  background: #1f1f1f;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 </style>

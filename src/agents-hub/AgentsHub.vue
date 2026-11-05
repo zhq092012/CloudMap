@@ -1,121 +1,106 @@
 <template>
   <HubAuthGate>
-    <div class="h-full overflow-y-auto custom-scrollbar bg-[#060c14] text-[#a3b8cc] p-8">
+    <div class="hub-page">
       <!-- header -->
-      <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
-        <div class="flex items-center gap-3">
-          <span class="w-9 h-9 rounded-lg flex items-center justify-center text-lg text-white"
-            style="background: linear-gradient(135deg,#00f3ff 0%,#3b82f6 100%);">🤖</span>
-          <h1 class="text-2xl font-bold text-white tracking-tight m-0">智能体中心</h1>
+      <div class="hub-head">
+        <div class="hub-brand">
+          <span class="hub-logo">🤖</span>
+          <h1 class="hub-title">智能体中心</h1>
         </div>
-        <div class="flex items-center gap-2">
-          <!-- <button @click="go('AgentHubChannels')"
-            class="px-3 py-1.5 rounded-lg border border-[#1e3452] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors text-sm">
-            📡 渠道
-          </button>
-          <button @click="go('AgentHubMarketplaces')"
-            class="px-3 py-1.5 rounded-lg border border-[#1e3452] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors text-sm">
-            🧩 市场
-          </button>
-          <button @click="go('AgentHubProfile')"
-            class="px-3 py-1.5 rounded-lg border border-[#1e3452] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors text-sm">
-            👤 资料
-          </button> -->
-          <button @click="go('AgentHubTaskBoard')"
-            class="px-3 py-1.5 rounded-lg border border-[#1e3452] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors text-sm">
-            📋 智能任务看板
-          </button>
-          <button @click="go('AgentHubCreate')"
-            class="px-4 py-1.5 rounded-lg font-semibold text-white text-sm transition-all"
-            style="background: linear-gradient(135deg,#00f3ff 0%,#3b82f6 100%); box-shadow: 0 2px 6px rgba(0,243,255,0.35);">
-            ＋ 新建智能体
-          </button>
+        <div class="hub-actions">
+          <!-- <button class="hub-ghost" @click="go('AgentHubChannels')">📡 渠道</button>
+          <button class="hub-ghost" @click="go('AgentHubMarketplaces')">🧩 市场</button>
+          <button class="hub-ghost" @click="go('AgentHubProfile')">👤 资料</button> -->
+          <button class="hub-ghost" @click="go('AgentHubTaskBoard')">📋 智能任务看板</button>
+          <button class="hub-primary" @click="go('AgentHubCreate')">＋ 新建智能体</button>
         </div>
       </div>
 
-      <p class="text-[#708aa6] text-sm leading-relaxed max-w-3xl mb-6">
-        每个智能体由其工作区文件夹定义 —— <code class="px-1.5 py-0.5 rounded bg-[#0f1927] text-[#00f3ff] text-xs">AGENTS.md</code>、
-        <code class="px-1.5 py-0.5 rounded bg-[#0f1927] text-[#00f3ff] text-xs">tools.json</code>、技能与子智能体共同决定其行为。
+      <p class="hub-lead">
+        每个智能体由其工作区文件夹定义 —— <code>AGENTS.md</code>、<code>tools.json</code>、技能与子智能体共同决定其行为。
       </p>
 
-      <!-- filters -->
-      <div class="flex gap-2 mb-6 flex-wrap">
-        <button v-for="f in FILTERS" :key="f.key" @click="filter = f.key"
-          class="px-3.5 py-1.5 rounded-full text-sm font-semibold border transition-colors inline-flex items-center gap-1.5"
-          :class="filter === f.key
-            ? 'bg-[#00f3ff] text-[#04121f] border-[#00f3ff]'
-            : 'bg-[#0b131f] text-[#708aa6] border-[#1e324f] hover:border-[#2b5384] hover:text-[#a3b8cc]'">
+      <!-- filters：归属 / 权限 -->
+      <div class="hub-pills">
+        <button
+          v-for="f in FILTERS"
+          :key="f.key"
+          class="hub-pill"
+          :class="{ 'is-active': filter === f.key }"
+          @click="filter = f.key"
+        >
           {{ f.label }}
-          <span class="text-xs px-1.5 py-0.5 rounded-full"
-            :class="filter === f.key ? 'bg-[#04121f]/20 text-[#04121f]' : 'bg-[#0f1927] text-[#526e8c]'">
-            {{ countFor(f.key) }}
-          </span>
+          <span class="hub-pill-count">{{ countFor(f.key) }}</span>
         </button>
       </div>
 
-      <!-- Agent类型 & 分类 筛选（参照 AgentsManage.vue） -->
-      <div class="bg-[#0b131f]/40 border border-[#142338] rounded-lg p-4 mb-6 space-y-3">
-        <div v-for="fc in filterConfigs" :key="fc.key" class="flex items-start gap-4">
-          <span class="text-[#708aa6] w-20 py-1 flex-shrink-0 text-right text-sm">{{ fc.label }}</span>
-          <div class="flex flex-wrap gap-1.5 flex-1">
-            <button v-for="opt in fc.options" :key="opt" @click="handleFilterChange(fc.key, opt)"
-              :class="activeFilters[fc.key] === opt
-                ? 'bg-[#10243a] text-[#00f3ff] border-[#2b5384]'
-                : 'bg-[#0f1927] text-[#708aa6] border-[#1e324f] hover:border-[#2b5384] hover:text-[#a3b8cc]'
-              " class="border px-2.5 py-1 rounded transition-all text-xs min-w-[48px] text-center">
+      <!-- Agent类型 & 分类 筛选 -->
+      <div class="hub-panel">
+        <div v-for="fc in filterConfigs" :key="fc.key" class="hub-panel-row">
+          <span class="hub-panel-label">{{ fc.label }}</span>
+          <div class="hub-panel-options">
+            <button
+              v-for="opt in fc.options"
+              :key="opt"
+              class="hub-chip"
+              :class="{ 'is-active': activeFilters[fc.key] === opt }"
+              @click="handleFilterChange(fc.key, opt)"
+            >
               {{ opt }}
             </button>
           </div>
         </div>
       </div>
 
-      <div v-if="store.error" class="text-[#ef4444] text-sm mb-4">{{ store.error }}</div>
+      <div v-if="store.error" class="hub-error">{{ store.error }}</div>
 
       <!-- grid -->
-      <div v-if="store.loading" class="text-[#708aa6] text-sm">加载中…</div>
-      <div v-else class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-        <div v-for="a in visible" :key="a.id"
-          class="relative bg-[#0f1927] border border-[#1e324f] rounded-xl p-5 flex flex-col gap-2.5 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-[#2b5384]"
-          style="box-shadow: 0 1px 3px rgba(0,0,0,0.3);"
-          @click="openAgent(a)">
-          <div class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-lg flex items-center justify-center text-xl border border-[#2b5384] flex-shrink-0"
-              style="background: linear-gradient(135deg,#0b2030 0%,#102a44 100%);">🤖</span>
-            <span class="font-semibold text-white text-[15px] flex-1 truncate">{{ a.name }}</span>
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap border"
-              :style="{ background: badgeFor(a).bg, color: badgeFor(a).fg, borderColor: badgeFor(a).bd }">
+      <div v-if="store.loading" class="hub-loading">加载中…</div>
+      <div v-else class="hub-grid">
+        <div v-for="a in visible" :key="a.id" class="hub-card" @click="openAgent(a)">
+          <div class="hub-card-head">
+            <span
+              class="hub-avatar"
+              :style="{ '--cat-a': meta(a).from, '--cat-b': meta(a).to }"
+            >{{ meta(a).icon }}</span>
+            <span class="hub-name" :title="a.name">{{ a.name }}</span>
+            <span
+              class="hub-scope"
+              :style="{ background: badgeFor(a).bg, color: badgeFor(a).fg, borderColor: badgeFor(a).bd }"
+            >
               {{ badgeFor(a).label }}
             </span>
           </div>
 
-          <div v-if="a.status || a.category || (a.tags && a.tags.length)" class="flex flex-wrap gap-1.5">
-            <span v-if="a.status" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-              :class="statusClass(a.status)">● {{ a.status }}</span>
-            <span v-if="a.category" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#10243a] text-[#7fd4ff] border border-[#1d3a57]">
-              {{ categoryLabel(a.category) }}
+          <div v-if="a.status || a.category || (a.tags && a.tags.length)" class="hub-meta">
+            <span v-if="a.status" class="hub-status">
+              <i class="hub-dot" :class="`is-${statusKey(a.status)}`"></i>{{ statusLabel(a.status) }}
             </span>
-            <span v-for="tag in a.tags" :key="tag"
-              class="px-2 py-0.5 rounded-sm text-[10px] font-medium border inline-flex items-center gap-1"
-              :class="tagClass(tag)">
+            <span
+              v-if="a.category"
+              class="hub-cat"
+              :style="{
+                '--cat-c': meta(a).to,
+                '--cat-bg': hexA(meta(a).to, 0.12),
+                '--cat-bd': hexA(meta(a).to, 0.4),
+              }"
+            >{{ meta(a).label }}</span>
+            <span v-for="tag in a.tags" :key="tag" class="hub-tag" :class="tagClass(tag)">
               {{ tagLabel(tag) }}
             </span>
           </div>
 
-          <div class="text-[#708aa6] text-[13px] leading-relaxed min-h-[40px]">
-            {{ a.description || '暂无描述' }}
-          </div>
+          <p class="hub-card-desc">{{ a.description || '暂无描述' }}</p>
 
-          <div class="flex items-center justify-between mt-1">
-            <span class="text-[11px] text-[#526e8c] font-mono truncate">{{ a.id }}</span>
-            <button v-if="canClone(a)" @click.stop="handleClone(a)" :disabled="busyId === a.id"
-              class="bg-transparent text-[#708aa6] border border-[#1e324f] rounded-lg px-2.5 py-1 text-xs font-medium hover:text-[#00f3ff] hover:border-[#2b5384] transition-colors disabled:opacity-60">
+          <div class="hub-card-foot">
+            <span class="hub-id" :title="a.id">{{ a.id }}</span>
+            <button v-if="canClone(a)" class="hub-clone" :disabled="busyId === a.id" @click.stop="handleClone(a)">
               {{ busyId === a.id ? '⏳' : '🔁 Clone' }}
             </button>
           </div>
         </div>
 
-        <div v-if="!store.loading && visible.length === 0"
-          class="text-[#526e8c] text-sm italic col-span-full">该分类下暂无智能体。</div>
+        <div v-if="visible.length === 0" class="hub-empty">该分类下暂无智能体。</div>
       </div>
     </div>
   </HubAuthGate>
@@ -139,6 +124,22 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'clone', label: '仅可克隆' },
 ];
 
+// Agent 类型：调度类 / 角色类 / 执行类 / 校验类 / 仿真类
+// 取值沿用后端既有枚举（scheduling / simulation / functional），新增执行类与校验类；
+// 旧值同时兼容 xxx 侧命名（scheduler / role / simulator），保证历史数据也有颜色与中文名
+type CategoryMeta = { label: string; icon: string; from: string; to: string };
+const CATEGORY_META: Record<string, CategoryMeta> = {
+  scheduling: { label: '调度类', icon: '🎯', from: '#3b82f6', to: '#2563eb' },
+  scheduler: { label: '调度类', icon: '🎯', from: '#3b82f6', to: '#2563eb' },
+  simulation: { label: '角色类', icon: '🎭', from: '#0ea5e9', to: '#0284c7' },
+  role: { label: '角色类', icon: '🎭', from: '#0ea5e9', to: '#0284c7' },
+  executor: { label: '执行类', icon: '⚡', from: '#10b981', to: '#059669' },
+  validator: { label: '校验类', icon: '✓', from: '#f59e0b', to: '#d97706' },
+  functional: { label: '仿真类', icon: '◐', from: '#ef4444', to: '#dc2626' },
+  simulator: { label: '仿真类', icon: '◐', from: '#ef4444', to: '#dc2626' },
+};
+const FALLBACK_META: CategoryMeta = { label: '未分类', icon: '🤖', from: '#3b82f6', to: '#2563eb' };
+
 const store = useAgentHubStore();
 const router = useRouter();
 const route = useRoute();
@@ -146,9 +147,9 @@ const filter = ref<Filter>('all');
 const busyId = ref<string | null>(null);
 const me = computed(() => getUserId());
 
-// Agent类型 & 分类 筛选配置（参照 AgentsManage.vue，仅这两项）
+// Agent类型 & 分类 筛选配置（仅这两项）
 const filterConfigs = [
-  { label: 'Agent类型', key: 'type', options: ['全部', '角色模拟型', '功能型', '调度型'] },
+  { label: 'Agent类型', key: 'type', options: ['全部', '调度类', '角色类', '执行类', '校验类', '仿真类'] },
   { label: '分类', key: 'classification', options: ['全部', '红方', '蓝方'] },
 ];
 const activeFilters = reactive<Record<string, string>>({ type: '全部', classification: '全部' });
@@ -169,10 +170,10 @@ function countFor(key: Filter): number {
 }
 const visible = computed(() =>
   store.agents.filter((a) => {
-    // 现有：按归属/权限（全部/我的/共享给我/全局/仅可克隆）筛选
+    // 归属/权限筛选（全部 / 我的 / 共享给我 / 全局 / 仅可克隆）
     if (!bucket(a).includes(filter.value)) return false;
-    // Agent类型 筛选（角色模拟型 / 功能型 / 调度型）
-    if (activeFilters.type !== '全部' && categoryLabel(a.category ?? '') !== activeFilters.type) return false;
+    // Agent类型 筛选（按中文类型名比对，兼容新旧枚举值）
+    if (activeFilters.type !== '全部' && meta(a).label !== activeFilters.type) return false;
     // 分类 筛选（红方 / 蓝方）
     if (activeFilters.classification !== '全部') {
       const want = activeFilters.classification === '红方' ? 'red-side' : 'blue-side';
@@ -182,14 +183,27 @@ const visible = computed(() =>
   }),
 );
 
+// 类型元信息：未知类型退回兜底配色，label 用原始值
+function meta(a: AgentDefinition): CategoryMeta {
+  const hit = CATEGORY_META[a.category ?? ''];
+  if (hit) return hit;
+  return a.category ? { ...FALLBACK_META, label: a.category } : FALLBACK_META;
+}
+
+// #rrggbb → rgba()，供类型色标签的半透明底/边框使用
+function hexA(hex: string, alpha: number) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 function badgeFor(a: AgentDefinition) {
   if (a.scope === 'global')
-    return { label: '全局', bg: 'rgba(0,243,255,0.12)', fg: '#00f3ff', bd: 'rgba(0,243,255,0.4)' };
+    return { label: '全局', bg: 'rgba(59,130,246,0.12)', fg: '#93c5fd', bd: 'rgba(59,130,246,0.4)' };
   if (a.ownerId === me.value)
-    return { label: '拥有者', bg: 'rgba(0,255,196,0.12)', fg: '#00ffc4', bd: 'rgba(0,255,196,0.4)' };
+    return { label: '拥有者', bg: 'rgba(16,185,129,0.12)', fg: '#6ee7b7', bd: 'rgba(16,185,129,0.4)' };
   if (a.tierForCurrentUser === 'CLONE')
-    return { label: '🔁 仅可克隆', bg: 'rgba(245,158,11,0.12)', fg: '#fbbf24', bd: 'rgba(245,158,11,0.4)' };
-  return { label: `共享自 ${a.ownerId ?? '?'}`, bg: 'rgba(59,130,246,0.12)', fg: '#7fd4ff', bd: 'rgba(59,130,246,0.4)' };
+    return { label: '🔁 仅可克隆', bg: 'rgba(245,158,11,0.12)', fg: '#f59e0b', bd: 'rgba(245,158,11,0.4)' };
+  return { label: `共享自 ${a.ownerId ?? '?'}`, bg: 'rgba(59,130,246,0.12)', fg: '#93c5fd', bd: 'rgba(59,130,246,0.4)' };
 }
 function canClone(a: AgentDefinition) {
   const t = a.tierForCurrentUser;
@@ -198,23 +212,33 @@ function canClone(a: AgentDefinition) {
 function canOpen(a: AgentDefinition) {
   return a.scope === 'global' || a.tierForCurrentUser === 'RUN' || a.tierForCurrentUser === 'EDIT';
 }
-function statusClass(s: string) {
-  const map: Record<string, string> = {
-    ready: 'bg-[#0b2e1f] text-[#00ffc4]',
-    inuse: 'bg-[#2e2a0b] text-[#fbbf24]',
-    shared: 'bg-[#0b1e2e] text-[#7fd4ff]',
-    offline: 'bg-[#2e0b0b] text-[#ef4444]',
-    free: 'bg-[#0f1927] text-[#708aa6]',
-  };
-  return map[s] ?? 'bg-[#0f1927] text-[#708aa6]';
+
+// 运行状态：圆点着色，文字统一用次要文本色（同 xxx agent-status 的写法）
+const STATUS_TEXT: Record<string, string> = {
+  ready: '就绪',
+  inuse: '占用中',
+  shared: '共享',
+  offline: '离线',
+  free: '空闲',
+};
+const STATUS_TONE: Record<string, string> = {
+  ready: 'ok',
+  inuse: 'warn',
+  shared: 'info',
+  offline: 'danger',
+  free: 'idle',
+};
+function statusLabel(s: string) {
+  return STATUS_TEXT[s] ?? s;
 }
-function categoryLabel(c: string) {
-  return c === 'simulation' ? '角色模拟型' : c === 'functional' ? '功能型' : c === 'scheduling' ? '调度型' : c;
+function statusKey(s: string) {
+  return STATUS_TONE[s] ?? 'idle';
 }
+
 function tagClass(t: string) {
-  if (t === 'red-side') return 'bg-[#2e0b0b] text-[#ef4444] border-[#5a1f1f]';
-  if (t === 'blue-side') return 'bg-[#0b1e2e] text-[#7fd4ff] border-[#1d3a57]';
-  return 'bg-[#0f1927] text-[#708aa6] border-[#1e324f]';
+  if (t === 'red-side') return 'is-red';
+  if (t === 'blue-side') return 'is-blue';
+  return 'is-neutral';
 }
 function tagLabel(t: string) {
   return t === 'red-side' ? '红方' : t === 'blue-side' ? '蓝方' : t;
@@ -257,3 +281,499 @@ watch(
   { immediate: true },
 );
 </script>
+
+<style scoped lang="scss">
+/* ============================================================
+   配色 / 字号 / 间距取自 xxx「主屏原型_云图系统.html」智能体中心
+   （token 同 xxx/components.css 的 --yt-* 一套）
+   ============================================================ */
+$bg-root: #0a0e17;
+$bg-panel: #1a2332;
+$bg-sunken: #111827;
+$border: #2d3a4d;
+$border-strong: #3d4d64;
+$text: #e5e7eb;
+$text-2: #9ca3af;
+$text-3: #6b7280;
+$accent: #3b82f6;
+$accent-soft: rgba(59, 130, 246, 0.1);
+$accent-active: rgba(59, 130, 246, 0.16);
+$green: #10b981;
+$orange: #f59e0b;
+$red: #ef4444;
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$ease: 0.15s ease;
+
+.hub-page {
+  height: 100%;
+  overflow-y: auto;
+  padding: 26px 32px 32px;
+  background: $bg-root;
+  color: $text;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 77, 100, 0.9) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: rgba(45, 58, 77, 0.9);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: $border-strong;
+  }
+}
+
+/* ---------- 页头 ---------- */
+.hub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.hub-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hub-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+  flex: none;
+  background: linear-gradient(135deg, $accent 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.28);
+}
+
+.hub-title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  color: $text;
+}
+
+.hub-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hub-ghost,
+.hub-primary {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: $radius-md;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease, box-shadow $ease;
+}
+
+.hub-ghost {
+  background: transparent;
+  border: 1px solid $border;
+  color: $text-2;
+
+  &:hover {
+    color: $text;
+    border-color: $border-strong;
+    background: rgba(59, 130, 246, 0.06);
+  }
+}
+
+.hub-primary {
+  border: 1px solid transparent;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(135deg, $accent 0%, #2563eb 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.32);
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.42);
+  }
+}
+
+.hub-lead {
+  max-width: 760px;
+  margin: 0 0 18px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: $text-3;
+
+  code {
+    padding: 1px 6px;
+    border-radius: $radius-sm;
+    background: $bg-sunken;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+    font-size: 11.5px;
+    font-family: var(--mono);
+  }
+}
+
+/* ---------- 一级筛选（归属 / 权限） ---------- */
+.hub-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.hub-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  border: 1px solid $border;
+  background: $bg-panel;
+  color: $text-2;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $ease;
+
+  &:hover {
+    border-color: $border-strong;
+    color: $text;
+  }
+
+  &.is-active {
+    background: $accent-active;
+    border-color: rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+  }
+
+  .hub-pill-count {
+    padding: 0 6px;
+    border-radius: 9px;
+    font-size: 10.5px;
+    line-height: 16px;
+    color: $text-3;
+    background: $bg-sunken;
+  }
+
+  &.is-active .hub-pill-count {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* ---------- 二级筛选面板 ---------- */
+.hub-panel {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  background: rgba(17, 24, 39, 0.6);
+}
+
+.hub-panel-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  & + & {
+    margin-top: 8px;
+  }
+}
+
+.hub-panel-label {
+  flex: none;
+  width: 64px;
+  padding-top: 4px;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.5;
+  color: $text-3;
+}
+
+.hub-panel-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hub-chip {
+  min-width: 52px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $bg-panel;
+  color: $text-2;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $ease;
+
+  &:hover {
+    border-color: $border-strong;
+    color: $text;
+  }
+
+  &.is-active {
+    background: $accent-active;
+    border-color: rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+  }
+}
+
+/* ---------- 卡片区 ---------- */
+.hub-error {
+  margin-bottom: 12px;
+  font-size: 12.5px;
+  color: $red;
+}
+
+.hub-loading {
+  font-size: 12.5px;
+  color: $text-3;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.hub-empty {
+  grid-column: 1 / -1;
+  padding: 28px 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: $text-3;
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  background: $bg-panel;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: border-color $ease, transform $ease, box-shadow $ease, background $ease;
+
+  &:hover {
+    border-color: $accent;
+    background: #1b2637;
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.hub-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hub-avatar {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-md;
+  font-size: 15px;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(135deg, var(--cat-a, #3b82f6), var(--cat-b, #2563eb));
+}
+
+.hub-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: $text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hub-scope {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.hub-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: -2px;
+}
+
+.hub-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: $text-3;
+}
+
+.hub-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $text-3;
+
+  &.is-ok {
+    background: $green;
+  }
+
+  &.is-warn {
+    background: $orange;
+    animation: hub-pulse 1.2s ease-in-out infinite;
+  }
+
+  &.is-info {
+    background: $accent;
+  }
+
+  &.is-danger {
+    background: $red;
+  }
+
+  &.is-idle {
+    background: $text-3;
+  }
+}
+
+@keyframes hub-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.hub-cat {
+  padding: 1px 8px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--cat-bd, rgba(59, 130, 246, 0.4));
+  background: var(--cat-bg, rgba(59, 130, 246, 0.12));
+  color: var(--cat-c, #3b82f6);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.hub-tag {
+  padding: 1px 8px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: $text-3;
+
+  &.is-red {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+  }
+
+  &.is-blue {
+    border-color: rgba(59, 130, 246, 0.35);
+    background: rgba(59, 130, 246, 0.1);
+    color: #93c5fd;
+  }
+}
+
+.hub-card-desc {
+  flex: 1;
+  min-height: 40px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: $text-2;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hub-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(45, 58, 77, 0.7);
+}
+
+.hub-id {
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: $text-3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hub-clone {
+  flex: none;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: transparent;
+  color: $text-2;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $ease;
+
+  &:hover:not(:disabled) {
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.45);
+    background: $accent-soft;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+</style>

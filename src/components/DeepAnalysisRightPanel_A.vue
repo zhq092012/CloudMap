@@ -1,27 +1,27 @@
 <template>
   <div
-    class="w-[400px] h-full bg-[#080d16] text-gray-200 p-4 border-l border-[#16253b] flex flex-col overflow-y-auto custom-scrollbar font-sans text-sm selection:bg-sky-500 selection:text-white">
-    <div class="text-base font-semibold text-white mb-4 tracking-wide">
+    class="da-panel w-[400px] shrink-0 h-full font-sans">
+    <div class="da-panel-title mb-4">
       蓝方作战方案画像详情
     </div>
 
     <div class="flex flex-col gap-2 mb-4">
       <button
-        class="w-full py-2 px-3 bg-[#112035] border border-[#1d4ed8]/60 text-[#38bdf8] hover:bg-[#162e4e] hover:border-[#38bdf8] transition-all rounded text-xs font-medium tracking-wider shadow-inner text-center"
+        class="da-btn da-btn--primary da-btn--block"
         @click="generateOurPlan">
         我方防御方案生成
       </button>
       <!--div class="grid grid-cols-12 gap-2">
         <button
-          class="col-span-5 py-2 px-3 bg-[#112035]/60 border border-slate-700 text-gray-300 hover:bg-[#162e4e] hover:border-[#38bdf8] hover:text-[#38bdf8] transition-all rounded text-xs font-medium">
+          class="da-btn col-span-5">
           重新生成
         </button>
         <button
-          class="col-span-5 py-2 px-3 bg-[#112035]/60 border border-slate-700 text-gray-300 hover:bg-[#162e4e] hover:border-[#38bdf8] hover:text-[#38bdf8] transition-all rounded text-xs font-medium">
+          class="da-btn col-span-5">
           编辑方案
         </button>
         <button
-          class="col-span-2 flex items-center justify-center bg-[#112035]/60 border border-slate-700 text-gray-300 hover:bg-[#162e4e] hover:text-[#38bdf8] transition-all rounded">
+          class="da-btn da-btn--sm col-span-2">
           <el-icon>
             <More />
           </el-icon>
@@ -33,18 +33,18 @@
       store.selectedNode &&
       (store.selectedNode.type === 'Attack' ||
         store.selectedNode._type === 'Attack')
-    " class="border border-[#0ea5e9]/50 bg-[#0c1827]/80 rounded p-3 mb-4 shadow-lg animate-fade-in">
+    " class="border border-[#3b82f6]/50 bg-[#1a2332]/80 rounded p-3 mb-4 shadow-lg animate-fade-in">
       <div class="flex items-center gap-2 mb-2">
-        <span class="w-2 h-2 rounded-full bg-[#0ea5e9] shrink-0"></span>
-        <span class="text-[11px] text-[#0ea5e9] font-semibold tracking-wider">当前选中 · 进攻方案节点</span>
+        <span class="w-2 h-2 rounded-full bg-[#3b82f6] shrink-0"></span>
+        <span class="text-[12px] text-[#3b82f6] font-semibold tracking-wider">当前选中 · 进攻方案节点</span>
       </div>
-      <div class="text-white font-medium text-sm leading-relaxed tracking-wide cursor-pointer hover:text-sky-300"
+      <div class="text-[var(--text)] font-medium text-[13px] leading-relaxed tracking-wide cursor-pointer hover:text-[var(--accent-text)]"
         title="点击查看完整方案" @click="openDetailDialog(store.selectedNode)">
         {{
           store.selectedNode.text || store.selectedNode.title || "未命名节点"
         }}
       </div>
-      <div class="flex items-center gap-4 mt-2 text-[10px] text-gray-400">
+      <div class="flex items-center gap-4 mt-2 text-[11.5px] text-gray-400">
         <span>ID:
           <span class="text-gray-300 font-mono">{{
             store.selectedNode.id
@@ -55,7 +55,7 @@
           }}</span></span>
       </div>
     </div>
-    <div v-if="store.selectedNode.summary" class="mb-4 p-3 bg-[#0a0e15]/80 border border-[#0ea5e9]/50 rounded-lg">
+    <div v-if="store.selectedNode.summary" class="mb-4 p-3 bg-[#0f1622]/80 border border-[#3b82f6]/50 rounded-lg">
       <div class="flex items-center gap-1.5 text-gray-400 font-semibold mb-1.5 text-xs">
         <el-icon class="text-xs">
           <Document />
@@ -66,25 +66,25 @@
         {{ store.selectedNode.summary }}
       </div>
     </div>
-    <div class="border rounded p-4 mb-4 shadow-lg" :class="[
+    <div class="border rounded p-3 mb-4 shadow-lg" :class="[
       store.selectedNode?.deleteStatus == '1'
         ? 'border-[#f59e0b]/40 bg-[#1f150a]/90'
-        : 'border-[#1d4ed8]/60 bg-[#0c1827]/90'
+        : 'border-[#1d4ed8]/60 bg-[#1a2332]/90'
     ]">
       <div class="flex flex-col mb-4">
         <div class="flex items-center gap-1.5 mb-2.5">
-          <span class="text-xs text-[#22c55e]/90 font-medium">方案置信度</span>
-          <span class="text-[#22c55e] font-bold font-mono text-sm glow-green">{{ nodeConfidenceText }}</span>
+          <span class="text-xs text-[#10b981]/90 font-medium">方案置信度</span>
+          <span class="text-[#10b981] font-bold font-mono text-sm glow-green">{{ nodeConfidenceText }}</span>
         </div>
         <div class="w-full h-2.5 bg-slate-800 rounded-sm mb-4 overflow-hidden">
-          <div class="h-full bg-[#4ade80] rounded-sm shadow-[0_0_8px_rgba(74,222,128,0.5)]" :style="{ width: (store.selectedNode?.confidence || 0) + '%' }"></div>
+          <div class="h-full bg-[#10b981] rounded-sm shadow-[0_0_8px_rgba(16,185,129,0.45)]" :style="{ width: (store.selectedNode?.confidence || 0) + '%' }"></div>
         </div>
         <div class="flex items-center gap-1.5 mb-1.5">
           <span class="text-xs text-gray-400 font-medium">状态</span>
           <span :class="[
             store.selectedNode?.deleteStatus == '1'
               ? 'text-[#f59e0b] glow-text-orange'
-              : 'text-[#4ade80] glow-text'
+              : 'text-[#10b981] glow-text'
           ]" class="font-bold text-[13px]">
             {{ store.selectedNode?.deleteStatus == '1' ? '已剪枝' : '活跃' }}
           </span>
@@ -106,39 +106,39 @@
     </div>
 
     <!--
-    <div class="border border-[#16253b] bg-[#111622]/60 rounded p-3 mb-4 flex flex-col">
+    <div class="border border-[#2d3a4d] bg-[#1a2332]/60 rounded p-3 mb-4 flex flex-col">
       <div class="text-xs font-semibold text-gray-300 mb-2.5 flex items-center gap-1.5">
         <span>动态趋势图</span>
       </div>
 
       <div
-        class="w-full h-[180px] bg-[#090e15] border border-slate-800 rounded relative flex items-center justify-center overflow-hidden bg-radial-grid">
+        class="w-full h-[180px] bg-[#0f1622] border border-slate-800 rounded relative flex items-center justify-center overflow-hidden bg-radial-grid">
         <div
           class="absolute inset-0 opacity-20 mix-blend-screen bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:12px_12px]">
         </div>
         <div class="absolute -left-10 top-0 w-44 h-full bg-blue-600/10 blur-2xl rounded-full"></div>
         <div class="absolute -right-10 top-0 w-44 h-full bg-red-600/10 blur-2xl rounded-full"></div>
 
-        <span class="text-[10px] font-mono text-slate-600 tracking-widest uppercase z-10 pointer-events-none">
+        <span class="text-[11.5px] font-mono text-slate-600 tracking-widest uppercase z-10 pointer-events-none">
           Dynamic Hex-Grid Map Display
         </span>
       </div>
 
       <div class="flex justify-center items-center gap-2 mt-2.5">
         <button
-          class="p-1 px-2 border border-slate-700 bg-[#161d2a] text-gray-400 hover:text-white rounded transition-colors text-xs">
+          class="da-btn da-btn--sm">
           <el-icon>
             <DArrowLeft />
           </el-icon>
         </button>
         <button
-          class="p-1 px-2 border border-slate-700 bg-[#161d2a] text-[#4ade80] hover:bg-[#1a2638] rounded transition-colors text-xs">
+          class="da-btn da-btn--sm text-[var(--green)]">
           <el-icon>
             <CaretRight />
           </el-icon>
         </button>
         <button
-          class="p-1 px-2 border border-slate-700 bg-[#161d2a] text-gray-400 hover:text-white rounded transition-colors text-xs">
+          class="da-btn da-btn--sm">
           <el-icon>
             <DArrowRight />
           </el-icon>
@@ -173,11 +173,11 @@
             </div>
           </div>
 
-          <div class="bg-[#151b26] border border-[#222b3d] rounded p-3 shadow-inner">
+          <div class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 shadow-inner">
             <div class="flex items-center justify-between mb-2.5">
               <span class="text-xs font-semibold text-gray-300 tracking-wider">目标分层</span>
               <button
-                class="text-[10px] text-gray-300 bg-[#1f2736] border border-slate-700/80 px-2 py-0.5 rounded hover:bg-[#2a344a] hover:text-white transition-colors">
+                class="da-btn da-btn--sm">
                 查看完整列表
               </button>
             </div>
@@ -185,14 +185,14 @@
             <div class="overflow-y-auto pr-1 max-h-[220px] custom-table-scrollbar">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="text-[11px] text-gray-400 font-medium border-b border-slate-800">
+                  <tr class="text-[12px] text-gray-400 font-medium border-b border-slate-800">
                     <th class="pb-1.5 font-normal w-16">层级</th>
                     <th class="pb-1.5 font-normal pl-2">目标</th>
                     <th class="pb-1.5 font-normal text-center w-12">优先级</th>
                     <th class="pb-1.5 font-normal text-right w-20">毁伤要求</th>
                   </tr>
                 </thead>
-                <tbody class="text-[11px] divide-y divide-slate-800/40 text-gray-300">
+                <tbody class="text-[12px] divide-y divide-slate-800/40 text-gray-300">
                   <tr>
                     <td class="py-2 text-gray-400">核心目标</td>
                     <td class="py-2 pl-2 font-medium text-[#d46d5c]">
@@ -273,11 +273,11 @@
             </ul>
           </div>
 
-          <div class="bg-[#151b26] border border-[#222b3d] rounded p-3 shadow-inner">
+          <div class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 shadow-inner">
             <div class="flex items-center justify-between mb-2.5">
               <span class="text-xs font-semibold text-gray-300 tracking-wider">推断的阶段划分</span>
               <button
-                class="text-[10px] text-gray-300 bg-[#1f2736] border border-slate-700/80 px-2 py-0.5 rounded hover:bg-[#2a344a] hover:text-white transition-colors">
+                class="da-btn da-btn--sm">
                 查看完整列表
               </button>
             </div>
@@ -285,14 +285,14 @@
             <div class="overflow-y-auto pr-1 max-h-[260px] custom-table-scrollbar">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="text-[11px] text-gray-400 font-medium border-b border-slate-800">
+                  <tr class="text-[12px] text-gray-400 font-medium border-b border-slate-800">
                     <th class="pb-2 font-normal w-20">阶段</th>
                     <th class="pb-2 font-normal w-24 pl-1">时间窗口</th>
                     <th class="pb-2 font-normal pl-2">关键行动</th>
                     <th class="pb-2 font-normal text-right w-14">置信度</th>
                   </tr>
                 </thead>
-                <tbody class="text-[11px] divide-y divide-slate-800/40 text-gray-300">
+                <tbody class="text-[12px] divide-y divide-slate-800/40 text-gray-300">
                   <tr>
                     <td class="py-2.5 font-medium leading-tight text-gray-200">
                       阶段0<br /><span class="text-gray-400 font-normal">准备期</span>
@@ -303,7 +303,7 @@
                     <td class="py-2.5 pl-2 leading-normal text-gray-300">
                       编队集结+弹药油料就位（事件1/5已提供直接证据）
                     </td>
-                    <td class="py-2.5 text-right font-mono font-bold text-[#4ade80] glow-green">
+                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981] glow-green">
                       92%
                     </td>
                   </tr>
@@ -317,7 +317,7 @@
                     <td class="py-2.5 pl-2 leading-normal text-gray-300">
                       全频段电磁压制，瘫痪S-300火控雷达
                     </td>
-                    <td class="py-2.5 text-right font-mono font-bold text-[#4ade80] glow-green">
+                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981] glow-green">
                       83%
                     </td>
                   </tr>
@@ -331,7 +331,7 @@
                     <td class="py-2.5 pl-2 leading-normal text-gray-300">
                       隐身战机突入，打击核心+优先目标
                     </td>
-                    <td class="py-2.5 text-right font-mono font-bold text-[#4ade80] glow-green">
+                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981] glow-green">
                       78%
                     </td>
                   </tr>
@@ -345,7 +345,7 @@
                     <td class="py-2.5 pl-2 leading-normal text-gray-300">
                       扩大打击，清除加固目标+BDA评估
                     </td>
-                    <td class="py-2.5 text-right font-mono font-bold text-[#4ade80] glow-green">
+                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981] glow-green">
                       68%
                     </td>
                   </tr>
@@ -363,15 +363,15 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="border border-[#222b3d] bg-[#1a2130] rounded overflow-hidden">
+          <div class="border border-[#2d3a4d] bg-[#1a2332] rounded overflow-hidden">
             <div @click="toggleCategory('air')"
-              class="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#222b3d] transition-colors">
+              class="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#2d3a4d] transition-colors">
               <div class="flex items-center gap-2">
-                <span class="text-white font-semibold text-sm tracking-wide">空中力量（4组编队）</span>
+                <span class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">空中力量（4组编队）</span>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-gray-400 text-[11px]">综合置信度:
-                  <span class="text-[#4ade80] font-bold font-mono glow-green ml-0.5">83%</span></span>
+                <span class="text-gray-400 text-[12px]">综合置信度:
+                  <span class="text-[#10b981] font-bold font-mono glow-green ml-0.5">83%</span></span>
                 <el-icon class="text-gray-400 text-xs transition-transform duration-200"
                   :class="{ 'rotate-180': !categories.air }">
                   <CaretTop />
@@ -379,12 +379,12 @@
               </div>
             </div>
 
-            <div v-show="categories.air" class="p-2 bg-[#0d121b] border-t border-[#222b3d] space-y-2">
-              <div class="border border-[#2d394f] bg-[#141b26] rounded overflow-hidden">
+            <div v-show="categories.air" class="p-2 bg-[#0f1622] border-t border-[#2d3a4d] space-y-2">
+              <div class="border border-[#2d3a4d] bg-[#16202e] rounded overflow-hidden">
                 <div @click="toggleGroup('airElectronic')"
-                  class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#1c2535] transition-colors">
+                  class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#253141] transition-colors">
                   <div class="flex items-center gap-2 text-gray-200 font-medium">
-                    <svg class="w-4 h-4 text-[#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    <svg class="w-4 h-4 text-[#93c5fd]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                       stroke-width="2">
                       <circle cx="12" cy="12" r="9" opacity="0.3" fill="currentColor" />
                       <circle cx="12" cy="12" r="3" fill="currentColor" />
@@ -396,9 +396,9 @@
                     <span>电子攻击机群</span>
                   </div>
                   <div class="flex items-center gap-2.5">
-                    <span class="text-gray-400 text-[11px]">编组置信度:
-                      <span class="text-[#4ade80] font-bold font-mono glow-green ml-0.5">83%</span></span>
-                    <el-icon class="text-gray-400 text-[10px] transition-transform duration-200"
+                    <span class="text-gray-400 text-[12px]">编组置信度:
+                      <span class="text-[#10b981] font-bold font-mono glow-green ml-0.5">83%</span></span>
+                    <el-icon class="text-gray-400 text-[11.5px] transition-transform duration-200"
                       :class="{ 'rotate-180': !groups.airElectronic }">
                       <CaretTop />
                     </el-icon>
@@ -406,106 +406,106 @@
                 </div>
 
                 <div v-show="groups.airElectronic"
-                  class="divide-y divide-slate-800/60 bg-[#0b0f17] border-t border-[#2d394f]">
+                  class="divide-y divide-slate-800/60 bg-[#0b0f17] border-t border-[#2d3a4d]">
                   <div class="flex items-center justify-between px-3 py-2">
                     <div class="flex items-center gap-2.5">
                       <div
-                        class="w-5 h-5 rounded-full bg-[#0284c7]/20 border border-[#38bdf8]/40 flex items-center justify-center shrink-0">
-                        <svg class="w-3 h-3 text-[#38bdf8]" viewBox="0 0 24 24" fill="currentColor">
+                        class="w-5 h-5 rounded-full bg-[#3b82f6]/20 border border-[#93c5fd]/40 flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-[#93c5fd]" viewBox="0 0 24 24" fill="currentColor">
                           <path
                             d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
                         </svg>
                       </div>
-                      <span class="text-[#38bdf8] font-mono font-medium">EA-18G
+                      <span class="text-[#93c5fd] font-mono font-medium">EA-18G
                         <span class="text-gray-300 font-sans mx-0.5">× 3</span>
-                        <span class="text-gray-400 text-[11px] font-sans">(乌代德)</span></span>
+                        <span class="text-gray-400 text-[12px] font-sans">(乌代德)</span></span>
                     </div>
-                    <span class="text-gray-400 text-[11px]">置信度:
-                      <span class="text-[#4ade80] font-mono font-bold ml-0.5">83%</span></span>
+                    <span class="text-gray-400 text-[12px]">置信度:
+                      <span class="text-[#10b981] font-mono font-bold ml-0.5">83%</span></span>
                   </div>
                   <div class="flex items-center justify-between px-3 py-2">
                     <div class="flex items-center gap-2.5">
                       <div
-                        class="w-5 h-5 rounded-full bg-[#0284c7]/20 border border-[#38bdf8]/40 flex items-center justify-center shrink-0">
-                        <svg class="w-3 h-3 text-[#38bdf8]" viewBox="0 0 24 24" fill="currentColor">
+                        class="w-5 h-5 rounded-full bg-[#3b82f6]/20 border border-[#93c5fd]/40 flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-[#93c5fd]" viewBox="0 0 24 24" fill="currentColor">
                           <path
                             d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
                         </svg>
                       </div>
-                      <span class="text-sky-400/90 font-mono font-medium">EC-130H
+                      <span class="text-[var(--accent-text)]/90 font-mono font-medium">EC-130H
                         <span class="text-gray-300 font-sans mx-0.5">× 1</span>
-                        <span class="text-gray-400 text-[11px] font-sans">(乌代德)</span></span>
+                        <span class="text-gray-400 text-[12px] font-sans">(乌代德)</span></span>
                     </div>
-                    <span class="text-gray-400 text-[11px]">置信度:
-                      <span class="text-[#4ade80] font-mono font-bold ml-0.5">83%</span></span>
+                    <span class="text-gray-400 text-[12px]">置信度:
+                      <span class="text-[#10b981] font-mono font-bold ml-0.5">83%</span></span>
                   </div>
                   <div class="flex items-center justify-between px-3 py-2">
                     <div class="flex items-center gap-2.5">
                       <div
-                        class="w-5 h-5 rounded-full bg-[#0284c7]/20 border border-[#38bdf8]/40 flex items-center justify-center shrink-0">
-                        <svg class="w-3 h-3 text-[#38bdf8]" viewBox="0 0 24 24" fill="currentColor">
+                        class="w-5 h-5 rounded-full bg-[#3b82f6]/20 border border-[#93c5fd]/40 flex items-center justify-center shrink-0">
+                        <svg class="w-3 h-3 text-[#93c5fd]" viewBox="0 0 24 24" fill="currentColor">
                           <path
                             d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
                         </svg>
                       </div>
-                      <span class="text-sky-400/90 font-mono font-medium">F-16CJ
+                      <span class="text-[var(--accent-text)]/90 font-mono font-medium">F-16CJ
                         <span class="text-gray-300 font-sans mx-0.5">× 2</span>
-                        <span class="text-gray-400 text-[11px] font-sans">(乌代德)</span></span>
+                        <span class="text-gray-400 text-[12px] font-sans">(乌代德)</span></span>
                     </div>
-                    <span class="text-gray-400 text-[11px]">置信度:
-                      <span class="text-[#4ade80] font-mono font-bold ml-0.5">83%</span></span>
+                    <span class="text-gray-400 text-[12px]">置信度:
+                      <span class="text-[#10b981] font-mono font-bold ml-0.5">83%</span></span>
                   </div>
                 </div>
               </div>
 
-              <div class="border border-[#232b3a] bg-[#141b26] rounded overflow-hidden opacity-85">
-                <div class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#1c2535]">
+              <div class="border border-[#2d3a4d] bg-[#16202e] rounded overflow-hidden opacity-85">
+                <div class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#253141]">
                   <div class="flex items-center gap-2 text-gray-300">
-                    <el-icon class="text-sky-400 text-sm">
+                    <el-icon class="text-[var(--accent-text)] text-sm">
                       <Opportunity />
                     </el-icon>
                     <span>隐身打击机群</span>
                   </div>
                   <div class="flex items-center gap-2.5">
-                    <span class="text-gray-500 text-[11px]">编组置信度:
-                      <span class="text-[#4ade80]/80 font-mono font-bold">83%</span></span>
-                    <el-icon class="text-gray-500 text-[10px]">
+                    <span class="text-gray-500 text-[12px]">编组置信度:
+                      <span class="text-[#10b981]/80 font-mono font-bold">83%</span></span>
+                    <el-icon class="text-gray-500 text-[11.5px]">
                       <CaretBottom />
                     </el-icon>
                   </div>
                 </div>
               </div>
 
-              <div class="border border-[#232b3a] bg-[#141b26] rounded overflow-hidden opacity-85">
-                <div class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#1c2535]">
+              <div class="border border-[#2d3a4d] bg-[#16202e] rounded overflow-hidden opacity-85">
+                <div class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#253141]">
                   <div class="flex items-center gap-2 text-gray-300">
-                    <el-icon class="text-sky-400 text-sm">
+                    <el-icon class="text-[var(--accent-text)] text-sm">
                       <Opportunity />
                     </el-icon>
                     <span>后续打击机群</span>
                   </div>
                   <div class="flex items-center gap-2.5">
-                    <span class="text-gray-500 text-[11px]">编组置信度:
-                      <span class="text-[#4ade80]/80 font-mono font-bold">83%</span></span>
-                    <el-icon class="text-gray-500 text-[10px]">
+                    <span class="text-gray-500 text-[12px]">编组置信度:
+                      <span class="text-[#10b981]/80 font-mono font-bold">83%</span></span>
+                    <el-icon class="text-gray-500 text-[11.5px]">
                       <CaretBottom />
                     </el-icon>
                   </div>
                 </div>
               </div>
 
-              <div class="border border-[#232b3a] bg-[#141b26] rounded overflow-hidden opacity-85">
-                <div class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#1c2535]">
+              <div class="border border-[#2d3a4d] bg-[#16202e] rounded overflow-hidden opacity-85">
+                <div class="flex items-center justify-between px-2.5 py-2 cursor-pointer hover:bg-[#253141]">
                   <div class="flex items-center gap-2 text-gray-300">
-                    <el-icon class="text-sky-400 text-sm">
+                    <el-icon class="text-[var(--accent-text)] text-sm">
                       <Opportunity />
                     </el-icon>
                     <span>指挥保障机群</span>
                   </div>
                   <div class="flex items-center gap-2.5">
-                    <span class="text-gray-500 text-[11px]">编组置信度:
-                      <span class="text-[#4ade80]/80 font-mono font-bold">83%</span></span>
-                    <el-icon class="text-gray-500 text-[10px]">
+                    <span class="text-gray-500 text-[12px]">编组置信度:
+                      <span class="text-[#10b981]/80 font-mono font-bold">83%</span></span>
+                    <el-icon class="text-gray-500 text-[11.5px]">
                       <CaretBottom />
                     </el-icon>
                   </div>
@@ -515,14 +515,14 @@
           </div>
 
           <div v-for="cat in remainingCategories" :key="cat.id"
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <span class="text-gray-200 font-medium">{{ cat.name }}</span>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">{{
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">{{
                   cat.confidence
                 }}</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
@@ -537,22 +537,22 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="border border-[#222b3d] bg-[#1a2130] rounded overflow-hidden">
+          <div class="border border-[#2d3a4d] bg-[#1a2332] rounded overflow-hidden">
             <div @click="toggleGroup('airElectronic')"
-              class="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#222b3d] transition-colors">
+              class="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#2d3a4d] transition-colors">
               <div class="flex items-center gap-2.5 text-gray-200 font-medium">
                 <div
-                  class="w-5 h-5 rounded-full bg-[#0284c7]/20 border border-[#38bdf8]/40 flex items-center justify-center shrink-0">
-                  <svg class="w-3 h-3 text-[#38bdf8]" viewBox="0 0 24 24" fill="currentColor">
+                  class="w-5 h-5 rounded-full bg-[#3b82f6]/20 border border-[#93c5fd]/40 flex items-center justify-center shrink-0">
+                  <svg class="w-3 h-3 text-[#93c5fd]" viewBox="0 0 24 24" fill="currentColor">
                     <path
                       d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
                   </svg>
                 </div>
-                <span class="text-white font-semibold text-sm tracking-wide">电子攻击机群</span>
+                <span class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">电子攻击机群</span>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-gray-400 text-[11px]">综合置信度:
-                  <span class="text-[#4ade80] font-bold font-mono glow-green ml-0.5">83%</span></span>
+                <span class="text-gray-400 text-[12px]">综合置信度:
+                  <span class="text-[#10b981] font-bold font-mono glow-green ml-0.5">83%</span></span>
                 <el-icon class="text-gray-400 text-xs transition-transform duration-200"
                   :class="{ 'rotate-180': !groups.airElectronic }">
                   <CaretTop />
@@ -561,7 +561,7 @@
             </div>
 
             <div v-show="groups.airElectronic"
-              class="p-3 bg-[#0d121b] border-t border-[#222b3d] space-y-2 text-gray-300 leading-relaxed tracking-wide">
+              class="p-3 bg-[#0f1622] border-t border-[#2d3a4d] space-y-2 text-gray-300 leading-relaxed tracking-wide">
               <div class="flex items-start">
                 <span class="text-gray-500 w-10 shrink-0 font-medium">方向:</span>
                 <span class="text-gray-200 font-mono">乌代德基地 → 波斯湾中线 → 海峡西侧巡逻空域</span>
@@ -580,11 +580,11 @@
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <div class="flex items-center gap-2.5 text-gray-300">
               <div
-                class="w-5 h-5 rounded-full bg-[#0284c7]/10 border border-[#38bdf8]/20 flex items-center justify-center shrink-0">
-                <svg class="w-3 h-3 text-[#38bdf8]/80" viewBox="0 0 24 24" fill="currentColor">
+                class="w-5 h-5 rounded-full bg-[#3b82f6]/10 border border-[#93c5fd]/20 flex items-center justify-center shrink-0">
+                <svg class="w-3 h-3 text-[#93c5fd]/80" viewBox="0 0 24 24" fill="currentColor">
                   <path
                     d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
                 </svg>
@@ -592,20 +592,20 @@
               <span class="font-medium">隐身打击机群</span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">68%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">68%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <div class="flex items-center gap-2.5 text-gray-300">
               <div
-                class="w-5 h-5 rounded-full bg-[#0284c7]/10 border border-[#38bdf8]/20 flex items-center justify-center shrink-0">
-                <svg class="w-3 h-3 text-[#38bdf8]/80" viewBox="0 0 24 24" fill="currentColor">
+                class="w-5 h-5 rounded-full bg-[#3b82f6]/10 border border-[#93c5fd]/20 flex items-center justify-center shrink-0">
+                <svg class="w-3 h-3 text-[#93c5fd]/80" viewBox="0 0 24 24" fill="currentColor">
                   <path
                     d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z" />
                 </svg>
@@ -613,20 +613,20 @@
               <span class="font-medium">后续打击机群</span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">72%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">72%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <div class="flex items-center gap-2.5 text-gray-300">
               <div
-                class="w-5 h-5 rounded-full bg-[#0284c7]/10 border border-[#38bdf8]/20 flex items-center justify-center shrink-0">
-                <svg class="w-3 h-3 text-[#38bdf8]/80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                class="w-5 h-5 rounded-full bg-[#3b82f6]/10 border border-[#93c5fd]/20 flex items-center justify-center shrink-0">
+                <svg class="w-3 h-3 text-[#93c5fd]/80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2">
                   <path d="M2 21h20M4 17l2-7h12l2 7H4zM9 10V6h2v4M13 10V4h2v6" stroke-linecap="round"
                     stroke-linejoin="round" />
@@ -635,20 +635,20 @@
               <span class="font-medium">航母打击群</span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">54%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">54%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <div class="flex items-center gap-2.5 text-gray-300">
               <div
-                class="w-5 h-5 rounded-full bg-[#0284c7]/10 border border-[#38bdf8]/20 flex items-center justify-center shrink-0">
-                <svg class="w-3 h-3 text-[#38bdf8]/80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                class="w-5 h-5 rounded-full bg-[#3b82f6]/10 border border-[#93c5fd]/20 flex items-center justify-center shrink-0">
+                <svg class="w-3 h-3 text-[#93c5fd]/80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2">
                   <path d="M2 13h4M22 13h-4M6 13c0-3.3 2.7-6 6-6s6 2.7 6 6H6zM12 7V3h2" stroke-linecap="round" />
                   <circle cx="12" cy="13" r="2" />
@@ -657,20 +657,20 @@
               <span class="font-medium">水下打击编队</span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">54%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">54%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <div class="flex items-center gap-2.5 text-gray-300">
               <div
-                class="w-5 h-5 rounded-full bg-[#0284c7]/10 border border-[#38bdf8]/20 flex items-center justify-center shrink-0">
-                <svg class="w-3 h-3 text-[#38bdf8]/80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                class="w-5 h-5 rounded-full bg-[#3b82f6]/10 border border-[#93c5fd]/20 flex items-center justify-center shrink-0">
+                <svg class="w-3 h-3 text-[#93c5fd]/80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2">
                   <path d="M2 13h4M22 13h-4M6 13c0-3.3 2.7-6 6-6s6 2.7 6 6H6zM12 7V3h2" stroke-linecap="round" />
                   <circle cx="12" cy="13" r="2" />
@@ -679,9 +679,9 @@
               <span class="font-medium">反潜侦察编队</span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">54%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">54%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
@@ -695,17 +695,17 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="text-gray-400 text-[11px] leading-relaxed mb-1 pl-0.5">
+          <div class="text-gray-400 text-[12px] leading-relaxed mb-1 pl-0.5">
             以下为基于挂载异常和战例的主要打击武器推测，非完整挂载清单。
           </div>
 
-          <div class="border border-[#222b3d] bg-[#1a2130] rounded overflow-hidden">
+          <div class="border border-[#2d3a4d] bg-[#1a2332] rounded overflow-hidden">
             <div @click="toggleGroup('airElectronic')"
-              class="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#222b3d] transition-colors">
-              <span class="text-white font-semibold text-sm tracking-wide">反辐射/压制类</span>
+              class="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#2d3a4d] transition-colors">
+              <span class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">反辐射/压制类</span>
               <div class="flex items-center gap-3">
-                <span class="text-gray-400 text-[11px]">综合置信度:
-                  <span class="text-[#4ade80] font-bold font-mono glow-green ml-0.5">65%</span></span>
+                <span class="text-gray-400 text-[12px]">综合置信度:
+                  <span class="text-[#10b981] font-bold font-mono glow-green ml-0.5">65%</span></span>
                 <el-icon class="text-gray-400 text-xs transition-transform duration-200"
                   :class="{ 'rotate-180': !groups.suppression }">
                   <CaretBottom />
@@ -714,37 +714,37 @@
             </div>
 
             <div v-show="groups.suppression"
-              class="p-3 bg-[#0d121b] border-t border-[#222b3d] space-y-2.5 text-gray-300 leading-relaxed tracking-wide">
+              class="p-3 bg-[#0f1622] border-t border-[#2d3a4d] space-y-2.5 text-gray-300 leading-relaxed tracking-wide">
               <div>
                 <span
-                  class="text-[#38bdf8] font-medium cursor-pointer hover:underline">AARGM-ER反辐射导弹</span>：搭载EA-18G/F-16CJ，约10-15枚，用于摧毁S-300火控雷达，置信度高。
+                  class="text-[#93c5fd] font-medium cursor-pointer hover:underline">AARGM-ER反辐射导弹</span>：搭载EA-18G/F-16CJ，约10-15枚，用于摧毁S-300火控雷达，置信度高。
               </div>
               <div>
-                <span class="text-[#38bdf8] font-medium cursor-pointer hover:underline">AGM-88E
+                <span class="text-[#93c5fd] font-medium cursor-pointer hover:underline">AGM-88E
                   AARGM</span>：搭载F-16CJ，约4-6枚，备用反辐射硬杀伤，置信度中。
               </div>
             </div>
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <span class="text-gray-200 font-medium">精确打击类</span>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">78%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">78%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
           </div>
 
           <div
-            class="border border-[#1c2435] bg-[#111622] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#151b29] transition-colors">
+            class="border border-[#2d3a4d] bg-[#1a2332] rounded flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-[#0f1622] transition-colors">
             <span class="text-gray-200 font-medium">自卫类</span>
             <div class="flex items-center gap-3">
-              <span class="text-gray-500 text-[11px]">综合置信度:
-                <span class="text-[#4ade80]/90 font-bold font-mono ml-0.5">62%</span></span>
-              <el-icon class="text-gray-500 text-[10px]">
+              <span class="text-gray-500 text-[12px]">综合置信度:
+                <span class="text-[#10b981]/90 font-bold font-mono ml-0.5">62%</span></span>
+              <el-icon class="text-gray-500 text-[11.5px]">
                 <CaretBottom />
               </el-icon>
             </div>
@@ -758,14 +758,14 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="text-gray-400 text-[11px] leading-relaxed pl-0.5">
+          <div class="text-gray-400 text-[12px] leading-relaxed pl-0.5">
             以下为基于力量组成和历史战例推测的蓝方在此行动中可能依赖的侦察情报
           </div>
 
           <div class="space-y-2.5">
             <div
-              class="bg-[#121721] border border-[#20293a] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
-              <div class="text-white font-semibold text-xs tracking-wide">
+              class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
+              <div class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">
                 S-300火控雷达连续信号采集
               </div>
               <div class="space-y-1 text-gray-300 leading-normal">
@@ -776,15 +776,15 @@
                 <div class="flex items-start">
                   <span class="text-gray-500 w-28 shrink-0 font-medium">我方可观测的现象：</span>
                   <span class="text-gray-200">
-                    团A电子侦察活跃+事件4雷达开机<span class="text-[#4ade80] font-medium ml-1 font-mono">（已观测到）</span>
+                    团A电子侦察活跃+事件4雷达开机<span class="text-[#10b981] font-medium ml-1 font-mono">（已观测到）</span>
                   </span>
                 </div>
               </div>
             </div>
 
             <div
-              class="bg-[#121721] border border-[#20293a] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
-              <div class="text-white font-semibold text-xs tracking-wide">
+              class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
+              <div class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">
                 S-300阵地精确卫星成像
               </div>
               <div class="space-y-1 text-gray-300 leading-normal">
@@ -795,15 +795,15 @@
                 <div class="flex items-start">
                   <span class="text-gray-500 w-28 shrink-0 font-medium">我方可观测的现象：</span>
                   <span class="text-gray-200">
-                    侦察卫星过顶频次增加<span class="text-sky-400 font-medium ml-1">（可观测）</span>
+                    侦察卫星过顶频次增加<span class="text-[var(--accent-text)] font-medium ml-1">（可观测）</span>
                   </span>
                 </div>
               </div>
             </div>
 
             <div
-              class="bg-[#121721] border border-[#20293a] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
-              <div class="text-white font-semibold text-xs tracking-wide">
+              class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
+              <div class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">
                 格什姆岛通信枢纽信号定位
               </div>
               <div class="space-y-1 text-gray-300 leading-normal">
@@ -814,15 +814,15 @@
                 <div class="flex items-start">
                   <span class="text-gray-500 w-28 shrink-0 font-medium">我方可观测的现象：</span>
                   <span class="text-gray-200">
-                    EC-130H转场<span class="text-[#4ade80] font-medium ml-1 font-mono">（已观测到）</span>
+                    EC-130H转场<span class="text-[#10b981] font-medium ml-1 font-mono">（已观测到）</span>
                   </span>
                 </div>
               </div>
             </div>
 
             <div
-              class="bg-[#121721] border border-[#20293a] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
-              <div class="text-white font-semibold text-xs tracking-wide">
+              class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
+              <div class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">
                 伊朗战机部署与出动能力
               </div>
               <div class="space-y-1 text-gray-300 leading-normal">
@@ -833,15 +833,15 @@
                 <div class="flex items-start">
                   <span class="text-gray-500 w-28 shrink-0 font-medium">我方可观测的现象：</span>
                   <span class="text-gray-200">
-                    P-8A侦察活动<span class="text-[#4ade80] font-medium ml-1 font-mono">（已观测到）</span>
+                    P-8A侦察活动<span class="text-[#10b981] font-medium ml-1 font-mono">（已观测到）</span>
                   </span>
                 </div>
               </div>
             </div>
 
             <div
-              class="bg-[#121721] border border-[#20293a] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
-              <div class="text-white font-semibold text-xs tracking-wide">
+              class="bg-[#0f1622] border border-[#2d3a4d] rounded p-3 space-y-1.5 shadow-md transition-all hover:border-slate-700">
+              <div class="text-[var(--text)] font-semibold text-[12.5px] tracking-wide">
                 伊朗领导层动向与决策信号
               </div>
               <div class="space-y-1 text-gray-300 leading-normal">
@@ -852,7 +852,7 @@
                 <div class="flex items-start">
                   <span class="text-gray-500 w-28 shrink-0 font-medium">我方可观测的现象：</span>
                   <span class="text-gray-200">
-                    开源情报+外交信号<span class="text-sky-400 font-medium ml-1">（可采集）</span>
+                    开源情报+外交信号<span class="text-[var(--accent-text)] font-medium ml-1">（可采集）</span>
                   </span>
                 </div>
               </div>
@@ -1020,15 +1020,15 @@ const matrixData = [
 }
 
 :deep(.custom-tactical-collapse .el-collapse-item) {
-  border: 1px solid #16253b !important;
-  background-color: #111622 !important;
+  border: 1px solid #2d3a4d !important;
+  background-color: #1a2332 !important;
   border-radius: 4px;
   overflow: hidden;
 }
 
 :deep(.custom-tactical-collapse .el-collapse-item__header) {
-  background-color: #111622 !important;
-  color: #e2e8f0 !important;
+  background-color: #1a2332 !important;
+  color: #e5e7eb !important;
   border-bottom: none !important;
   height: 38px !important;
   padding: 0 12px !important;
@@ -1051,11 +1051,11 @@ const matrixData = [
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #080d16;
+  background: #111827;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #2d3a4d;
   border-radius: 3px;
 }
 
@@ -1075,9 +1075,9 @@ const matrixData = [
 
 /* 每一个独立的竖向框体 */
 :deep(.custom-inference-accordion .el-collapse-item) {
-  background-color: #111622 !important;
+  background-color: #1a2332 !important;
   /* 灰黑蓝色头部背景 */
-  border: 1px solid #1c2435 !important;
+  border: 1px solid #2d3a4d !important;
   /* 低调内敛的科技线框 */
   border-radius: 4px;
   overflow: hidden;
@@ -1085,7 +1085,7 @@ const matrixData = [
 
 /* 折叠面板头部样式 */
 :deep(.custom-inference-accordion .el-collapse-item__header) {
-  background-color: #111622 !important;
+  background-color: #1a2332 !important;
   color: #ffffff !important;
   height: 42px !important;
   /* 适中的竖向高度槽 */
@@ -1106,7 +1106,7 @@ const matrixData = [
 
 /* 右侧原生箭头样式微调 */
 :deep(.custom-inference-accordion .el-collapse-item__arrow) {
-  color: #94a3b8 !important;
+  color: #9ca3af !important;
   /* 浅灰蓝色箭头 */
   font-size: 13px;
 }
@@ -1128,7 +1128,7 @@ const matrixData = [
 .collapse-body-content {
   padding: 12px 16px;
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
   line-height: 1.6;
   border-top: 1px solid #161f30;
   /* 展开后，内容与头部的虚隔线 */
@@ -1140,7 +1140,7 @@ const matrixData = [
 }
 
 .custom-table-scrollbar::-webkit-scrollbar-track {
-  background: #111622;
+  background: #1a2332;
   border-radius: 2px;
 }
 

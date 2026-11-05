@@ -7,7 +7,7 @@
         <span class="map-control-label">设施</span>
         <el-switch
           v-model="iconsVisible"
-          active-color="#c1a465"
+          active-color="#3b82f6"
           inactive-color="#9e9e9e"
         />
       </div>
@@ -15,7 +15,7 @@
         <span class="map-control-label">情报</span>
         <el-switch
           v-model="clustersVisible"
-          active-color="#c1a465"
+          active-color="#3b82f6"
           inactive-color="#9e9e9e"
         />
       </div>
@@ -23,7 +23,7 @@
         <span class="map-control-label">轨迹</span>
         <el-switch
           v-model="tracksVisible"
-          active-color="#06b6d4"
+          active-color="#3b82f6"
           inactive-color="#9e9e9e"
         />
       </div>
@@ -39,7 +39,7 @@
         <span class="map-control-label">离线底图</span>
         <el-switch
           v-model="offlineTilesVisible"
-          active-color="#c1a465"
+          active-color="#3b82f6"
           inactive-color="#9e9e9e"
         />
       </div> -->
@@ -825,6 +825,11 @@ const fetchWarningData = async () => {
           score: Number(item.deviationScore) || 0,
           confidence: Math.round(Number(item.confidence) || 0),
           threatLevel: item.threatLevel ?? "",
+          // 「异常征候」左栏分组所需：状态 + 创建时间（原始字符串，时间判断在 MapLeft 内做）
+          status: item.status ?? "",
+          createdAt: item.createdAt || item.eventTime || "",
+          // 「异常」分组按 WarningLeftPanel 的列表口径展示，需要异常类型
+          assetType: item.assetType ?? "",
         };
       });
 
@@ -1024,6 +1029,8 @@ const {
 
 // 注册手动刷新：图谱右上角「刷新」按钮通过 store.articlesRefetch 调用（force 绕过 enabled 门控）
 homeStore.articlesRefetch = () => refetchArticles(true);
+// 注册异常列表刷新：「异常征候」左栏确认 / 排除后通过 store.anomaliesRefetch 重新拉取
+homeStore.anomaliesRefetch = () => fetchWarningData();
 
 // 文章加载完成后用于地图按国家聚合打点
 watch(articles, (list) => {
@@ -1139,8 +1146,8 @@ onUnmounted(() => {
 
 .map-topright {
   position: absolute;
-  top: 12px;
-  /* 距离右边缘 = RightPanel 宽度(380px, 即 w-95) + 12px 间距，使其恰好位于 RightPanel 左侧 */
+  /* 右下角：距底 12px；距右边缘 = RightPanel 宽度(380px, 即 w-95) + 12px 间距 */
+  bottom: 12px;
   right: calc(380px + 12px);
   z-index: 1000;
   display: flex;
@@ -1155,8 +1162,8 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 6px;
   padding: 8px 10px;
-  background: rgba(15, 23, 42, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(45, 58, 77, 0.9);
   border-radius: 8px;
   pointer-events: auto; /* 开关可交互 */
   backdrop-filter: blur(2px);
@@ -1217,8 +1224,8 @@ onUnmounted(() => {
 <!-- 文章聚合标记 / 聚合图标：非 scoped，leaflet 动态注入的 divIcon 不受 scoped 影响 -->
 <style>
 .leaflet-popup-content-wrapper {
-  background: #141414;
-  border: 1px solid #2d3748;
+  background: #1a2332;
+  border: 1px solid #2d3a4d;
   border-radius: 6px;
 }
 .leaflet-popup-content {

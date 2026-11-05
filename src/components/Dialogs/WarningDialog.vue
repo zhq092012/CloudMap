@@ -125,7 +125,7 @@ const openSource = () => {
   .wd-title {
     font-size: 15px;
     font-weight: 700;
-    color: #f8fafc;
+    color: #e5e7eb;
     line-height: 1.4;
     margin-bottom: 8px;
     word-break: break-word;
@@ -142,11 +142,11 @@ const openSource = () => {
     padding: 2px 8px;
     border-radius: 3px;
     color: #cbd5e1;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid #334155;
+    background: #111827;
+    border: 1px solid #2d3a4d;
 
     &.lvl-高 { color: #fca5a5; background: rgba(239, 68, 68, 0.12); border-color: #ef4444; font-weight: 700; }
-    &.lvl-中 { color: #fcd34d; background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; font-weight: 700; }
+    &.lvl-中 { color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; font-weight: 700; }
     &.lvl-低 { color: #93c5fd; background: rgba(59, 130, 246, 0.12); border-color: #3b82f6; font-weight: 700; }
   }
 }
@@ -156,8 +156,8 @@ const openSource = () => {
   max-height: 46vh;
   overflow-y: auto;
   padding: 10px 12px;
-  background: rgba(11, 15, 26, 0.5);
-  border: 1px solid #1e293b;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 6px;
 }
 
@@ -167,7 +167,7 @@ const openSource = () => {
   justify-content: center;
   min-height: 100px;
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .wd-error {
@@ -184,28 +184,28 @@ const openSource = () => {
 .wd-streaming {
   margin-bottom: 8px;
   font-size: 12px;
-  color: #fbbf24;
+  color: #93c5fd;
 }
 
 .wd-analyzed {
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px dashed #334155;
+  border-top: 1px dashed #2d3a4d;
   font-size: 11px;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .wd-source {
-  :deep(.el-collapse-item__header) { background: transparent; border-bottom-color: #1e293b; }
-  :deep(.el-collapse-item__wrap) { background: transparent; border-bottom-color: #1e293b; }
-  :deep(.el-collapse-item__content) { color: #94a3b8; }
+  :deep(.el-collapse-item__header) { background: transparent; border-bottom-color: #2d3a4d; }
+  :deep(.el-collapse-item__wrap) { background: transparent; border-bottom-color: #2d3a4d; }
+  :deep(.el-collapse-item__content) { color: #9ca3af; }
 }
 
-.wd-source-title { color: #94a3b8; font-size: 12px; }
+.wd-source-title { color: #9ca3af; font-size: 12px; }
 .wd-source-text {
   font-size: 12px;
   line-height: 1.7;
-  color: #94a3b8;
+  color: #9ca3af;
   white-space: pre-wrap;
   word-break: break-word;
   max-height: 160px;
@@ -222,7 +222,7 @@ const openSource = () => {
 .markdown-body {
   font-size: 12px;
   line-height: 1.75;
-  color: #e2e8f0;
+  color: #cbd5e1;
   word-break: break-word;
 }
 .markdown-body :deep(h1),
@@ -231,7 +231,7 @@ const openSource = () => {
 .markdown-body :deep(h4) {
   font-weight: 700;
   margin: 8px 0 4px;
-  color: #fbbf24;
+  color: #93c5fd;
   line-height: 1.35;
 }
 .markdown-body :deep(h1) { font-size: 14px; }
@@ -247,12 +247,12 @@ const openSource = () => {
 .markdown-body :deep(li) { margin: 2px 0; }
 .markdown-body :deep(ul li) { list-style: disc; }
 .markdown-body :deep(ol li) { list-style: decimal; }
-.markdown-body :deep(strong) { color: #fcd34d; font-weight: 700; }
+.markdown-body :deep(strong) { color: #bfdbfe; font-weight: 700; }
 .markdown-body :deep(em) { color: #cbd5e1; }
-.markdown-body :deep(a) { color: #38bdf8; text-decoration: underline; }
+.markdown-body :deep(a) { color: #93c5fd; text-decoration: underline; }
 .markdown-body :deep(code) {
-  background: #0c121f;
-  border: 1px solid #2d3748;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 11px;
@@ -260,8 +260,8 @@ const openSource = () => {
   color: #fca5a5;
 }
 .markdown-body :deep(pre) {
-  background: #0c121f;
-  border: 1px solid #2d3748;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 4px;
   padding: 8px 10px;
   overflow-x: auto;
@@ -271,18 +271,18 @@ const openSource = () => {
   background: none;
   border: none;
   padding: 0;
-  color: #e2e8f0;
+  color: #cbd5e1;
   font-size: 11px;
 }
 .markdown-body :deep(blockquote) {
-  border-left: 3px solid #f59e0b;
+  border-left: 3px solid #3b82f6;
   padding-left: 8px;
   color: #cbd5e1;
   margin: 6px 0;
 }
 .markdown-body :deep(hr) {
   border: none;
-  border-top: 1px solid #2d3748;
+  border-top: 1px solid #2d3a4d;
   margin: 8px 0;
 }
 </style>

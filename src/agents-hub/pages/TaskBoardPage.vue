@@ -109,58 +109,58 @@ onMounted(load);
 
 <template>
   <HubAuthGate>
-    <div class="h-full overflow-y-auto custom-scrollbar bg-[#060c14] text-[#a3b8cc] p-8">
+    <div class="h-full overflow-y-auto custom-scrollbar bg-[#0a0e17] text-[#cbd5e1] p-8">
       <!-- header -->
       <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
         <div class="flex items-center gap-3">
           <span
-            class="w-9 h-9 rounded-lg flex items-center justify-center text-lg text-white"
-            style="background: linear-gradient(135deg,#00f3ff 0%,#3b82f6 100%);"
+            class="w-9 h-9 rounded-lg flex items-center justify-center text-[15px] text-white"
+            style="background: linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);"
             >📋</span
           >
-          <h1 class="text-2xl font-bold text-white tracking-tight m-0">智能任务看板</h1>
+          <h1 class="text-[19px] font-bold text-white tracking-tight m-0">智能任务看板</h1>
         </div>
         <button
           @click="load"
-          class="px-3 py-1.5 rounded-lg border border-[#1e3452] text-[#a3b8cc] hover:text-white hover:border-[#2b5384] transition-colors text-sm"
+          class="px-3 py-1.5 rounded-lg border border-[#2d3a4d] text-[#cbd5e1] hover:text-white hover:border-[#3d4d64] transition-colors text-[12.5px]"
         >
           ⟳ 刷新
         </button>
       </div>
 
-      <p class="text-[#708aa6] text-sm leading-relaxed max-w-3xl mb-6">
+      <p class="text-[#9ca3af] text-[12.5px] leading-relaxed max-w-3xl mb-6">
         深度分析工作流的执行历史 —— 每次阶段执行一条记录，可下钻查看各 Agent 步骤的输入与输出。
       </p>
 
       <!-- stats -->
       <div
-        class="bg-[#0b131f]/60 border border-[#1a2b42] rounded px-6 py-4 flex items-center gap-12 text-sm mb-6"
+        class="bg-[#111827]/60 border border-[#2d3a4d] rounded px-6 py-4 flex items-center gap-12 text-[12.5px] mb-6"
       >
         <div>
           执行总数
-          <span class="text-white text-lg font-mono ml-2 font-bold">{{ total }}</span>
+          <span class="text-white text-[15px] font-mono ml-2 font-bold">{{ total }}</span>
         </div>
-        <div class="border-l border-[#1a2b42] h-4"></div>
+        <div class="border-l border-[#2d3a4d] h-4"></div>
         <div>
           运行中
-          <span class="text-[#7fd4ff] text-lg font-mono ml-2 font-bold">{{ runningTotal }}</span>
+          <span class="text-[#93c5fd] text-[15px] font-mono ml-2 font-bold">{{ runningTotal }}</span>
         </div>
       </div>
 
       <!-- filters -->
-      <div class="bg-[#0b131f]/40 border border-[#142338] rounded-lg p-4 mb-6 space-y-3">
+      <div class="bg-[#111827]/40 border border-[#2d3a4d] rounded-lg p-4 mb-6 space-y-3">
         <div class="flex items-start gap-4">
-          <span class="text-[#708aa6] w-20 py-1 flex-shrink-0 text-right text-sm">状态</span>
+          <span class="text-[#9ca3af] w-20 py-1 flex-shrink-0 text-right text-[12.5px]">状态</span>
           <div class="flex flex-wrap gap-1.5 flex-1">
             <button
               v-for="f in STATUS_FILTERS"
               :key="f.label"
               @click="statusFilter = f.key"
-              class="px-2.5 py-1 rounded-full text-sm font-semibold border transition-colors"
+              class="px-2.5 py-1 rounded-full text-[12.5px] font-semibold border transition-colors"
               :class="
                 statusFilter === f.key
-                  ? 'bg-[#00f3ff] text-[#04121f] border-[#00f3ff]'
-                  : 'bg-[#0b131f] text-[#708aa6] border-[#1e324f] hover:border-[#2b5384] hover:text-[#a3b8cc]'
+                  ? 'bg-[rgba(59,130,246,0.16)] text-[#93c5fd] border-[rgba(59,130,246,0.45)]'
+                  : 'bg-[#111827] text-[#9ca3af] border-[#2d3a4d] hover:border-[#3d4d64] hover:text-[#cbd5e1]'
               "
             >
               {{ f.label }}
@@ -168,17 +168,17 @@ onMounted(load);
           </div>
         </div>
         <div class="flex items-start gap-4">
-          <span class="text-[#708aa6] w-20 py-1 flex-shrink-0 text-right text-sm">阶段</span>
+          <span class="text-[#9ca3af] w-20 py-1 flex-shrink-0 text-right text-[12.5px]">阶段</span>
           <div class="flex flex-wrap gap-1.5 flex-1">
             <button
               v-for="f in PHASE_FILTERS"
               :key="f.key"
               @click="phaseFilter = f.key"
-              class="px-2.5 py-1 rounded-full text-sm font-semibold border whitespace-nowrap transition-colors"
+              class="px-2.5 py-1 rounded-full text-[12.5px] font-semibold border whitespace-nowrap transition-colors"
               :class="
                 phaseFilter === f.key
-                  ? 'bg-[#00f3ff] text-[#04121f] border-[#00f3ff]'
-                  : 'bg-[#0b131f] text-[#708aa6] border-[#1e324f] hover:border-[#2b5384] hover:text-[#a3b8cc]'
+                  ? 'bg-[rgba(59,130,246,0.16)] text-[#93c5fd] border-[rgba(59,130,246,0.45)]'
+                  : 'bg-[#111827] text-[#9ca3af] border-[#2d3a4d] hover:border-[#3d4d64] hover:text-[#cbd5e1]'
               "
             >
               {{ f.label }}
@@ -186,63 +186,63 @@ onMounted(load);
           </div>
         </div>
         <div class="flex items-start gap-4">
-          <span class="text-[#708aa6] w-20 py-1 flex-shrink-0 text-right text-sm">关键词</span>
+          <span class="text-[#9ca3af] w-20 py-1 flex-shrink-0 text-right text-[12.5px]">关键词</span>
           <input
             v-model="keyword"
             type="text"
             placeholder="搜索工作流标题 / 发起人"
-            class="flex-1 max-w-sm bg-[#0c1624] border border-[#203554] rounded px-3 py-1.5 text-white placeholder-[#526e8c] focus:outline-none focus:border-[#00f3ff]/60 text-xs"
+            class="flex-1 max-w-sm bg-[#111827] border border-[#3d4d64] rounded px-3 py-1.5 text-white placeholder-[#6b7280] focus:outline-none focus:border-[#3b82f6]/60 text-[11.5px]"
           />
         </div>
       </div>
 
-      <div v-if="error" class="text-[#ef4444] text-sm mb-4">{{ error }}</div>
-      <div v-if="loading && items.length === 0" class="text-[#708aa6] text-sm">加载中…</div>
+      <div v-if="error" class="text-[#ef4444] text-[12.5px] mb-4">{{ error }}</div>
+      <div v-if="loading && items.length === 0" class="text-[#9ca3af] text-[12.5px]">加载中…</div>
 
       <!-- table -->
-      <div class="bg-[#0f1927] border border-[#1e324f] rounded-xl overflow-hidden">
-        <table class="w-full border-collapse text-sm">
+      <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg overflow-hidden">
+        <table class="w-full border-collapse text-[12.5px]">
           <thead>
-            <tr class="text-left text-[0.72rem] font-semibold uppercase tracking-wide text-[#526e8c]">
-              <th class="px-3 py-2 border-b border-[#142338]">工作流</th>
-              <th class="px-3 py-2 border-b border-[#142338]">异常事件</th>
-              <th class="px-3 py-2 border-b border-[#142338]">处理异常</th>
-              <th class="px-3 py-2 border-b border-[#142338]">阶段</th>
-              <th class="px-3 py-2 border-b border-[#142338]">状态</th>
-              <th class="px-3 py-2 border-b border-[#142338]">发起人</th>
-              <th class="px-3 py-2 border-b border-[#142338]">开始时间</th>
-              <th class="px-3 py-2 border-b border-[#142338]">耗时</th>
-              <th class="px-3 py-2 border-b border-[#142338]">结果</th>
-              <th class="px-3 py-2 border-b border-[#142338] text-right">操作</th>
+            <tr class="text-left text-[10.5px] font-semibold uppercase tracking-wide text-[#6b7280]">
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">工作流</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">异常事件</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">处理异常</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">阶段</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">状态</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">发起人</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">开始时间</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">耗时</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d]">结果</th>
+              <th class="px-3 py-2 border-b border-[#2d3a4d] text-right">操作</th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="r in items"
               :key="r.executionId"
-              class="cursor-pointer hover:bg-[#101c2c] transition-colors"
+              class="cursor-pointer hover:bg-[#253141] transition-colors"
               :class="{ 'opacity-60': loading }"
               @click="openDetail(r)"
             >
-              <td class="px-3 py-2.5 border-b border-[#142338]">
-                <span class="block max-w-[280px] truncate text-[13px] font-medium text-white" :title="r.workflowTitle ?? ''">
+              <td class="px-3 py-2.5 border-b border-[#2d3a4d]">
+                <span class="block max-w-[280px] truncate text-[12.5px] font-medium text-white" :title="r.workflowTitle ?? ''">
                   {{ r.workflowTitle ?? '（未命名工作流）' }}
                 </span>
-                <span class="block text-[11px] text-[#526e8c] font-mono truncate max-w-[280px]">{{
+                <span class="block text-[11px] text-[#6b7280] font-mono truncate max-w-[280px]">{{
                   r.workflowId
                 }}</span>
               </td>
-              <td class="px-3 py-2.5 border-b border-[#142338]">
-                <span v-if="r.anomalies.length === 0" class="text-[#526e8c]">—</span>
+              <td class="px-3 py-2.5 border-b border-[#2d3a4d]">
+                <span v-if="r.anomalies.length === 0" class="text-[#6b7280]">—</span>
                 <div v-else class="flex flex-wrap gap-1">
                   <span
                     v-for="a in r.anomalies.slice(0, 3)"
                     :key="a.anomalyId"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold border max-w-[140px] truncate whitespace-nowrap"
+                    class="px-2 py-0.5 rounded text-[10.5px] font-bold border max-w-[140px] truncate whitespace-nowrap"
                     :class="
                       a.isOrigin
-                        ? 'bg-[#0b1e2e] border-[#1d3a57] text-[#00f3ff]'
-                        : 'bg-[#0f1927] border-[#1e324f] text-[#708aa6]'
+                        ? 'bg-[rgba(59,130,246,0.12)] border-[rgba(59,130,246,0.45)] text-[#93c5fd]'
+                        : 'bg-[#1a2332] border-[#2d3a4d] text-[#9ca3af]'
                     "
                   >
                     {{ a.name }}
@@ -250,59 +250,59 @@ onMounted(load);
                   <span
                     v-if="r.anomalies.length > 3"
                     :title="r.anomalies.slice(3).map((a) => a.name).join('、')"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold border bg-[#0f1927] border-[#1e324f] text-[#708aa6]"
+                    class="px-2 py-0.5 rounded text-[10.5px] font-bold border bg-[#1a2332] border-[#2d3a4d] text-[#9ca3af]"
                   >
                     +{{ r.anomalies.length - 3 }}
                   </span>
                 </div>
               </td>
-              <td class="px-3 py-2.5 border-b border-[#142338]">
-                <span v-if="r.processingAnomalies.length === 0" class="text-[#526e8c]">—</span>
+              <td class="px-3 py-2.5 border-b border-[#2d3a4d]">
+                <span v-if="r.processingAnomalies.length === 0" class="text-[#6b7280]">—</span>
                 <div v-else class="flex flex-wrap gap-1">
                   <span
                     v-for="a in r.processingAnomalies.slice(0, 3)"
                     :key="a.anomalyId"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold border max-w-[140px] truncate whitespace-nowrap bg-[#0f1927] border-[#1e324f] text-[#708aa6]"
+                    class="px-2 py-0.5 rounded text-[10.5px] font-bold border max-w-[140px] truncate whitespace-nowrap bg-[#1a2332] border-[#2d3a4d] text-[#9ca3af]"
                   >
                     {{ a.name }}
                   </span>
                   <span
                     v-if="r.processingAnomalies.length > 3"
                     :title="r.processingAnomalies.slice(3).map((a) => a.name).join('、')"
-                    class="px-2 py-0.5 rounded text-[10px] font-bold border bg-[#0f1927] border-[#1e324f] text-[#708aa6]"
+                    class="px-2 py-0.5 rounded text-[10.5px] font-bold border bg-[#1a2332] border-[#2d3a4d] text-[#9ca3af]"
                   >
                     +{{ r.processingAnomalies.length - 3 }}
                   </span>
                 </div>
               </td>
-              <td class="px-3 py-2.5 border-b border-[#142338] whitespace-nowrap">{{
+              <td class="px-3 py-2.5 border-b border-[#2d3a4d] whitespace-nowrap">{{
                 phaseLabel(r.phase)
               }}</td>
-              <td class="px-3 py-2.5 border-b border-[#142338]">
+              <td class="px-3 py-2.5 border-b border-[#2d3a4d]">
                 <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap"
+                  class="px-2 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider whitespace-nowrap"
                   :class="statusBadge(r.status).cls"
                 >
                   {{ statusBadge(r.status).label }}
                 </span>
               </td>
-              <td class="px-3 py-2.5 font-mono text-[0.84rem] text-[#708aa6] border-b border-[#142338]">
+              <td class="px-3 py-2.5 font-mono text-[12.5px] text-[#9ca3af] border-b border-[#2d3a4d]">
                 {{ r.callerUserId ?? '—' }}
               </td>
-              <td class="px-3 py-2.5 font-mono text-[0.84rem] text-[#708aa6] border-b border-[#142338] whitespace-nowrap">
+              <td class="px-3 py-2.5 font-mono text-[12.5px] text-[#9ca3af] border-b border-[#2d3a4d] whitespace-nowrap">
                 {{ fmtTime(r.startedAt) }}
               </td>
-              <td class="px-3 py-2.5 font-mono text-[0.84rem] border-b border-[#142338] whitespace-nowrap">
-                <span v-if="r.status === 'RUNNING'" class="text-[#7fd4ff]">运行中</span>
+              <td class="px-3 py-2.5 font-mono text-[12.5px] border-b border-[#2d3a4d] whitespace-nowrap">
+                <span v-if="r.status === 'RUNNING'" class="text-[#93c5fd]">运行中</span>
                 <span v-else>{{ fmtDuration(r.durationMs) }}</span>
               </td>
-              <td class="px-3 py-2.5 font-mono text-[0.84rem] text-[#708aa6] border-b border-[#142338]">
+              <td class="px-3 py-2.5 font-mono text-[12.5px] text-[#9ca3af] border-b border-[#2d3a4d]">
                 {{ r.resultCount }}
               </td>
-              <td class="px-3 py-2.5 text-right border-b border-[#142338] whitespace-nowrap">
+              <td class="px-3 py-2.5 text-right border-b border-[#2d3a4d] whitespace-nowrap">
                 <button
                   type="button"
-                  class="bg-transparent border-0 p-0 cursor-pointer text-[#00f3ff] text-xs hover:underline"
+                  class="bg-transparent border-0 p-0 cursor-pointer text-[#93c5fd] text-[11.5px] hover:underline"
                   @click.stop="openDetail(r)"
                 >
                   详情 →
@@ -310,7 +310,7 @@ onMounted(load);
               </td>
             </tr>
             <tr v-if="!loading && items.length === 0">
-              <td colspan="10" class="px-3 py-8 text-center text-[#526e8c] text-sm italic">
+              <td colspan="10" class="px-3 py-8 text-center text-[#6b7280] text-[12.5px] italic">
                 暂无执行记录。
               </td>
             </tr>
@@ -319,20 +319,20 @@ onMounted(load);
       </div>
 
       <!-- pagination -->
-      <div class="flex items-center justify-between mt-4 text-sm text-[#708aa6]">
+      <div class="flex items-center justify-between mt-4 text-[12.5px] text-[#9ca3af]">
         <span>共 {{ total }} 条 · 第 {{ page + 1 }} / {{ totalPages }} 页</span>
         <div class="flex gap-2">
           <button
             :disabled="page <= 0 || loading"
             @click="pageChanged(page - 1)"
-            class="px-3 py-1.5 rounded-lg border border-[#1e3452] hover:text-white hover:border-[#2b5384] transition-colors disabled:opacity-40"
+            class="px-3 py-1.5 rounded-lg border border-[#2d3a4d] hover:text-white hover:border-[#3d4d64] transition-colors disabled:opacity-40"
           >
             ← 上一页
           </button>
           <button
             :disabled="page >= totalPages - 1 || loading"
             @click="pageChanged(page + 1)"
-            class="px-3 py-1.5 rounded-lg border border-[#1e3452] hover:text-white hover:border-[#2b5384] transition-colors disabled:opacity-40"
+            class="px-3 py-1.5 rounded-lg border border-[#2d3a4d] hover:text-white hover:border-[#3d4d64] transition-colors disabled:opacity-40"
           >
             下一页 →
           </button>

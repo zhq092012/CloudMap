@@ -1,120 +1,65 @@
 <template>
   <div
-    class="w-95 h-full absolute right-0 top-0 z-1000 bg-[#111625]/90 border-l border-[#1e293b] text-slate-200 flex flex-col font-sans select-none backdrop-blur-sm overflow-hidden">
-    <div class="flex-1 overflow-y-auto p-2.5 space-y-4">
-      <div class="border-b border-[#2d3748] pb-2">
-        <h2 class="text-sm font-bold tracking-wider text-amber-500 flex items-center gap-1.5">
-          🧠 云脑智能面板
-        </h2>
-      </div>
+    class="w-95 h-full absolute right-0 top-0 z-1000 bg-[#111827]/95 border-l border-[#2d3a4d] text-[#e5e7eb] flex flex-col font-sans select-none backdrop-blur-sm overflow-hidden">
+    <!-- 标题 -->
+    <div class="shrink-0 px-2.5 pt-2.5 pb-2 border-b border-[#2d3a4d]">
+      <h2 class="text-[13.5px] font-bold tracking-wider text-[#e5e7eb] flex items-center gap-1.5">
+        🧠 云脑智能面板
+      </h2>
+    </div>
 
-      <div class="bg-[#161e2e] border border-[#2d3748] rounded p-2.5 flex flex-col gap-2">
-        <div class="flex items-center justify-between text-[12px]">
-          <span class="text-amber-500 font-semibold">云脑智能态势分析</span>
-          <span class="text-slate-500 scale-90">24小时内</span>
+    <!-- 云脑智能态势分析：高度 = 面板 45% + 50px；报告正文在卡片内部滚动，
+         「查看详细报告及分析研判过程」按钮固定在卡片底部常驻可见 -->
+    <div class="rp-analysis min-h-0 p-2.5 pb-0 flex flex-col"
+      :class="{ 'rp-analysis--fill': terminalCollapsed }">
+      <div class="bg-[#1a2332] border border-[#2d3a4d] rounded p-2.5 flex flex-col gap-2 flex-1 min-h-0">
+        <div class="flex items-center justify-between text-[12.5px] shrink-0">
+          <span class="text-[#93c5fd] font-semibold">云脑智能态势分析</span>
+          <span class="text-[#6b7280] scale-90">24小时内</span>
         </div>
 
         <div
-          class="bg-[#111625] border border-[#2d3748]/50 p-2 rounded text-[12px] text-slate-300 leading-relaxed overflow-y-auto">
-          <div class="text-amber-400/90 font-semibold mb-1 text-[12px]">
+          class="bg-[#111827] border border-[#2d3a4d]/50 p-2 rounded text-[12.5px] text-[#cbd5e1] leading-relaxed overflow-y-auto custom-scrollbar flex-1 min-h-0">
+          <div class="text-[#93c5fd] font-semibold mb-1 text-[12.5px]">
             态势分析报告
           </div>
-          <div v-if="hasBriefing" class="text-[11px] text-amber-400/80 mb-1">
+          <div v-if="hasBriefing" class="text-[11.5px] text-[#9ca3af] mb-1">
             简报日期：{{ overviewDate }}
           </div>
           <div v-if="hasBriefing" class="overview-body markdown-body" v-html="overviewHtml"></div>
           <div
             v-else
-            class="text-[12px] text-slate-400 text-center leading-relaxed bg-[#0c121f]/60 p-2 rounded border border-[#2d3748]/40"
+            class="text-[12.5px] text-[#9ca3af] text-center leading-relaxed bg-[#111827]/60 p-2 rounded border border-[#2d3a4d]/40"
           >
             没有全局异常态势分析信息，请点击"查看详细报告及分析研判过程"按钮进行分析
           </div>
-          <el-button type="info" class="mt-2.5 text-[12px]" @click="showReportDetail">查看详细报告及分析研判过程</el-button>
-        </div>
-      </div>
-
-      <!--div class="bg-[#161e2e] border border-[#2d3748] rounded p-2.5">
-        <div class="text-[14px] font-bold mb-2.5">能力画像对比研判</div>
-        <div class="space-y-3">
-          <div v-for="item in capabilityData" :key="item.name" class="text-[12px]">
-            <div class="flex justify-between text-slate-400 mb-1 px-1">
-              <span class="font-mono text-rose-400 font-semibold">伊朗 {{ item.irVal }}%</span>
-              <span class="text-slate-200 font-medium">{{ item.name }}</span>
-              <span class="font-mono text-sky-400 font-semibold">美以联军 {{ item.usVal }}%</span>
-            </div>
-            <div class="h-1.5 w-full bg-[#111625] rounded-full flex overflow-hidden">
-              <div class="h-full bg-rose-500 rounded-l-full" :style="{
-                width: `${(item.irVal / (item.irVal + item.usVal)) * 100}%`,
-              }"></div>
-              <div class="h-full bg-sky-500 rounded-r-full flex-1"></div>
-            </div>
-          </div>
-        </div>
-      </div-->
-
-      <div class="bg-[#161e2e] border border-[#2d3748] rounded p-2.5 min-h-55 flex flex-col">
-        <div class="flex items-center justify-between border-b border-[#2d3748] pb-1.5 mb-2">
-          <div class="text-[14px] font-bold text-amber-500 flex items-center gap-1">
-            <span>⚠️</span> 潜在异常分析
-          </div>
-          <span class="text-[12px] text-slate-500">5分钟前更新</span>
         </div>
 
-        <div class="flex gap-2 mb-2 select-none">
-          <button @click="showAllWarnings"
-            class="px-2 py-0.5 rounded text-[12px] transition-colors flex items-center justify-center border bg-[#2d3748] text-white border-[#2d3748] cursor-pointer">
-            <span class="text-[12px] inline-block whitespace-nowrap font-semibold">
-              查看完整列表
-            </span>
-          </button>
-
-          <!--button @click="joinAnalysis"
-            class="px-2 py-0.5 rounded text-[12px] transition-colors flex items-center justify-center border bg-[#2d3748] text-white border-[#2d3748] cursor-pointer">
-            <span class="text-[12px] inline-block whitespace-nowrap font-semibold">
-              加入征候研判
-            </span>
-          </button-->
-        </div>
-        <div class="flex-1 overflow-y-auto space-y-2 pr-1 text-[12px]">
-          <div v-for="marker in homeStore.warningMarkers" :key="marker.id"
-            class="bg-[#1a2333]/50 border-l-2 p-2 rounded-r"
-            :class="marker.score && marker.score > 85 ? 'border-rose-500' : 'border-amber-500'">
-            <div class="flex justify-between items-center mb-1">
-              <span :class="marker.score && marker.score > 85 ? 'text-rose-400 font-bold' : 'text-amber-400 font-bold'">
-                异常程度: {{ marker.score || 80 }}%
-              </span>
-              <span class="text-amber-400 bg-amber-500/10 px-1 rounded scale-95">
-                置信度: {{ marker.confidence || 85 }}%
-              </span>
-            </div>
-            <div class="text-slate-200 font-medium mb-1 truncate" :title="marker.name">
-              {{ (marker.name || '').trim() }}
-            </div>
-          </div>
-          <div v-if="homeStore.warningMarkers.length === 0" class="text-slate-500 text-center py-6">
-            暂无异常警告数据
-          </div>
-        </div>
+        <button type="button" class="rp-report-btn shrink-0" @click="showReportDetail">查看详细报告及分析研判过程</button>
       </div>
     </div>
 
-    <div class="border-t border-[#2d3748] bg-[#161e2e] flex flex-col transition-all duration-300"
-      :style="{ height: isChatExpanded ? '420px' : '96px' }">
-      <div
-        class="p-2.5 flex items-center justify-between border-b border-[#2d3748]/40 cursor-pointer hover:bg-[#1a2538] transition-colors"
-        @click="isChatExpanded = !isChatExpanded">
-        <div class="text-[12px] font-bold text-slate-200 tracking-wide flex items-center gap-2">
+    <!-- 云脑指挥交互终端：可收起；收起后只留底部一条，最右侧显示「点击展开」 -->
+    <div class="mt-2.5 flex flex-col border-t border-[#2d3a4d] bg-[#1a2332]"
+      :class="terminalCollapsed ? 'shrink-0' : 'flex-1 min-h-0'">
+      <div class="shrink-0 px-2.5 flex items-center justify-between"
+        :class="terminalCollapsed ? 'py-3.5 cursor-pointer' : 'py-2.5 border-b border-[#2d3a4d]/40'"
+        @click="terminalCollapsed = false">
+        <div class="text-[12.5px] font-bold text-[#e5e7eb] tracking-wide flex items-center gap-2">
           <span>云脑指挥交互终端</span>
         </div>
-        <span class="text-slate-500 text-[12px] transform transition-transform duration-200"
-          :class="isChatExpanded ? 'rotate-180' : ''">
-          ▲
+        <span v-if="terminalCollapsed" class="text-[12px] text-[#93c5fd] hover:text-[#bfdbfe] transition-colors">
+          点击展开 ⌃
         </span>
+        <button v-else type="button" class="rp-collapse-btn" @click.stop="terminalCollapsed = true">
+          收起 ⌄
+        </button>
       </div>
 
-      <div v-if="isChatExpanded" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#111625]/40">
-        <div v-if="osintAgentStatus !== 'ready'" class="text-[11px] text-center py-2 rounded border border-[#2d3748]/50 bg-[#1a2333]/50">
-          <span v-if="osintAgentStatus === 'loading'" class="text-slate-400">正在连接开源情报分析师...</span>
+      <template v-if="!terminalCollapsed">
+        <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-[#111827]/40 custom-scrollbar">
+        <div v-if="osintAgentStatus !== 'ready'" class="text-[11.5px] text-center py-2 rounded border border-[#2d3a4d]/50 bg-[#1a2332]/50">
+          <span v-if="osintAgentStatus === 'loading'" class="text-[#9ca3af]">正在连接开源情报分析师...</span>
           <span v-else-if="osintAgentStatus === 'not-found'" class="text-amber-400/90">未找到“开源情报分析师”Agent，请先在智能体中心创建。</span>
           <span v-else-if="osintAgentStatus === 'error'" class="text-rose-400/90">连接失败：{{ osintAgentError }}</span>
         </div>
@@ -122,22 +67,22 @@
         <div v-if="messages.length === 0" class="space-y-5">
           <div class="flex flex-col items-center text-center py-2">
             <div
-              class="w-14 h-14 rounded-full bg-[#1b2436] border border-[#2d3748]/60 flex items-center justify-center mb-3 text-slate-500">
-              <svg class="w-7 h-7 text-slate-400 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              class="w-14 h-14 rounded-full bg-[#1b2637] border border-[#2d3a4d]/60 flex items-center justify-center mb-3 text-[#6b7280]">
+              <svg class="w-7 h-7 text-[#9ca3af] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                   d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
             <div
-              class="bg-[#1a2333]/80 border border-[#2d3748]/60 p-2.5 rounded text-[12px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+              class="bg-[#1a2332]/80 border border-[#2d3a4d]/60 p-2.5 rounded text-[12.5px] text-[#9ca3af] leading-relaxed max-w-xs mx-auto">
               通过自然语言及多模态信息输入，调度多领域专家Agent，可以进行网阅、分析、研判、指令的协同指挥终端
             </div>
           </div>
 
           <div class="space-y-1.5 px-2">
             <div v-for="prompt in recommendedPrompts" :key="prompt" @click="selectPrompt(prompt)"
-              class="bg-[#1a2333] hover:bg-[#222e44] border border-[#2d3748]/70 px-3 py-2 rounded text-[12px] text-slate-300 cursor-pointer transition-colors flex items-center gap-2">
-              <span class="text-amber-500">•</span> {{ prompt }}
+              class="bg-[#1a2332] hover:bg-[#253141] border border-[#2d3a4d]/70 px-3 py-2 rounded text-[12.5px] text-[#cbd5e1] cursor-pointer transition-colors flex items-center gap-2">
+              <span class="text-[#3b82f6]">•</span> {{ prompt }}
             </div>
           </div>
         </div>
@@ -150,7 +95,7 @@
               : 'mr-auto items-start',
           ]">
             <div :class="[
-              'text-[12px] text-slate-500 mb-1 font-mono',
+              'text-[12.5px] text-[#6b7280] mb-1 font-mono',
               msg.sender === 'user' ? 'text-right' : 'text-left',
             ]">
               {{ msg.sender === "user" ? "您" : "开源情报分析师" }} ({{
@@ -158,10 +103,10 @@
               }})
             </div>
             <div :class="[
-              'p-2.5 rounded text-[12px] leading-relaxed border',
+              'p-2.5 rounded text-[12.5px] leading-relaxed border',
               msg.sender === 'user'
-                ? 'bg-amber-600/10 border-amber-500/30 text-amber-200 rounded-tr-none'
-                : 'bg-[#1a2333] border-[#2d3748] text-slate-200 rounded-tl-none',
+                ? 'bg-[rgba(59,130,246,0.12)] border-[rgba(59,130,246,0.35)] text-[#dbeafe] rounded-tr-none'
+                : 'bg-[#1a2332] border-[#2d3a4d] text-[#e5e7eb] rounded-tl-none',
             ]">
               <div v-if="msg.sender === 'user'" style="white-space: pre-wrap">{{ msg.content }}</div>
               <div v-else class="markdown-body" v-html="renderMarkdown(msg.content || (msg.pending ? '思考中…' : ''))"></div>
@@ -170,15 +115,15 @@
         </div>
       </div>
 
-      <div class="p-2.5 bg-[#161e2e] mt-auto">
+      <div class="shrink-0 p-2.5 bg-[#1a2332]">
         <div
-          class="relative flex items-center bg-[#0c121f] border border-[#2d3748] rounded px-3 py-1.5 focus-within:border-amber-500/60 transition-colors">
+          class="relative flex items-center bg-[#111827] border border-[#2d3a4d] rounded px-3 py-1.5 focus-within:border-[#3b82f6]/60 transition-colors">
           <input v-model="chatInput" type="text" :disabled="isStreaming || osintAgentStatus !== 'ready'"
             :placeholder="isStreaming ? '开源情报分析师思考中…' : '请输入您想了解的问题'"
-            class="w-full bg-transparent text-[12px] text-slate-200 placeholder-slate-600 focus:outline-none pr-16 disabled:opacity-60"
-            @keyup.enter="handleSend" @focus="isChatExpanded = true" />
+            class="w-full bg-transparent text-[12.5px] text-[#e5e7eb] placeholder-[#6b7280] focus:outline-none pr-16 disabled:opacity-60"
+            @keyup.enter="handleSend" />
           <div class="absolute right-2 flex items-center gap-2">
-            <button class="text-slate-500 hover:text-slate-300 transition-colors p-0.5">
+            <button class="text-[#6b7280] hover:text-[#cbd5e1] transition-colors p-0.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -186,8 +131,8 @@
             </button>
             <button @click="handleSend" class="w-5 h-5 rounded-full flex items-center justify-center transition-colors"
               :class="chatInput.trim() && !isStreaming && osintAgentStatus === 'ready'
-                ? 'bg-amber-600 hover:bg-amber-500 text-white'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                ? 'bg-[#3b82f6] hover:bg-[#2563eb] text-white'
+                : 'bg-slate-800 text-[#6b7280] cursor-not-allowed'
                 ">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -196,6 +141,7 @@
           </div>
         </div>
       </div>
+      </template>
     </div>
 
     <el-dialog
@@ -204,9 +150,10 @@
       width="960px"
       append-to-body
       :close-on-click-modal="false"
-      title="简报详情"
+      title="态势监控简报详情"
     >
       <BriefingDialog
+        heading="态势监控简报"
         :state="briefingState"
         :briefing="briefingData"
         :error="briefingError"
@@ -220,7 +167,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import MarkdownIt from "markdown-it";
-import { useHomeStore } from "@/store/modules/homeStore";
 import { ElMessage } from "element-plus";
 import BriefingDialog from "@/components/Dialogs/BriefingDialog.vue";
 import { useBriefing } from "@/composables/useBriefing";
@@ -231,7 +177,6 @@ import type { ChatEvent } from "@/agents-hub/types";
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 const renderMarkdown = (src: string) => md.render(src || "");
 
-const homeStore = useHomeStore();
 const {
   briefingDialogVisible,
   briefingState,
@@ -275,7 +220,6 @@ const handleBtnClick = (btn: { id: string; text: string }) => {
 const OSINT_AGENT_NAME = "开源情报分析师";
 const SESSION_STORAGE_KEY = "cloudmap_osint_session";
 
-const isChatExpanded = ref(true);
 const chatInput = ref("");
 const isStreaming = ref(false);
 const osintAgentId = ref<string | null>(null);
@@ -297,6 +241,9 @@ interface ChatMessage {
 }
 
 const messages = ref<ChatMessage[]>([]);
+
+// 云脑指挥交互终端折叠态：收起后只保留底部标题条（右侧显示「点击展开」）
+const terminalCollapsed = ref(false);
 
 const formatTime = () => {
   const now = new Date();
@@ -431,38 +378,89 @@ function handleChatEvent(evt: ChatEvent, replyMsg: ChatMessage) {
       break;
   }
 }
-
-const showAllWarnings = () => {
-  homeStore.warningMarkers?.forEach(marker => {
-    // 这里强制将异常的类型修改为warning2
-    marker.type = "warning2";
-  });
-
-  // 切换到「异常列表」视图：原地替换左右面板为 WarningLeftPanel / WarningRightPanel
-  homeStore.setWarningView(true);
-};
-
-const joinAnalysis = () => {
-  ElMessage.success('已加入征候研判')
-  homeStore.warningMarkers?.forEach(marker => {
-    // 这里强制将异常的类型修改为warning2
-    marker.type = "warning2";
-  });
-
-};
 </script>
 
 <style scoped>
 .overview-body {
-  max-height: 120px;
   overflow-y: auto;
+}
+
+/* 滚动条：与左栏/智能体中心一致 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2d3a4d;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3d4d64;
+}
+
+/* 「查看详细报告及分析研判过程」：次按钮（蓝底淡色，同智能体中心的 ghost/pill）
+   已从滚动区移到卡片底部常驻，间距交给父级 gap，因此 margin 归零 */
+.rp-report-btn {
+  margin-top: 0;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.rp-report-btn:hover {
+  color: #bfdbfe;
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+.rp-report-btn:active {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+/* 云脑智能态势分析：固定高度 = 面板 45% + 50px（比原来多 50px）；
+   终端收起时改为填充剩余高度，让收起的终端条始终贴在面板最下方 */
+.rp-analysis {
+  flex: 0 0 auto;
+  height: calc(45% + 50px);
+}
+.rp-analysis--fill {
+  flex: 1 1 auto;
+  height: auto;
+}
+
+/* 终端标题栏右侧的「收起」按钮 */
+.rp-collapse-btn {
+  padding: 2px 8px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #9ca3af;
+  background: transparent;
+  border: 1px solid #2d3a4d;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.rp-collapse-btn:hover {
+  color: #cbd5e1;
+  background: #253141;
+  border-color: #3d4d64;
 }
 
 /* 开源情报分析师回复的 Markdown 暗色主题样式 */
 .markdown-body {
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.75;
-  color: #e2e8f0;
+  color: #cbd5e1;
   word-break: break-word;
 }
 .markdown-body :deep(h1),
@@ -471,7 +469,7 @@ const joinAnalysis = () => {
 .markdown-body :deep(h4) {
   font-weight: 700;
   margin: 8px 0 4px;
-  color: #fbbf24;
+  color: #93c5fd;
   line-height: 1.35;
 }
 .markdown-body :deep(h1) { font-size: 14px; }
@@ -487,12 +485,12 @@ const joinAnalysis = () => {
 .markdown-body :deep(li) { margin: 2px 0; }
 .markdown-body :deep(ul li) { list-style: disc; }
 .markdown-body :deep(ol li) { list-style: decimal; }
-.markdown-body :deep(strong) { color: #fcd34d; font-weight: 700; }
+.markdown-body :deep(strong) { color: #bfdbfe; font-weight: 700; }
 .markdown-body :deep(em) { color: #cbd5e1; }
-.markdown-body :deep(a) { color: #38bdf8; text-decoration: underline; }
+.markdown-body :deep(a) { color: #93c5fd; text-decoration: underline; }
 .markdown-body :deep(code) {
-  background: #0c121f;
-  border: 1px solid #2d3748;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 11px;
@@ -500,8 +498,8 @@ const joinAnalysis = () => {
   color: #fca5a5;
 }
 .markdown-body :deep(pre) {
-  background: #0c121f;
-  border: 1px solid #2d3748;
+  background: #111827;
+  border: 1px solid #2d3a4d;
   border-radius: 4px;
   padding: 8px 10px;
   overflow-x: auto;
@@ -511,7 +509,7 @@ const joinAnalysis = () => {
   background: none;
   border: none;
   padding: 0;
-  color: #e2e8f0;
+  color: #e5e7eb;
   font-size: 11px;
 }
 .markdown-body :deep(table) {
@@ -524,20 +522,20 @@ const joinAnalysis = () => {
 }
 .markdown-body :deep(th),
 .markdown-body :deep(td) {
-  border: 1px solid #2d3748;
+  border: 1px solid #2d3a4d;
   padding: 3px 7px;
   text-align: left;
 }
-.markdown-body :deep(th) { background: #1a2333; color: #fbbf24; font-weight: 700; }
+.markdown-body :deep(th) { background: #1a2332; color: #93c5fd; font-weight: 700; }
 .markdown-body :deep(blockquote) {
-  border-left: 3px solid #f59e0b;
+  border-left: 3px solid #3b82f6;
   padding-left: 8px;
   color: #cbd5e1;
   margin: 6px 0;
 }
 .markdown-body :deep(hr) {
   border: none;
-  border-top: 1px solid #2d3748;
+  border-top: 1px solid #2d3a4d;
   margin: 8px 0;
 }
 .markdown-body :deep(img) {

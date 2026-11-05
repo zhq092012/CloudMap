@@ -50,6 +50,9 @@ interface HomeState {
   /** 文章接口手动刷新函数（由 Map.vue 注册，供图谱右上角「刷新」按钮调用）；
    *  图谱模式下 30s 自动轮询被暂停，需手动触发。null 表示未就绪。 */
   articlesRefetch: (() => Promise<void>) | null;
+  /** 异常事件手动刷新函数（由 Map.vue 注册）；「异常征候」左栏确认 / 排除后调用，
+   *  fetchWarningData 只在 Map 挂载时跑一次，没有轮询，改状态后必须手动刷。null 表示未就绪。 */
+  anomaliesRefetch: (() => Promise<void>) | null;
   analysisList: WarningItem[]; // 用于存储已分析的异常事件簇列表
   selectedDate: string; // 新增当前选中的日期时间轴属性
   isWarningView: boolean; // 是否进入「异常列表」视图（替换左右面板为 Warning 系列面板）
@@ -923,6 +926,7 @@ export const useHomeStore = defineStore("home", {
     graphFilter: { search: "", sentiment: "all", onlyBreaking: false },
     selectedGraphAggId: null,
     articlesRefetch: null,
+    anomaliesRefetch: null,
     analysisList: [],
     selectedDate: "2026-02-21",
     isWarningView: false,
@@ -1031,6 +1035,9 @@ export const useHomeStore = defineStore("home", {
       );
       if (index !== -1) {
         this.warningMarkers[index].isAnalyzed = true;
+        // 「分析栏」列表由 status=ANALYSIS 驱动：本地先乐观置为分析中，
+        // 后端刷新后以后端返回的 status 为准（无接口时也能立刻看到条目进分析栏）
+        this.warningMarkers[index].status = "ANALYSIS";
       }
       const exists = this.analysisList.some(
         (existingItem) => existingItem.id === item.id,

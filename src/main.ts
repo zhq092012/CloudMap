@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import { PiniaSharedState } from "pinia-shared-state";
 import "element-plus/dist/index.css";
 import "./style.css";
+import "./styles/deep-analysis.css";
 import App from "./App.vue";
 import router from "./router";
 

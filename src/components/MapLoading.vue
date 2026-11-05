@@ -40,7 +40,7 @@ const loadingStore = useLoadingStore();
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 40%, #0e1626 0%, #060a12 100%);
+  background: radial-gradient(circle at 50% 40%, #111827 0%, #0a0e17 100%);
   user-select: none;
 }
 
@@ -64,7 +64,7 @@ const loadingStore = useLoadingStore();
 }
 
 .map-loading-spinner__arc {
-  stroke: #06b6d4;
+  stroke: #3b82f6;
   stroke-width: 4;
   stroke-linecap: round;
   /* 留出缺口，形成一段弧线（loading 图标） */

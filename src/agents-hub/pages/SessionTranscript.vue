@@ -1,38 +1,20 @@
 <template>
   <div>
-    <div v-if="entries.length === 0" class="text-[#526e8c] text-sm">暂无记录。</div>
+    <div v-if="entries.length === 0" class="tr-empty">暂无记录。</div>
     <template v-for="t in entries" :key="t.id">
       <!-- tool call -->
-      <div
-        v-if="roleOf(t) === 'TOOL'"
-        class="mb-3 rounded-lg border border-[#1e324f] bg-[#0f1927] overflow-hidden"
-      >
-        <button
-          type="button"
-          @click="toggle(t.id)"
-          class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left bg-[#0b131f] border-b border-[#1e324f]"
-        >
-          <span class="text-[#00f3ff] font-bold text-xs">{{ openMap[t.id] ? '▼' : '▶' }}</span>
-          <span class="text-[#7fd4ff] font-semibold text-sm">工具: {{ t.toolName ?? 'tool' }}</span>
-          <span class="ml-auto text-[#526e8c] text-xs font-mono">{{ (t.id || '').slice(0, 10) }}</span>
+      <div v-if="roleOf(t) === 'TOOL'" class="tr-tool">
+        <button type="button" class="tr-tool-head" @click="toggle(t.id)">
+          <span class="tr-caret">{{ openMap[t.id] ? '▼' : '▶' }}</span>
+          <span class="tr-tool-name">工具 · {{ t.toolName ?? 'tool' }}</span>
+          <span class="tr-tool-id">{{ (t.id || '').slice(0, 10) }}</span>
         </button>
-        <div
-          v-if="openMap[t.id]"
-          class="p-3.5 text-[#a3b8cc] whitespace-pre-wrap break-all max-h-80 overflow-auto font-mono text-xs leading-relaxed"
-        >
-          {{ toolBody(t) }}
-        </div>
+        <pre v-if="openMap[t.id]" class="tr-tool-body">{{ toolBody(t) }}</pre>
       </div>
 
       <!-- user / assistant / system -->
-      <div
-        v-else
-        class="mb-3.5 p-3.5 rounded-xl text-[15px] leading-relaxed whitespace-pre-wrap break-words"
-        :class="bubbleClass(t)"
-      >
-        <div class="text-[11px] uppercase tracking-wider font-semibold mb-1.5 text-[#526e8c]">
-          {{ roleOf(t) }}
-        </div>
+      <div v-else class="tr-bubble" :class="bubbleClass(t)">
+        <div class="tr-role">{{ roleOf(t) }}</div>
         {{ t.content ?? '' }}
       </div>
     </template>
@@ -61,8 +43,111 @@ function toolBody(t: TurnEntry): string {
 }
 function bubbleClass(t: TurnEntry): string {
   const role = roleOf(t);
-  if (role === 'USER') return 'bg-[#0b1e2e] text-[#7fd4ff] border-l-[3px] border-l-[#00f3ff]';
-  if (role === 'ASSISTANT') return 'bg-[#0f1927] text-[#a3b8cc] border border-[#1e324f]';
-  return 'bg-[#0b131f] text-[#708aa6] border border-dashed border-[#1e324f]';
+  if (role === 'USER') return 'is-user';
+  if (role === 'ASSISTANT') return 'is-assistant';
+  return 'is-system';
 }
 </script>
+
+<style scoped lang="scss">
+@use "../styles/tokens" as *;
+
+.tr-empty {
+  font-size: 12.5px;
+  color: $text-3;
+}
+
+/* ---- 工具调用 ---- */
+.tr-tool {
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  background: $bg-panel;
+}
+
+.tr-tool-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 13px;
+  border: none;
+  border-bottom: 1px solid $border;
+  background: $bg-sunken;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tr-caret {
+  font-size: 10px;
+  color: $accent-text;
+}
+
+.tr-tool-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: $accent-text;
+}
+
+.tr-tool-id {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: $text-4;
+}
+
+.tr-tool-body {
+  max-height: 320px;
+  margin: 0;
+  padding: 12px 13px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: $text-2;
+  white-space: pre-wrap;
+  word-break: break-all;
+  @include thin-scroll(6px);
+}
+
+/* ---- 消息气泡 ---- */
+.tr-bubble {
+  margin-bottom: 14px;
+  padding: 12px 15px;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: $text-2;
+
+  &.is-user {
+    border-color: $accent-line;
+    border-left: 3px solid $accent;
+    background: $accent-soft;
+    color: $accent-text;
+  }
+
+  &.is-assistant {
+    background: $bg-panel;
+  }
+
+  &.is-system {
+    border-style: dashed;
+    background: $bg-sunken;
+    color: $text-3;
+  }
+}
+
+.tr-role {
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $text-4;
+}
+</style>

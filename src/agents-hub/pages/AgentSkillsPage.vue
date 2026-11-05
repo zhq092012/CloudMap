@@ -27,35 +27,30 @@ function bumpRefresh() {
 </script>
 
 <template>
-  <div v-if="!agentId" class="p-8 text-[#708aa6]">缺少智能体 id。</div>
-  <div v-else class="flex flex-col h-full min-h-0 bg-[#060c14]">
+  <div v-if="!agentId" class="sk-missing">缺少智能体 id。</div>
+  <div v-else class="sk-page">
     <!-- help banner -->
-    <div class="px-6 py-2 text-[13px] text-[#708aa6] bg-[#0b131f] border-b border-[#142338]">
+    <div class="sk-banner">
       从绑定的技能市场（git / nacos）安装到该智能体
-      <code class="text-[#a3b8cc]">workspace/skills/</code> 目录下的技能。切换到
-      <b class="text-[#a3b8cc]">技能市场</b> 标签浏览可安装的内容。
+      <code>workspace/skills/</code> 目录下的技能。切换到 <b>技能市场</b> 标签浏览可安装的内容。
     </div>
 
     <!-- tabs -->
-    <div class="flex gap-1 px-6 bg-[#0b131f] border-b border-[#142338] flex-shrink-0">
+    <div class="sk-tabs">
       <button
         v-for="t in TABS"
         :key="t.key"
         type="button"
-        class="flex items-center gap-2 px-4 py-2.5 border-b-2 text-sm font-medium transition-colors"
-        :class="
-          activeTab === t.key
-            ? 'text-white border-[#00f3ff]'
-            : 'text-[#708aa6] border-transparent hover:text-[#a3b8cc]'
-        "
+        class="sk-tab"
+        :class="{ 'is-active': activeTab === t.key }"
         @click="activeTab = t.key"
       >
-        <span>{{ t.icon }}</span> {{ t.label }}
+        <span class="sk-tab-icon">{{ t.icon }}</span>{{ t.label }}
       </button>
     </div>
 
     <!-- panels -->
-    <div class="flex-1 min-h-0">
+    <div class="sk-body">
       <SkillsWorkspacePanel
         v-if="activeTab === 'workspace'"
         :agent-id="agentId"
@@ -71,3 +66,92 @@ function bumpRefresh() {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+@use "../styles/tokens" as *;
+
+.sk-missing {
+  padding: 32px;
+  font-size: 13px;
+  color: $text-3;
+}
+
+.sk-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: $bg-root;
+}
+
+.sk-banner {
+  flex: none;
+  padding: 9px 22px;
+  border-bottom: 1px solid $border;
+  background: rgba(17, 24, 39, 0.7);
+  font-size: 12px;
+  line-height: 1.7;
+  color: $text-3;
+
+  code {
+    padding: 1px 6px;
+    border-radius: $radius-sm;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    background: $bg-sunken;
+    color: $accent-text;
+    font-size: 11.5px;
+  }
+
+  b {
+    color: $text-2;
+    font-weight: 600;
+  }
+}
+
+.sk-tabs {
+  flex: none;
+  display: flex;
+  gap: 2px;
+  padding: 0 16px;
+  border-bottom: 1px solid $border;
+  background: $bg-sunken;
+}
+
+.sk-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: $text-3;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover {
+    color: $text;
+    background: rgba(59, 130, 246, 0.06);
+  }
+
+  &.is-active {
+    color: $accent-text;
+    border-bottom-color: $accent;
+    font-weight: 600;
+  }
+}
+
+.sk-tab-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.sk-body {
+  flex: 1;
+  min-height: 0;
+}
+</style>

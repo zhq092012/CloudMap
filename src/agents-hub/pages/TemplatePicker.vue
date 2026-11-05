@@ -69,13 +69,13 @@ function pick(t: TemplateSummary) {
 
 <template>
   <!-- Load error -->
-  <div v-if="err" class="text-[#ef4444] text-[0.9rem]">{{ err }}</div>
+  <div v-if="err" class="text-[#ef4444] text-[13px]">{{ err }}</div>
 
   <!-- Loading -->
-  <div v-else-if="loading" class="text-[#708aa6] text-[0.85rem] py-3">Loading templates…</div>
+  <div v-else-if="loading" class="text-[#9ca3af] text-[12.5px] py-3">Loading templates…</div>
 
   <!-- Empty -->
-  <div v-else-if="list.length === 0" class="text-[#526e8c] text-[0.82rem] py-3">
+  <div v-else-if="list.length === 0" class="text-[#6b7280] text-[12px] py-3">
     No templates available.
   </div>
 
@@ -84,44 +84,44 @@ function pick(t: TemplateSummary) {
     <div
       v-for="t in list"
       :key="t.id"
-      class="rounded-xl px-[18px] py-4 cursor-pointer transition-colors duration-150 border"
+      class="rounded-lg px-[18px] py-4 cursor-pointer transition-colors duration-150 border"
       :class="
         selected === t.id
-          ? 'border-[#2b5384] bg-[#0f1927] shadow-[0_0_0_3px_rgba(0,243,255,0.10)]'
-          : 'border-[#1e324f] bg-[#0b131f] hover:border-[#2b5384]'
+          ? 'border-[#3d4d64] bg-[#1a2332] shadow-[0_0_0_3px_rgba(59,130,246,0.10)]'
+          : 'border-[#2d3a4d] bg-[#111827] hover:border-[#3d4d64]'
       "
       @click="pick(t)"
     >
       <div class="flex items-center gap-[10px] mb-2 flex-wrap">
         <span
-          class="text-[1rem] font-semibold"
-          :class="selected === t.id ? 'text-[#00f3ff]' : 'text-white'"
+          class="text-[13.5px] font-semibold"
+          :class="selected === t.id ? 'text-[#93c5fd]' : 'text-white'"
         >
           {{ t.name }}
         </span>
         <span
           v-for="tag in t.tags"
           :key="tag"
-          class="px-[9px] py-[2px] rounded-full text-[0.74rem] font-medium bg-[#142338] text-[#708aa6] border border-[#1e324f]"
+          class="px-[9px] py-[2px] rounded-full text-[11px] font-medium bg-[#253141] text-[#9ca3af] border border-[#2d3a4d]"
         >
           {{ tag }}
         </span>
       </div>
 
-      <div class="text-[0.9rem] text-[#708aa6] mb-[10px] leading-[1.5]">{{ t.description }}</div>
+      <div class="text-[13px] text-[#9ca3af] mb-[10px] leading-[1.5]">{{ t.description }}</div>
 
       <div
         v-if="t.agentsMdPreview"
-        class="bg-[#060c14] border border-[#142338] rounded-lg px-3 py-[10px] text-[#526e8c] text-[0.82rem] leading-[1.5] font-mono whitespace-pre-wrap max-h-[140px] overflow-hidden"
+        class="bg-[#0a0e17] border border-[#2d3a4d] rounded-lg px-3 py-[10px] text-[#6b7280] text-[12px] leading-[1.5] font-mono whitespace-pre-wrap max-h-[140px] overflow-hidden"
       >{{ t.agentsMdPreview.slice(0, 380) }}</div>
 
       <!-- Files included in the selected template -->
-      <div v-if="selected === t.id" class="mt-3 pt-3 border-t border-[#142338]">
-        <div v-if="detailLoading" class="text-[0.8rem] text-[#526e8c]">Loading files…</div>
-        <div v-else-if="detailErr" class="text-[0.8rem] text-[#ef4444]">{{ detailErr }}</div>
+      <div v-if="selected === t.id" class="mt-3 pt-3 border-t border-[#2d3a4d]">
+        <div v-if="detailLoading" class="text-[12px] text-[#6b7280]">Loading files…</div>
+        <div v-else-if="detailErr" class="text-[12px] text-[#ef4444]">{{ detailErr }}</div>
         <div v-else-if="detail">
           <span
-            class="block text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[#526e8c] mb-2"
+            class="block text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#6b7280] mb-2"
           >
             Files ({{ detail.files.length }})
           </span>
@@ -129,7 +129,7 @@ function pick(t: TemplateSummary) {
             <span
               v-for="f in detail.files"
               :key="f.path"
-              class="px-[9px] py-[3px] rounded-md text-[0.76rem] font-mono bg-[#142338] text-[#a3b8cc] border border-[#1e324f]"
+              class="px-[9px] py-[3px] rounded-md text-[11px] font-mono bg-[#253141] text-[#cbd5e1] border border-[#2d3a4d]"
             >
               {{ f.path }}
             </span>

@@ -22,6 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.settings/
+.project
 
 # 自动生成产物（unplugin 在每次 dev/build 时重新生成，未被 tsconfig 纳入编译程序）
 auto-imports.d.ts

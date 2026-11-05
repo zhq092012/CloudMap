@@ -91,9 +91,9 @@ function describeLocation(mp: MarketplaceSummary): string {
 
 function badgeClass(type: string): string {
   const t = type.toLowerCase();
-  if (t === 'git') return 'bg-[#fbbf24]/10 text-[#fbbf24] border border-[#fbbf24]/40';
-  if (t === 'nacos') return 'bg-[#00ffc4]/10 text-[#00ffc4] border border-[#00ffc4]/40';
-  return 'bg-[#526e8c]/10 text-[#a3b8cc] border border-[#1e324f]';
+  if (t === 'git') return 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/40';
+  if (t === 'nacos') return 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/40';
+  return 'bg-[#6b7280]/10 text-[#cbd5e1] border border-[#2d3a4d]';
 }
 
 async function handleInstall(marketplaceId: string, skillName: string) {
@@ -133,19 +133,19 @@ async function handlePreview(marketplaceId: string, skillName: string) {
 </script>
 
 <template>
-  <div class="p-[18px] flex flex-col gap-3.5 h-full overflow-y-auto bg-[#060c14]">
-    <div class="text-[0.78rem] text-[#708aa6]">技能市场在本机所有智能体之间共享。</div>
+  <div class="p-[18px] flex flex-col gap-3.5 h-full overflow-y-auto bg-[#0a0e17]">
+    <div class="text-[11.5px] text-[#9ca3af]">技能市场在本机所有智能体之间共享。</div>
 
     <div
       v-if="topError"
-      class="p-3 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/40 text-[#ef4444] text-[0.85rem]"
+      class="p-3 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/40 text-[#ef4444] text-[12.5px]"
     >
       {{ topError }}
     </div>
 
     <div
       v-if="!topError && marketplaces.length === 0"
-      class="p-[18px] bg-[#0f1927] border border-dashed border-[#1e324f] rounded-xl text-[#708aa6] text-[0.9rem]"
+      class="p-[18px] bg-[#1a2332] border border-dashed border-[#2d3a4d] rounded-lg text-[#9ca3af] text-[13px]"
     >
       <div class="font-semibold mb-1.5 text-white">尚未配置任何技能市场。</div>
       前往「我的技能市场」页面注册一个 git 仓库或 Nacos 命名空间，即可在此浏览并安装其技能。
@@ -155,46 +155,46 @@ async function handlePreview(marketplaceId: string, skillName: string) {
     <div
       v-for="mp in marketplaces"
       :key="mp.id"
-      class="bg-[#0f1927] border border-[#1e324f] rounded-xl overflow-hidden"
+      class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg overflow-hidden"
     >
       <div
         class="px-[18px] py-[14px] flex items-center gap-3 cursor-pointer"
-        :class="openId === mp.id ? 'bg-[#0b131f] border-b border-[#1e324f]' : ''"
+        :class="openId === mp.id ? 'bg-[#111827] border-b border-[#2d3a4d]' : ''"
         @click="openId = openId === mp.id ? null : mp.id"
       >
         <span
-          class="px-2.5 py-0.5 rounded-full text-[0.72rem] font-bold uppercase tracking-wider"
+          class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider"
           :class="badgeClass(mp.type)"
         >
           {{ mp.type }}
         </span>
         <div class="min-w-0 flex-1">
-          <div class="text-[0.9rem] font-semibold text-white truncate" :title="mp.id">
+          <div class="text-[13px] font-semibold text-white truncate" :title="mp.id">
             {{ mp.id }}
           </div>
-          <div class="text-[0.75rem] text-[#526e8c] mt-0.5 truncate" :title="describeLocation(mp)">
+          <div class="text-[11px] text-[#6b7280] mt-0.5 truncate" :title="describeLocation(mp)">
             {{ describeLocation(mp) }}
             <template v-if="mpState[mp.id]?.loaded">
               · {{ mpState[mp.id].skills.length }} 个技能</template
             >
           </div>
         </div>
-        <span class="text-[#526e8c] text-[0.85rem]">{{ openId === mp.id ? '▼' : '▶' }}</span>
+        <span class="text-[#6b7280] text-[12.5px]">{{ openId === mp.id ? '▼' : '▶' }}</span>
       </div>
 
       <div v-if="openId === mp.id">
-        <div v-if="mpState[mp.id]?.loading" class="p-4 text-[#526e8c] text-[0.85rem]">
+        <div v-if="mpState[mp.id]?.loading" class="p-4 text-[#6b7280] text-[12.5px]">
           正在加载技能…
         </div>
         <div
           v-else-if="mpState[mp.id]?.error"
-          class="p-3 text-[#ef4444] text-[0.85rem] bg-[#ef4444]/10"
+          class="p-3 text-[#ef4444] text-[12.5px] bg-[#ef4444]/10"
         >
           {{ mpState[mp.id].error }}
         </div>
         <div
           v-else-if="mpState[mp.id]?.loaded && mpState[mp.id].skills.length === 0"
-          class="p-4 text-[#526e8c] text-[0.85rem]"
+          class="p-4 text-[#6b7280] text-[12.5px]"
         >
           该技能市场中未找到技能。
         </div>
@@ -202,23 +202,23 @@ async function handlePreview(marketplaceId: string, skillName: string) {
         <div
           v-for="s in mpState[mp.id]?.skills"
           :key="s.name"
-          class="px-[18px] py-2.5 border-t border-[#142338] flex items-center gap-3"
+          class="px-[18px] py-2.5 border-t border-[#2d3a4d] flex items-center gap-3"
         >
           <div class="min-w-0 flex-1">
-            <div class="text-[0.9rem] font-semibold text-white">
+            <div class="text-[13px] font-semibold text-white">
               {{ s.name
-              }}<span v-if="s.version" class="ml-2 text-[0.72rem] text-[#526e8c] font-medium"
+              }}<span v-if="s.version" class="ml-2 text-[10.5px] text-[#6b7280] font-medium"
                 >v{{ s.version }}</span
               >
             </div>
-            <div v-if="s.description" class="text-[0.8rem] text-[#708aa6] mt-1 leading-relaxed">
+            <div v-if="s.description" class="text-[12px] text-[#9ca3af] mt-1 leading-relaxed">
               {{ s.description }}
             </div>
           </div>
 
           <button
             type="button"
-            class="px-3 py-1.5 rounded-lg border border-[#1e324f] bg-[#0b131f] text-[#a3b8cc] text-[0.82rem] font-medium hover:border-[#2b5384] transition-colors"
+            class="px-3 py-1.5 rounded-lg border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] text-[12px] font-medium hover:border-[#3d4d64] transition-colors"
             @click="handlePreview(mp.id, s.name)"
           >
             预览
@@ -227,7 +227,7 @@ async function handlePreview(marketplaceId: string, skillName: string) {
             v-if="props.agentId"
             type="button"
             :disabled="installing === `${mp.id}/${s.name}`"
-            class="px-3.5 py-1.5 rounded-lg border border-[#00f3ff] bg-[#00f3ff]/15 text-[#00f3ff] text-[0.82rem] font-semibold hover:bg-[#00f3ff]/25 transition-colors whitespace-nowrap"
+            class="px-3.5 py-1.5 rounded-lg border border-[#3b82f6] bg-[rgba(59,130,246,0.12)] text-[#93c5fd] text-[12px] font-semibold hover:bg-[rgba(59,130,246,0.2)] transition-colors whitespace-nowrap"
             :class="installing === `${mp.id}/${s.name}` ? 'opacity-60 cursor-wait' : ''"
             @click="handleInstall(mp.id, s.name)"
           >
@@ -244,34 +244,34 @@ async function handlePreview(marketplaceId: string, skillName: string) {
       @click="previewing = null"
     >
       <div
-        class="bg-[#0f1927] border border-[#1e324f] rounded-xl p-6 max-w-[720px] w-[90%] max-h-[80vh] overflow-y-auto shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
+        class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-6 max-w-[720px] w-[90%] max-h-[80vh] overflow-y-auto shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
         @click.stop
       >
         <div class="flex items-center mb-4">
-          <h3 class="m-0 text-[1.05rem] font-bold text-white flex-1">{{ previewing.name }}</h3>
+          <h3 class="m-0 text-[14px] font-bold text-white flex-1">{{ previewing.name }}</h3>
           <button
             type="button"
-            class="px-3 py-1.5 rounded-lg border border-[#1e324f] bg-[#0b131f] text-[#a3b8cc] text-[0.82rem] hover:border-[#2b5384] transition-colors"
+            class="px-3 py-1.5 rounded-lg border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] text-[12px] hover:border-[#3d4d64] transition-colors"
             @click="previewing = null"
           >
             关闭
           </button>
         </div>
-        <div v-if="previewing.description" class="text-[0.85rem] text-[#708aa6] mb-3">
+        <div v-if="previewing.description" class="text-[12.5px] text-[#9ca3af] mb-3">
           {{ previewing.description }}
         </div>
         <pre
-          class="bg-[#060c14] text-[#a3b8cc] p-3.5 rounded-lg text-[0.78rem] leading-relaxed overflow-auto max-h-[50vh] whitespace-pre-wrap"
+          class="bg-[#0a0e17] text-[#cbd5e1] p-3.5 rounded-lg text-[11.5px] leading-relaxed overflow-auto max-h-[50vh] whitespace-pre-wrap"
           >{{ previewing.markdown }}</pre
         >
         <div v-if="Object.keys(previewing.resources ?? {}).length > 0" class="mt-3.5">
-          <div class="text-[0.75rem] font-bold text-[#708aa6] uppercase tracking-wider mb-2">
+          <div class="text-[11px] font-bold text-[#9ca3af] uppercase tracking-wider mb-2">
             资源
           </div>
           <div
             v-for="k in Object.keys(previewing.resources)"
             :key="k"
-            class="font-mono text-[0.78rem] text-[#a3b8cc] py-0.5"
+            class="font-mono text-[11.5px] text-[#cbd5e1] py-0.5"
           >
             {{ k }}
           </div>

@@ -1,19 +1,19 @@
 <template>
   <div class="right-graph-list-root">
     <div
-      class="w-95 h-full absolute right-0 top-0 z-1000 bg-[#111625]/90 border-l border-[#1e293b] text-slate-200 flex flex-col font-sans select-none backdrop-blur-sm overflow-hidden">
+      class="w-95 h-full absolute right-0 top-0 z-1000 bg-[#111827]/95 border-l border-[#2d3a4d] text-[#e5e7eb] flex flex-col font-sans select-none backdrop-blur-sm overflow-hidden">
       <div class="flex-1 overflow-y-auto p-2.5 space-y-3">
-        <div class="border-b border-[#2d3748] pb-2">
-          <h2 class="text-sm font-bold tracking-wider text-amber-500 flex items-center gap-1.5">
+        <div class="border-b border-[#2d3a4d] pb-2">
+          <h2 class="text-[13.5px] font-bold tracking-wider text-[#e5e7eb] flex items-center gap-1.5">
             📄 聚合文章列表
           </h2>
-          <p v-if="aggInfo" class="mt-1 text-[12px] text-slate-400">
-            <span v-if="aggInfo.kind === 'country'" class="text-amber-400">▲ 国家</span>
-            <span v-else class="text-purple-300">◆ 作者</span>
-            ：<b class="text-slate-200">{{ aggInfo.label }}</b>
-            <span class="text-slate-500"> · 共 {{ list.length }} 篇</span>
+          <p v-if="aggInfo" class="mt-1 text-[12px] text-[#9ca3af]">
+            <span v-if="aggInfo.kind === 'country'" class="text-[#93c5fd]">▲ 国家</span>
+            <span v-else class="text-[#a78bfa]">◆ 作者</span>
+            ：<b class="text-[#e5e7eb]">{{ aggInfo.label }}</b>
+            <span class="text-[#6b7280]"> · 共 {{ list.length }} 篇</span>
           </p>
-          <p v-else class="mt-1 text-[12px] text-slate-500">
+          <p v-else class="mt-1 text-[12px] text-[#6b7280]">
             点击图谱中的聚合点（▲ 国家 / ◆ 作者）查看对应文章
           </p>
         </div>
@@ -21,16 +21,16 @@
         <!-- 已选中聚合点：列出对应文章 -->
         <div v-if="aggInfo" class="space-y-2">
           <div v-for="(article, index) in list" :key="`${article.id ?? index}-${index}`"
-            class="bg-[#161e2e] border border-[#2d3748] rounded p-2.5 cursor-pointer hover:bg-[#1c2738] transition-colors"
+            class="bg-[#1a2332] border border-[#2d3a4d] rounded-md p-2.5 cursor-pointer hover:bg-[#1b2637] hover:border-[#3d4d64] transition-colors"
             @click="openArticle(article)">
             <div class="flex items-start justify-between gap-2">
-              <div class="text-[13px] font-semibold text-slate-100 leading-snug">
+              <div class="text-[12.5px] font-semibold text-[#e5e7eb] leading-snug">
                 {{ article.title || "无标题" }}
               </div>
               <span v-if="article.isBreaking"
-                class="shrink-0 text-[11px] font-bold text-rose-400 border border-rose-400 rounded px-1 py-0.5">异常</span>
+                class="shrink-0 text-[10.5px] font-semibold text-[#fca5a5] bg-[rgba(239,68,68,0.12)] border border-[rgba(239,68,68,0.45)] rounded px-1.5 py-0.5">异常</span>
             </div>
-            <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+            <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#9ca3af]">
               <span>{{ article.country || "未知国家" }}</span>
               <span v-if="article.author || article.agencyName || article.source">
                 · {{ article.author || article.agencyName || article.source }}
@@ -41,13 +41,13 @@
               </span>
             </div>
           </div>
-          <div v-if="list.length === 0" class="text-[12px] text-slate-500 text-center py-6">
+          <div v-if="list.length === 0" class="text-[12px] text-[#6b7280] text-center py-6">
             该聚合点下暂无匹配文章
           </div>
         </div>
 
         <!-- 未选中：提示 -->
-        <div v-else class="text-[12px] text-slate-500 text-center py-10 leading-relaxed">
+        <div v-else class="text-[12px] text-[#6b7280] text-center py-10 leading-relaxed">
           尚未选择聚合点<br />在左侧图谱中点击 ▲ 国家 或 ◆ 作者 节点
         </div>
       </div>
@@ -149,9 +149,9 @@ const closeDialog = () => {
 }
 
 .dialog-title {
-  color: #f8fafc;
-  font-size: 16px;
-  font-weight: 700;
+  color: #e5e7eb;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -159,7 +159,7 @@ const closeDialog = () => {
   display: flex;
   justify-content: flex-start;
   gap: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
   font-size: 12px;
 }
 
@@ -173,9 +173,9 @@ const closeDialog = () => {
 
 .dialog-body {
   white-space: pre-wrap;
-  color: #e2e8f0;
-  font-size: 14px;
-  line-height: 1.6;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  line-height: 1.75;
 }
 
 .dialog-footer {
@@ -186,13 +186,14 @@ const closeDialog = () => {
 
 .dialog-close-btn {
   min-width: 120px;
-  border-radius: 10px;
-  background: #2a2a2a;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   border-color: transparent;
-  color: #e2e8f0;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .dialog-close-btn:hover {
-  background: #1f1f1f;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 </style>

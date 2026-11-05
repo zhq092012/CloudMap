@@ -1,13 +1,13 @@
 <template>
   <div
-    class="w-[400px] h-full bg-[#080d16] text-gray-200 p-4 border-l border-[#16253b] flex flex-col overflow-y-auto custom-scrollbar font-sans text-sm selection:bg-purple-500 selection:text-white">
-    <div class="text-base font-semibold text-white mb-4 tracking-wide">
+    class="da-panel w-[400px] shrink-0 h-full font-sans">
+    <div class="da-panel-title mb-4">
       方案对比核验结果
     </div>
 
     <!-- <div class="flex flex-col gap-2 mb-4">
       <button
-        class="w-full py-2 px-3 bg-[#112035] border border-[#a855f7]/60 text-[#c084fc] hover:bg-[#162e4e] hover:border-[#c084fc] transition-all rounded text-xs font-medium tracking-wider shadow-inner text-center"
+        class="da-btn da-btn--primary da-btn--block"
         @click="goToComparison">
         查看完整对比报告
       </button>
@@ -18,18 +18,18 @@
       analysisStore.selectedNode &&
       (analysisStore.selectedNode.type === 'Evaluation' ||
         analysisStore.selectedNode._type === 'Evaluation')
-    " class="border border-[#a855f7]/50 bg-[#1a1028]/80 rounded p-3 mb-4 shadow-lg animate-fade-in">
+    " class="da-card da-card--accent mb-4 animate-fade-in">
       <div class="flex items-center gap-2 mb-2">
-        <span class="w-2 h-2 rounded-full bg-[#a855f7] shrink-0"></span>
-        <span class="text-[11px] text-[#a855f7] font-semibold tracking-wider">当前选中 · 核验评估节点</span>
+        <span class="w-2 h-2 rounded-full bg-[#3b82f6] shrink-0"></span>
+        <span class="text-[12px] text-[#3b82f6] font-semibold tracking-wider">当前选中 · 核验评估节点</span>
       </div>
-      <div class="text-white font-medium text-sm leading-relaxed tracking-wide cursor-pointer hover:text-purple-300"
+      <div class="text-[var(--text)] font-medium text-[13px] leading-relaxed tracking-wide cursor-pointer hover:text-[var(--accent-text)]"
         title="点击查看完整报告" @click="openDetailDialog(analysisStore.selectedNode)">
         {{
           analysisStore.selectedNode.text || analysisStore.selectedNode.title || "未命名节点"
         }}
       </div>
-      <div class="flex items-center gap-4 mt-2 text-[10px] text-gray-400">
+      <div class="flex items-center gap-4 mt-2 text-[11.5px] text-gray-400">
         <span>ID:
           <span class="text-gray-300 font-mono">{{
             analysisStore.selectedNode.id
@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div v-if="analysisStore.selectedNode.summary" class="mb-4 p-3 bg-[#0a0e15]/80 border border-[#a855f7]/50 rounded-lg">
+    <div v-if="analysisStore.selectedNode.summary" class="da-card da-card--sunken mb-4">
       <div class="flex items-center gap-1.5 text-gray-400 font-semibold mb-1.5 text-xs">
         <el-icon class="text-xs">
           <Document />
@@ -50,25 +50,23 @@
     </div>
 
     <!-- 综合评分 -->
-    <div class="mb-4 p-4 border rounded shadow-lg" :class="[
-      analysisStore.selectedNode?.isRecommended
-        ? 'border-[#22c55e]/60 bg-[#0a1a14]/90'
-        : 'border-[#a855f7]/40 bg-[#14101e]/90'
-    ]">
+    <div class="da-card mb-4" :class="
+      analysisStore.selectedNode?.isRecommended ? 'da-card--green' : 'da-card--accent'
+    ">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-1.5">
           <span class="text-xs text-gray-400 font-medium">综合评分</span>
-          <span class="text-[#22c55e] font-bold font-mono text-lg glow-green">
+          <span class="text-[#10b981] font-bold font-mono text-lg glow-green">
             {{ analysisStore.selectedNode.confidence ? Math.round(analysisStore.selectedNode.confidence) : 'N/A' }}%
           </span>
         </div>
         <div v-if="analysisStore.selectedNode?.isRecommended"
-          class="px-2 py-1 bg-[#22c55e]/20 border border-[#22c55e]/40 rounded text-[#22c55e] text-xs font-bold">
+          class="px-2 py-1 bg-[rgba(16,185,129,0.14)] border border-[rgba(16,185,129,0.4)] rounded text-[#34d399] text-[11.5px] font-bold">
           ★ 推荐候选方案
         </div>
       </div>
       <div class="w-full h-2 bg-slate-800 rounded-sm overflow-hidden">
-        <div class="h-full bg-[#22c55e] rounded-sm shadow-[0_0_8px_rgba(34,197,94,0.5)]"
+        <div class="h-full bg-[#10b981] rounded-sm shadow-[0_0_8px_rgba(16,185,129,0.45)]"
           :style="{ width: (analysisStore.selectedNode.confidence || 0) + '%' }"></div>
       </div>
       <div class="mt-3 space-y-2 text-xs text-gray-300">
@@ -91,10 +89,10 @@
     </div>
 
     <!--
-    <div class="mb-4 p-4 border rounded shadow-lg  text-xs" :class="[
+    <div class="mb-4 p-3 border rounded shadow-lg  text-xs" :class="[
       analysisStore.selectedNode?.isRecommended
-        ? 'border-[#22c55e]/60 bg-[#0a1a14]/90'
-        : 'border-[#a855f7]/40 bg-[#14101e]/90'
+        ? 'border-[#10b981]/60 bg-[#0a1a14]/90'
+        : 'border-[#3b82f6]/40 bg-[#14101e]/90'
     ]">
       <div class="text-gray-500 mb-2.5">方案详情</div>
       <div>{{ resultDataText?.details }}</div>
@@ -102,12 +100,12 @@
     -->
 
     <!-- 评估矩阵 -->
-    <!--div class="border border-[#16253b] bg-[#111622]/60 rounded p-4 mb-4">
+    <!--div class="border border-[#2d3a4d] bg-[#1a2332]/60 rounded p-3 mb-4">
       <div class="text-xs font-semibold text-gray-300 mb-4 flex items-center justify-between">
         <span>多维评估矩阵</span>
-        <span class="text-[11px] font-medium">
+        <span class="text-[12px] font-medium">
           综合得分
-          <span class="text-[#22c55e] font-mono font-bold ml-1">
+          <span class="text-[#10b981] font-mono font-bold ml-1">
             {{ analysisStore.selectedNode.confidence ? Math.round(analysisStore.selectedNode.confidence) : 0 }}%
           </span>
         </span>
@@ -117,10 +115,10 @@
         <div v-for="item in evalMatrix" :key="item.label" class="flex items-center text-xs">
           <span class="w-20 text-gray-400 shrink-0 font-medium">{{ item.label }}</span>
           <div class="flex-1 h-2 bg-slate-800/80 rounded-sm mx-3 overflow-hidden">
-            <div class="h-full rounded-sm" :class="item.value > 70 ? 'bg-[#22c55e]/80' : item.value > 50 ? 'bg-[#f59e0b]/80' : 'bg-[#ef4444]/80'"
+            <div class="h-full rounded-sm" :class="item.value > 70 ? 'bg-[#10b981]/80' : item.value > 50 ? 'bg-[#f59e0b]/80' : 'bg-[#ef4444]/80'"
               :style="{ width: item.value + '%' }"></div>
           </div>
-          <span class="w-8 text-right font-mono font-bold" :class="item.value > 70 ? 'text-[#22c55e]/90' : item.value > 50 ? 'text-[#f59e0b]/90' : 'text-[#ef4444]/90'">
+          <span class="w-8 text-right font-mono font-bold" :class="item.value > 70 ? 'text-[#10b981]/90' : item.value > 50 ? 'text-[#f59e0b]/90' : 'text-[#ef4444]/90'">
             {{ item.value }}%
           </span>
         </div>
@@ -137,7 +135,7 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="text-gray-400 text-[11px] leading-relaxed mb-2">
+          <div class="text-gray-400 text-[12px] leading-relaxed mb-2">
             F10时空冲突检测Agent对方案进行了以下冲突分析：
           </div>
           <div v-if="analysisStore.selectedNode" class="space-y-2">
@@ -158,7 +156,7 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="text-gray-400 text-[11px] leading-relaxed mb-2">
+          <div class="text-gray-400 text-[12px] leading-relaxed mb-2">
             F11判据逻辑校验Agent对方案进行了判据一致性分析：
           </div>
           <div v-if="analysisStore.selectedNode" class="text-xs text-gray-200 leading-relaxed whitespace-pre-wrap">
@@ -177,7 +175,7 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="text-gray-400 text-[11px] leading-relaxed mb-2">
+          <div class="text-gray-400 text-[12px] leading-relaxed mb-2">
             F12风险评估Agent识别了以下风险：
           </div>
           <div v-if="analysisStore.selectedNode" class="space-y-2">
@@ -209,7 +207,7 @@
           </div>
         </template>
         <div class="collapse-body-content">
-          <div class="text-gray-400 text-[11px] leading-relaxed mb-2">
+          <div class="text-gray-400 text-[12px] leading-relaxed mb-2">
             F16情报核验Agent对核验中的关键不确定性进行了回溯验证：
           </div>
           <div v-if="analysisStore.selectedNode" class="text-xs text-gray-200 leading-relaxed whitespace-pre-wrap">
@@ -226,31 +224,31 @@
 
     <!-- 方案排序 -->
     <div v-if="analysisStore.rawNodes.filter((n: any) => n.type === 'Evaluation').length > 1"
-      class="border border-[#16253b] bg-[#111622]/60 rounded p-3 mb-4 mt-4">
+      class="border border-[#2d3a4d] bg-[#1a2332]/60 rounded p-3 mb-4 mt-4">
       <div class="text-xs font-semibold text-gray-300 mb-3">红方方案排序</div>
       <div v-for="(n, i) in sortedEvalNodes" :key="n.id"
         class="flex items-center justify-between py-1.5 px-2 rounded mb-1 cursor-pointer"
         title="点击查看完整报告" @click="openDetailDialog(n)"
         :class="[
-          n.isRecommended ? 'bg-[#22c55e]/10 border border-[#22c55e]/30' :
-          n._selected ? 'bg-[#a855f7]/10 border border-[#a855f7]/30' :
+          n.isRecommended ? 'bg-[#10b981]/10 border border-[#10b981]/30' :
+          n._selected ? 'bg-[#3b82f6]/10 border border-[#3b82f6]/30' :
           'bg-transparent hover:bg-[#0d1117]'
         ]">
         <div class="flex items-center gap-2">
-          <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+          <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11.5px] font-bold"
             :class="[
-              i === 0 ? 'bg-[#22c55e]/30 text-[#22c55e]' :
-              i === 1 ? 'bg-[#94a3b8]/30 text-[#94a3b8]' :
+              i === 0 ? 'bg-[#10b981]/30 text-[#10b981]' :
+              i === 1 ? 'bg-[#9ca3af]/30 text-[#9ca3af]' :
               i === 2 ? 'bg-[#f59e0b]/30 text-[#f59e0b]' :
-              'bg-[#1e293b] text-gray-400'
+              'bg-[#2d3a4d] text-gray-400'
             ]">
             {{ i + 1 }}
           </span>
           <span class="text-xs text-gray-200 truncate max-w-48">{{ n.text }}</span>
-          <span v-if="n.isRecommended" class="text-[#22c55e] text-[10px]">★推荐</span>
+          <span v-if="n.isRecommended" class="text-[#10b981] text-[11.5px]">★推荐</span>
         </div>
         <span class="text-xs font-mono font-bold"
-          :class="Number(n.confidence) > 70 ? 'text-[#22c55e]' : Number(n.confidence) > 50 ? 'text-[#f59e0b]' : 'text-[#ef4444]'">
+          :class="Number(n.confidence) > 70 ? 'text-[#10b981]' : Number(n.confidence) > 50 ? 'text-[#f59e0b]' : 'text-[#ef4444]'">
           {{ Math.round(Number(n.confidence)) }}%
         </span>
       </div>
@@ -370,16 +368,16 @@ void comparisonStore;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #080d16;
+  background: #111827;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #2d3a4d;
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3d4d64;
 }
 
 :deep(.custom-inference-accordion) {
@@ -391,14 +389,14 @@ void comparisonStore;
 }
 
 :deep(.custom-inference-accordion .el-collapse-item) {
-  background-color: #111622 !important;
-  border: 1px solid #1c2435 !important;
+  background-color: #1a2332 !important;
+  border: 1px solid #2d3a4d !important;
   border-radius: 4px;
   overflow: hidden;
 }
 
 :deep(.custom-inference-accordion .el-collapse-item__header) {
-  background-color: #111622 !important;
+  background-color: #1a2332 !important;
   color: #ffffff !important;
   height: 42px !important;
   line-height: 42px !important;
@@ -415,7 +413,7 @@ void comparisonStore;
 }
 
 :deep(.custom-inference-accordion .el-collapse-item__arrow) {
-  color: #94a3b8 !important;
+  color: #9ca3af !important;
   font-size: 13px;
 }
 
@@ -433,7 +431,7 @@ void comparisonStore;
 .collapse-body-content {
   padding: 12px 16px;
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
   line-height: 1.6;
   border-top: 1px solid #161f30;
 }

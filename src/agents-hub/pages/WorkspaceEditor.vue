@@ -1,27 +1,27 @@
 <template>
-  <div class="flex-1 flex flex-col min-w-0 min-h-0 bg-[#0f1927]">
+  <div class="flex-1 flex flex-col min-w-0 min-h-0 bg-[#1a2332]">
     <div v-if="path"
-      class="h-12 px-4 flex items-center gap-3 border-b border-[#142338] bg-[#0b131f] flex-shrink-0">
-      <span class="font-mono text-sm text-[#7fd4ff] flex-1 truncate" :title="path">{{ path }}</span>
+      class="h-12 px-4 flex items-center gap-3 border-b border-[#2d3a4d] bg-[#111827] flex-shrink-0">
+      <span class="font-mono text-[12.5px] text-[#93c5fd] flex-1 truncate" :title="path">{{ path }}</span>
       <span v-if="!viewable"
-        class="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#142338] text-[#708aa6] border border-[#1e324f]">read-only</span>
-      <span v-if="error" class="text-sm text-[#ef4444] truncate">{{ error }}</span>
+        class="px-2.5 py-1 rounded-full text-[11.5px] font-semibold bg-[#253141] text-[#9ca3af] border border-[#2d3a4d]">read-only</span>
+      <span v-if="error" class="text-[12.5px] text-[#ef4444] truncate">{{ error }}</span>
       <button v-if="viewable" type="button" @click="emit('save')" :disabled="saving"
-        class="px-3 py-1.5 rounded-lg border border-[#2b5384] text-[#7fd4ff] hover:bg-[#10243a] text-sm font-semibold disabled:opacity-50">
+        class="px-3 py-1.5 rounded-lg border border-[#3d4d64] text-[#93c5fd] hover:bg-[#253141] text-[12.5px] font-semibold disabled:opacity-50">
         {{ saving ? 'Saving…' : 'Save' }}
       </button>
     </div>
 
     <div v-if="!path"
-      class="flex-1 flex items-center justify-center text-[#708aa6] text-sm">Select a file from the tree to view.</div>
+      class="flex-1 flex items-center justify-center text-[#9ca3af] text-[12.5px]">Select a file from the tree to view.</div>
     <div v-else-if="loading"
-      class="flex-1 flex items-center justify-center text-[#708aa6] text-sm">Loading…</div>
+      class="flex-1 flex items-center justify-center text-[#9ca3af] text-[12.5px]">Loading…</div>
     <div v-else-if="!viewable"
-      class="flex-1 flex items-center justify-center text-[#708aa6] text-sm text-center px-8">
+      class="flex-1 flex items-center justify-center text-[#9ca3af] text-[12.5px] text-center px-8">
       {{ error || 'Cannot view this file in the browser.' }}
     </div>
     <textarea v-else :value="content" @input="onInput" spellcheck="false"
-      class="flex-1 w-full p-5 bg-[#060c14] border-none outline-none text-[#a3b8cc] font-mono text-sm leading-relaxed resize-none"></textarea>
+      class="flex-1 w-full p-5 bg-[#0a0e17] border-none outline-none text-[#cbd5e1] font-mono text-[12.5px] leading-relaxed resize-none"></textarea>
   </div>
 </template>
 

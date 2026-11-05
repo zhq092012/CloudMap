@@ -1,33 +1,28 @@
 <template>
-  <div v-if="!agentId" class="p-8 text-[#708aa6]">缺少智能体 id。</div>
-  <div v-else class="flex flex-col h-full min-h-0 bg-[#060c14]">
+  <div v-if="!agentId" class="ws-missing">缺少智能体 id。</div>
+  <div v-else class="ws-page">
     <!-- workspace path bar -->
-    <div v-if="summary?.workspacePath"
-      class="flex items-center gap-2 px-4 py-1.5 border-b border-[#142338] bg-[#0b131f] flex-shrink-0 text-xs text-[#708aa6]">
-      <span class="font-semibold uppercase tracking-wider text-[#526e8c]">Path</span>
-      <span class="font-mono text-[#a3b8cc] flex-1 truncate" :title="summary.workspacePath">{{
-        summary.workspacePath
-      }}</span>
-      <button type="button" @click="copyPath"
-        class="bg-[#0f1927] border border-[#1e324f] text-[#a3b8cc] rounded-md px-2.5 py-0.5 hover:bg-[#142338]">Copy</button>
+    <div v-if="summary?.workspacePath" class="ws-path-bar">
+      <span class="ws-path-label">Path</span>
+      <span class="ws-path-value" :title="summary.workspacePath">{{ summary.workspacePath }}</span>
+      <button type="button" class="ws-btn is-ghost" @click="copyPath">复制</button>
     </div>
 
     <!-- toolbar -->
-    <div class="flex items-center gap-2 px-4 py-2 border-b border-[#142338] bg-[#0b131f] flex-shrink-0">
-      <button type="button" @click="newFile"
-        class="px-2.5 py-1 rounded-md border border-[#2b5384] text-[#7fd4ff] hover:bg-[#10243a] text-sm">+ New</button>
-      <button type="button" @click="deleteSelected" :disabled="!selected"
-        class="px-2.5 py-1 rounded-md border border-[#2b5384] text-[#ef4444] hover:bg-[#10243a] text-sm disabled:opacity-40">🗑 Delete</button>
-      <label
-        class="px-2.5 py-1 rounded-md border border-[#2b5384] text-[#7fd4ff] hover:bg-[#10243a] text-sm cursor-pointer">
-        ↑ Upload
+    <div class="ws-toolbar">
+      <button type="button" class="ws-btn" @click="newFile">＋ 新建文件</button>
+      <button type="button" class="ws-btn is-danger" :disabled="!selected" @click="deleteSelected">
+        🗑 删除
+      </button>
+      <label class="ws-btn">
+        ↑ 上传
         <input type="file" class="hidden" @change="onUpload" />
       </label>
-      <span v-if="treeErr" class="text-[#ef4444] text-sm ml-2">{{ treeErr }}</span>
+      <span v-if="treeErr" class="ws-err">{{ treeErr }}</span>
     </div>
 
     <!-- tree + editor -->
-    <div class="flex flex-1 min-h-0">
+    <div class="ws-main">
       <WorkspaceFileTree :nodes="nodes" :selected-path="selected" @file-selected="onSelect"
         @refresh="loadTree" />
       <WorkspaceEditor :path="selected" :content="content" :loading="readLoading" :error="readErr"
@@ -153,3 +148,120 @@ watch(() => agentId?.value, () => {
   loadTree();
 });
 </script>
+
+<style scoped lang="scss">
+@use "../styles/tokens" as *;
+
+.ws-missing {
+  padding: 32px;
+  font-size: 13px;
+  color: $text-3;
+}
+
+.ws-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: $bg-root;
+}
+
+/* 工作区绝对路径条 */
+.ws-path-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-bottom: 1px solid $border;
+  background: $bg-sunken;
+}
+
+.ws-path-label {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $bg-panel;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $text-4;
+}
+
+.ws-path-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: $text-2;
+}
+
+/* 工具栏 */
+.ws-toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid $border;
+  background: $bg-sunken;
+}
+
+.ws-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  background: $bg-panel;
+  color: $text-2;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease;
+
+  &:hover:not(:disabled) {
+    color: $accent-text;
+    border-color: $accent-line;
+    background: $accent-soft;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &.is-danger:hover:not(:disabled) {
+    color: #fca5a5;
+    border-color: $red-line;
+    background: $red-soft;
+  }
+
+  &.is-ghost {
+    height: 24px;
+    padding: 0 9px;
+    font-size: 11.5px;
+    background: transparent;
+  }
+}
+
+.ws-err {
+  margin-left: 6px;
+  font-size: 12px;
+  color: $red;
+}
+
+.ws-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+</style>

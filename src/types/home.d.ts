@@ -34,6 +34,12 @@ export interface WarningMarker extends CesiumMarker {
   score?: number;
   confidence?: number;
   threatLevel?: string | number;
+  /** 异常事件状态：POTENTIAL 待研判 / CONFIRMED 已确认 / ANALYSIS 分析中（后端可能为空，前端按待研判处理） */
+  status?: string;
+  /** 异常事件创建时间（原始字符串，左上「异常征候」按是否满 24 小时划分历史） */
+  createdAt?: string;
+  /** 异常类型：article / aircraft / vessel / satellite（左栏「异常」分组展示用） */
+  assetType?: string;
 }
 export interface WarningItem {
   id: string;

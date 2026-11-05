@@ -92,79 +92,47 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="!agentId" class="p-8 text-[#708aa6]">缺少智能体 id。</div>
-  <div v-else class="min-h-full bg-[#060c14] text-[#a3b8cc] px-8 py-7">
-    <div class="max-w-[1100px]">
-      <h2 class="text-white text-[1.4rem] font-bold m-0 mb-4 tracking-tight">渠道</h2>
+  <div v-if="!agentId" class="ch-missing">缺少智能体 id。</div>
+  <div v-else class="ch-page">
+    <div class="ch-inner">
+      <div class="ch-head">
+        <h2 class="ch-title">渠道</h2>
+        <span class="ch-sub">该智能体在各 IM 渠道上的绑定与默认路由</span>
+      </div>
 
-      <div
-        v-if="dirty"
-        class="px-4 py-3 rounded-[10px] text-[0.88rem] mb-5 bg-[#2e240b] border border-[#4a3a1d] text-[#fbbf24]"
-      >
+      <div v-if="dirty" class="ch-banner is-warn">
         ⚠ 不支持热更新配置的渠道适配器，将在下次重启时生效绑定变更。请查看服务端日志中
         BindingPersistence 输出的各渠道状态。
       </div>
 
-      <div v-if="err" class="text-[#ef4444] text-sm mb-2">{{ err }}</div>
-      <div v-if="!canEdit" class="text-[#526e8c] text-[0.84rem] mb-3">
-        当前权限（{{ tier ?? 'CLONE' }}）为只读，无法修改渠道绑定。
-      </div>
+      <div v-if="err" class="ch-err">{{ err }}</div>
+      <div v-if="!canEdit" class="ch-note">当前权限（{{ tier ?? 'CLONE' }}）为只读，无法修改渠道绑定。</div>
 
-      <div v-if="loading && channels.length === 0" class="text-[#708aa6] text-sm">加载中…</div>
-      <div v-else-if="channels.length === 0" class="text-[#526e8c] text-[0.85rem]">未注册任何渠道。</div>
+      <div v-if="loading && channels.length === 0" class="ch-note">加载中…</div>
+      <div v-else-if="channels.length === 0" class="ch-note">未注册任何渠道。</div>
 
-      <div
-        v-for="c in channels"
-        :key="c.channelId"
-        class="bg-[#0f1927] border border-[#1e324f] rounded-[14px] px-5 py-5 mb-4"
-      >
-        <div class="flex items-center gap-3 mb-3.5 flex-wrap">
-          <span class="text-[1.05rem] font-semibold text-white">{{ c.channelId }}</span>
-          <span
-            v-if="c.dmScope"
-            class="px-2.5 py-1 rounded-full text-[0.76rem] font-medium bg-[#0b131f] text-[#a3b8cc] border border-[#1e324f]"
-          >{{ c.dmScope }}</span>
-          <span
-            v-if="!c.started"
-            class="px-2.5 py-1 rounded-full text-[0.76rem] font-medium bg-[#0b131f] text-[#ef4444] border border-[#5a1f1f]"
-          >stopped</span>
-          <span
-            v-if="c.defaultAgentId === agentId"
-            class="px-2.5 py-1 rounded-full text-[0.76rem] font-semibold bg-[#10233f] text-[#00f3ff] border border-[#2b5384]"
-          >默认</span>
-          <span class="flex-1"></span>
+      <section v-for="c in channels" :key="c.channelId" class="ch-card">
+        <div class="ch-card-head">
+          <span class="ch-card-name">{{ c.channelId }}</span>
+          <span v-if="c.dmScope" class="ch-pill">{{ c.dmScope }}</span>
+          <span v-if="!c.started" class="ch-pill is-danger">stopped</span>
+          <span v-if="c.defaultAgentId === agentId" class="ch-pill is-accent">默认</span>
+          <span class="ch-grow"></span>
           <template v-if="canEdit">
-            <button
-              v-if="c.defaultAgentId !== agentId"
-              type="button"
-              class="px-3.5 py-1.5 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0b131f] text-[#a3b8cc] hover:bg-[#142338]"
-              @click="handleSetDefault(c.channelId)"
-            >设为默认</button>
-            <button
-              type="button"
-              class="px-4 py-1.5 text-[0.84rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
-              @click="bindChannel(c.channelId)"
-            >+ 绑定渠道</button>
+            <button v-if="c.defaultAgentId !== agentId" type="button" class="ch-ghost"
+              @click="handleSetDefault(c.channelId)">设为默认</button>
+            <button type="button" class="ch-primary" @click="bindChannel(c.channelId)">＋ 绑定渠道</button>
           </template>
         </div>
 
-        <div v-if="(byChannel[c.channelId] ?? []).length === 0" class="text-[0.78rem] text-[#526e8c]">
-          该渠道暂无绑定。
+        <div v-if="(byChannel[c.channelId] ?? []).length === 0" class="ch-empty">该渠道暂无绑定。</div>
+        <div v-for="b in byChannel[c.channelId] ?? []" :key="`${b.channelId}-${b.index}`" class="ch-bind-row">
+          <span class="ch-tier">{{ b.tier }}</span>
+          <span class="ch-bind-desc">{{ describe(b) }}</span>
+          <span v-if="b.sessionScope" class="ch-pill">{{ b.sessionScope }}</span>
+          <span class="ch-bind-index">#{{ b.index }}</span>
         </div>
-        <div
-          v-for="b in byChannel[c.channelId] ?? []"
-          :key="`${b.channelId}-${b.index}`"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-[9px] text-sm text-[#a3b8cc] bg-[#0b131f] border border-[#142338] mb-1.5"
-        >
-          <span class="px-2.5 py-1 rounded-full text-[0.72rem] font-semibold bg-[#10233f] text-[#00f3ff] border border-[#2b5384]">{{ b.tier }}</span>
-          <span class="flex-1 font-mono text-[0.86rem] text-[#708aa6]">{{ describe(b) }}</span>
-          <span
-            v-if="b.sessionScope"
-            class="px-2.5 py-1 rounded-full text-[0.72rem] font-medium bg-[#0f1927] text-[#a3b8cc] border border-[#1e324f]"
-          >{{ b.sessionScope }}</span>
-          <span class="text-[0.72rem] text-[#526e8c] font-mono">#{{ b.index }}</span>
-        </div>
-      </div>
+      </section>
 
       <ChannelBindingTable
         ref="tableRef"
@@ -177,3 +145,204 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+@use "../styles/tokens" as *;
+
+.ch-missing {
+  padding: 32px;
+  font-size: 13px;
+  color: $text-3;
+}
+
+.ch-page {
+  min-height: 100%;
+  padding: 26px 32px 34px;
+  background: $bg-root;
+  color: $text-2;
+}
+
+.ch-inner {
+  max-width: 1100px;
+}
+
+.ch-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ch-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: $text;
+}
+
+.ch-sub {
+  font-size: 11.5px;
+  color: $text-4;
+}
+
+.ch-banner {
+  margin-bottom: 18px;
+  padding: 11px 14px;
+  border-radius: $radius-md;
+  border: 1px solid $border;
+  font-size: 12.5px;
+  line-height: 1.75;
+
+  &.is-warn {
+    border-color: $orange-line;
+    background: $orange-soft;
+    color: $orange;
+  }
+}
+
+.ch-err {
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  color: $red;
+}
+
+.ch-note {
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  color: $text-3;
+}
+
+/* ---- 渠道卡 ---- */
+.ch-card {
+  @include card;
+  margin-bottom: 16px;
+  padding: 18px 20px;
+}
+
+.ch-card-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(45, 58, 77, 0.7);
+}
+
+.ch-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text;
+}
+
+.ch-grow {
+  flex: 1;
+}
+
+.ch-pill {
+  padding: 2px 9px;
+  border-radius: 10px;
+  border: 1px solid $border;
+  background: $bg-sunken;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: $text-3;
+
+  &.is-accent {
+    border-color: $accent-line;
+    background: $accent-soft;
+    color: $accent-text;
+    font-weight: 600;
+  }
+
+  &.is-danger {
+    border-color: $red-line;
+    background: $red-soft;
+    color: #fca5a5;
+  }
+}
+
+.ch-ghost,
+.ch-primary {
+  height: 28px;
+  padding: 0 13px;
+  border-radius: $radius-md;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $ease, border-color $ease, background $ease, box-shadow $ease;
+}
+
+.ch-ghost {
+  border: 1px solid $border;
+  background: $bg-sunken;
+  color: $text-2;
+
+  &:hover {
+    color: $accent-text;
+    border-color: $accent-line;
+    background: $accent-soft;
+  }
+}
+
+.ch-primary {
+  border: 1px solid transparent;
+  color: #fff;
+  font-weight: 600;
+  @include accent-gradient;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.28);
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.ch-empty {
+  font-size: 11.5px;
+  color: $text-4;
+}
+
+.ch-bind-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: $bg-sunken;
+}
+
+.ch-tier {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 9px;
+  border: 1px solid $accent-line;
+  background: $accent-soft;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.7;
+  color: $accent-text;
+}
+
+.ch-bind-desc {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: $text-3;
+}
+
+.ch-bind-index {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: $text-4;
+}
+</style>

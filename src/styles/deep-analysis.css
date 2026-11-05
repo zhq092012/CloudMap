@@ -1,0 +1,264 @@
+/* ============================================================================
+   深度分析页统一样式（参照智能体中心的石墨底 + 蓝主色）
+   —— 只服务 DeepAnalysis 页面：pages/DeepAnalysis.vue 根节点加 .da-page，
+     左右面板加 .da-panel / .da-panel--left，其余 .da-* 为通用零件。
+   字号梯度（原来是 9/10/11px 的碎梯度，肉眼很难分清）：
+     面板标题 14 · 小节标题 12.5 · 卡片标题 12.5 · 正文 12 · 元信息 11
+   按钮：常规 29px 高，密集小按钮 24px 高（原先是 py-0.5 + 10px 字的“火柴盒”）
+   ========================================================================== */
+
+.da-page {
+  --da-title: 14px;
+  --da-head: 12.5px;
+  --da-body: 12px;
+  --da-meta: 11px;
+  font-size: var(--da-body);
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ---------------- 面板 ---------------- */
+.da-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px;
+  background: var(--bg-sunken);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(61, 77, 100, 0.9) transparent;
+}
+
+.da-panel--left {
+  padding: 12px;
+  border-left: 0;
+  border-right: 1px solid var(--border);
+}
+
+.da-panel::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.da-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.da-panel::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgba(45, 58, 77, 0.9);
+}
+
+.da-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* 面板标题：左侧 3px 主色竖条 */
+.da-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: var(--da-title);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.3px;
+  color: var(--text);
+}
+
+.da-panel-title::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* ---------------- 小节 ---------------- */
+.da-section {
+  margin-bottom: 14px;
+}
+
+.da-section:last-child {
+  margin-bottom: 0;
+}
+
+.da-section-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: var(--da-head);
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.da-section-head::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* ---------------- 卡片 / 内嵌块 ---------------- */
+.da-card {
+  padding: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.da-card--sunken {
+  background: var(--bg-sunken);
+}
+
+/* 语义描边卡片：选中态 / 剪枝态 */
+.da-card--accent {
+  background: rgba(59, 130, 246, 0.07);
+  border-color: rgba(59, 130, 246, 0.45);
+}
+
+.da-card--green {
+  background: rgba(16, 185, 129, 0.07);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.da-card--warn {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.da-card--red {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+/* 键值展示块（原 '#142030'/'#0a0e15' 一堆近似深底统一成一层） */
+.da-block {
+  padding: 8px 10px;
+  font-size: var(--da-body);
+  line-height: 1.7;
+  color: var(--text-2);
+  background: #0f1622;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.da-kv-label {
+  margin-bottom: 6px;
+  font-size: var(--da-meta);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.da-meta {
+  font-size: var(--da-meta);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ---------------- 按钮 ---------------- */
+.da-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 29px;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-2);
+  white-space: nowrap;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.da-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-raised);
+}
+
+.da-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.da-btn--primary {
+  color: #fff;
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.da-btn--primary:hover:not(:disabled) {
+  color: #fff;
+  background: var(--accent-hover);
+}
+
+.da-btn--ghost {
+  color: var(--text-muted);
+  background: transparent;
+  border-color: var(--border);
+}
+
+/* 红方语境的主按钮（防御/红方方案生成） */
+.da-btn--danger {
+  color: #fff;
+  background: #ef4444;
+  border-color: transparent;
+}
+
+.da-btn--danger:hover:not(:disabled) {
+  color: #fff;
+  background: #dc2626;
+}
+
+.da-btn--warn {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.da-btn--warn:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(245, 158, 11, 0.24);
+}
+
+.da-btn--block {
+  width: 100%;
+}
+
+.da-btn--sm {
+  height: 24px;
+  padding: 0 9px;
+  font-size: var(--da-meta);
+}
+
+/* ---------------- 状态点 / 徽标 ---------------- */
+.da-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.da-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  font-size: var(--da-meta);
+  line-height: 1;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}

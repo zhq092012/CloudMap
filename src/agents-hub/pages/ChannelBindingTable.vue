@@ -186,76 +186,76 @@ defineExpose({ startAdd });
 </script>
 
 <template>
-  <div class="bg-[#0f1927] border border-[#1e324f] rounded-[14px] p-5">
+  <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-5">
     <div class="flex items-center gap-3 mb-3.5">
-      <h3 class="text-white text-base font-semibold m-0">绑定表</h3>
-      <span class="text-[#708aa6] text-sm">({{ props.bindings.length }})</span>
+      <h3 class="text-white text-[13.5px] font-semibold m-0">绑定表</h3>
+      <span class="text-[#9ca3af] text-[12.5px]">({{ props.bindings.length }})</span>
       <span class="flex-1"></span>
       <button
         v-if="!props.readonly"
         type="button"
-        class="px-4 py-2 text-[0.86rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
+        class="px-4 py-2 text-[12.5px] font-semibold rounded-lg cursor-pointer border-none bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white"
         @click="startAdd()"
       >+ 新增绑定</button>
     </div>
 
-    <div v-if="err" class="text-[#ef4444] text-sm mb-2.5">{{ err }}</div>
+    <div v-if="err" class="text-[#ef4444] text-[12.5px] mb-2.5">{{ err }}</div>
 
     <div class="overflow-x-auto">
-      <table class="w-full border-collapse text-sm">
+      <table class="w-full border-collapse text-[12.5px]">
         <thead>
-          <tr class="text-left text-[0.72rem] font-semibold uppercase tracking-wide text-[#526e8c]">
-            <th class="px-3 py-2 border-b border-[#142338]">渠道</th>
-            <th class="px-3 py-2 border-b border-[#142338]">层级</th>
-            <th class="px-3 py-2 border-b border-[#142338]">匹配配置</th>
-            <th class="px-3 py-2 border-b border-[#142338]">会话范围</th>
-            <th class="px-3 py-2 border-b border-[#142338] text-right">操作</th>
+          <tr class="text-left text-[10.5px] font-semibold uppercase tracking-wide text-[#6b7280]">
+            <th class="px-3 py-2 border-b border-[#2d3a4d]">渠道</th>
+            <th class="px-3 py-2 border-b border-[#2d3a4d]">层级</th>
+            <th class="px-3 py-2 border-b border-[#2d3a4d]">匹配配置</th>
+            <th class="px-3 py-2 border-b border-[#2d3a4d]">会话范围</th>
+            <th class="px-3 py-2 border-b border-[#2d3a4d] text-right">操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="props.bindings.length === 0 && !adding">
-            <td colspan="5" class="px-3 py-4 text-[0.85rem] text-[#526e8c]">暂无绑定。</td>
+            <td colspan="5" class="px-3 py-4 text-[12.5px] text-[#6b7280]">暂无绑定。</td>
           </tr>
 
           <template v-for="b in props.bindings" :key="rowKey(b)">
             <!-- read-only row -->
-            <tr v-if="editingKey !== rowKey(b)" class="border-b border-[#142338]">
-              <td class="px-3 py-2.5 text-[#a3b8cc] font-mono text-[0.84rem]">{{ b.channelId }}</td>
+            <tr v-if="editingKey !== rowKey(b)" class="border-b border-[#2d3a4d]">
+              <td class="px-3 py-2.5 text-[#cbd5e1] font-mono text-[12.5px]">{{ b.channelId }}</td>
               <td class="px-3 py-2.5">
-                <span class="px-2.5 py-1 rounded-full text-[0.72rem] font-semibold bg-[#10233f] text-[#00f3ff] border border-[#2b5384]">{{ b.tier }}</span>
+                <span class="px-2.5 py-1 rounded-full text-[10.5px] font-semibold bg-[rgba(59,130,246,0.16)] text-[#93c5fd] border border-[#3d4d64]">{{ b.tier }}</span>
               </td>
-              <td class="px-3 py-2.5 font-mono text-[0.84rem] text-[#708aa6]">{{ describe(b) }}</td>
+              <td class="px-3 py-2.5 font-mono text-[12.5px] text-[#9ca3af]">{{ describe(b) }}</td>
               <td class="px-3 py-2.5">
                 <span
                   v-if="b.sessionScope"
-                  class="px-2.5 py-1 rounded-full text-[0.72rem] font-medium bg-[#0f1927] text-[#a3b8cc] border border-[#1e324f]"
+                  class="px-2.5 py-1 rounded-full text-[10.5px] font-medium bg-[#1a2332] text-[#cbd5e1] border border-[#2d3a4d]"
                 >{{ b.sessionScope }}</span>
-                <span v-else class="text-[#526e8c] text-[0.82rem]">— 继承渠道 —</span>
+                <span v-else class="text-[#6b7280] text-[12px]">— 继承渠道 —</span>
               </td>
               <td class="px-3 py-2.5 text-right whitespace-nowrap">
                 <template v-if="!props.readonly">
                   <button
                     type="button"
-                    class="px-3 py-1.5 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0b131f] text-[#a3b8cc] hover:bg-[#142338]"
+                    class="px-3 py-1.5 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] hover:bg-[#253141]"
                     @click="startEdit(b)"
                   >编辑</button>
                   <button
                     type="button"
-                    class="ml-2 px-3 py-1.5 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#5a1f1f] bg-[#0b131f] text-[#ef4444] hover:bg-[#1f1010]"
+                    class="ml-2 px-3 py-1.5 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[rgba(239,68,68,0.4)] bg-[#111827] text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
                     @click="remove(b)"
                   >删除</button>
                 </template>
-                <span v-else class="text-[#526e8c] text-[0.82rem]">只读</span>
+                <span v-else class="text-[#6b7280] text-[12px]">只读</span>
               </td>
             </tr>
 
             <!-- edit row -->
-            <tr v-else-if="draft" class="border-b border-[#142338] bg-[#0b131f]">
-              <td class="px-3 py-2.5 text-[#a3b8cc] font-mono text-[0.84rem] align-top">{{ draft.channelId }}</td>
+            <tr v-else-if="draft" class="border-b border-[#2d3a4d] bg-[#111827]">
+              <td class="px-3 py-2.5 text-[#cbd5e1] font-mono text-[12.5px] align-top">{{ draft.channelId }}</td>
               <td class="px-3 py-2.5 align-top">
                 <select
                   v-model="draft.tier"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
                 >
                   <option v-for="t in TIERS" :key="t.value" :value="t.value">{{ t.label }}</option>
                 </select>
@@ -266,56 +266,56 @@ defineExpose({ startAdd });
                     v-if="draftField === 'peer'"
                     v-model="draft.peer"
                     placeholder="例如 user-42"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                   <input
                     v-if="draftField === 'parentPeer'"
                     v-model="draft.parentPeer"
                     placeholder="parentPeer"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                   <template v-if="draftField === 'roles'">
                     <input
                       v-model="draft.guild"
                       placeholder="guild"
-                      class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                      class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                     />
                     <input
                       v-model="draft.roles"
                       placeholder="roles（逗号分隔），如 admin, support"
-                      class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                      class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                     />
                   </template>
                   <input
                     v-if="draftField === 'guild'"
                     v-model="draft.guild"
                     placeholder="guild"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                   <input
                     v-if="draftField === 'team'"
                     v-model="draft.team"
                     placeholder="team"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                   <input
                     v-if="draftField === 'account'"
                     v-model="draft.account"
                     placeholder="account"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                   <input
                     v-if="draftField === 'channel'"
                     v-model="draft.channel"
                     :placeholder="draft.channelId || '留空表示兜底'"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                 </div>
               </td>
               <td class="px-3 py-2.5 align-top">
                 <select
                   v-model="draft.sessionScope"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
                 >
                   <option value="">— 继承渠道 —</option>
                   <option v-for="s in SCOPES" :key="s.value" :value="s.value">{{ s.label }}</option>
@@ -324,12 +324,12 @@ defineExpose({ startAdd });
               <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
                 <button
                   type="button"
-                  class="px-3.5 py-2 text-[0.84rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
+                  class="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg cursor-pointer border-none bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white"
                   @click="save"
                 >保存</button>
                 <button
                   type="button"
-                  class="ml-2 px-3 py-2 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0b131f] text-[#a3b8cc] hover:bg-[#142338]"
+                  class="ml-2 px-3 py-2 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] hover:bg-[#253141]"
                   @click="cancel"
                 >取消</button>
               </td>
@@ -337,11 +337,11 @@ defineExpose({ startAdd });
           </template>
 
           <!-- new row -->
-          <tr v-if="adding && draft" class="border-b border-[#142338] bg-[#0b131f]">
+          <tr v-if="adding && draft" class="border-b border-[#2d3a4d] bg-[#111827]">
             <td class="px-3 py-2.5 align-top">
               <select
                 v-model="draft.channelId"
-                class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem]"
+                class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               >
                 <option value="">— 选择渠道 —</option>
                 <option v-for="cid in channelIds" :key="cid" :value="cid">{{ cid }}</option>
@@ -350,7 +350,7 @@ defineExpose({ startAdd });
             <td class="px-3 py-2.5 align-top">
               <select
                 v-model="draft.tier"
-                class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem]"
+                class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               >
                 <option v-for="t in TIERS" :key="t.value" :value="t.value">{{ t.label }}</option>
               </select>
@@ -361,56 +361,56 @@ defineExpose({ startAdd });
                   v-if="draftField === 'peer'"
                   v-model="draft.peer"
                   placeholder="例如 user-42"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 />
                 <input
                   v-if="draftField === 'parentPeer'"
                   v-model="draft.parentPeer"
                   placeholder="parentPeer"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 />
                 <template v-if="draftField === 'roles'">
                   <input
                     v-model="draft.guild"
                     placeholder="guild"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                   <input
                     v-model="draft.roles"
                     placeholder="roles（逗号分隔），如 admin, support"
-                    class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                    class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                   />
                 </template>
                 <input
                   v-if="draftField === 'guild'"
                   v-model="draft.guild"
                   placeholder="guild"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 />
                 <input
                   v-if="draftField === 'team'"
                   v-model="draft.team"
                   placeholder="team"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 />
                 <input
                   v-if="draftField === 'account'"
                   v-model="draft.account"
                   placeholder="account"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 />
                 <input
                   v-if="draftField === 'channel'"
                   v-model="draft.channel"
                   :placeholder="draft.channelId || '留空表示兜底'"
-                  class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem] placeholder-[#526e8c]"
+                  class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] placeholder-[#6b7280]"
                 />
               </div>
             </td>
             <td class="px-3 py-2.5 align-top">
               <select
                 v-model="draft.sessionScope"
-                class="w-full box-border px-2.5 py-2 bg-[#0f1927] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-[0.84rem]"
+                class="w-full box-border px-2.5 py-2 bg-[#1a2332] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px]"
               >
                 <option value="">— 继承渠道 —</option>
                 <option v-for="s in SCOPES" :key="s.value" :value="s.value">{{ s.label }}</option>
@@ -419,12 +419,12 @@ defineExpose({ startAdd });
             <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
               <button
                 type="button"
-                class="px-3.5 py-2 text-[0.84rem] font-semibold rounded-lg cursor-pointer border-none bg-[#00f3ff] text-[#060c14]"
+                class="px-3.5 py-2 text-[12.5px] font-semibold rounded-lg cursor-pointer border-none bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] text-white"
                 @click="save"
               >创建</button>
               <button
                 type="button"
-                class="ml-2 px-3 py-2 text-[0.84rem] font-medium rounded-lg cursor-pointer border border-[#142338] bg-[#0b131f] text-[#a3b8cc] hover:bg-[#142338]"
+                class="ml-2 px-3 py-2 text-[12.5px] font-medium rounded-lg cursor-pointer border border-[#2d3a4d] bg-[#111827] text-[#cbd5e1] hover:bg-[#253141]"
                 @click="cancel"
               >取消</button>
             </td>
@@ -433,7 +433,7 @@ defineExpose({ startAdd });
       </table>
     </div>
 
-    <p class="text-[#526e8c] text-[0.82rem] mt-3 mb-0">
+    <p class="text-[#6b7280] text-[12px] mt-3 mb-0">
       填写最精确的匹配项，其余留空。路由匹配顺序：peer → parentPeer → guild+roles → guild → team → account → channel。
     </p>
   </div>

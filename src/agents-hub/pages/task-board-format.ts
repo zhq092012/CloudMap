@@ -32,12 +32,12 @@ export function phaseLabel(p: number | null | undefined): string {
 
 export function statusBadge(s: string | null | undefined): { label: string; cls: string } {
   const map: Record<string, { label: string; cls: string }> = {
-    RUNNING: { label: '运行中', cls: 'bg-[#0b1e2e] text-[#7fd4ff] border border-[#1d3a57]' },
-    COMPLETED: { label: '已完成', cls: 'bg-[#0b2e1f] text-[#00ffc4] border border-[#1d5a3f]' },
-    FAILED: { label: '失败', cls: 'bg-[#2e0b0b] text-[#ef4444] border border-[#5a1f1f]' },
-    CANCELLED: { label: '已取消', cls: 'bg-[#0f1927] text-[#708aa6] border border-[#1e324f]' },
+    RUNNING: { label: '运行中', cls: 'bg-[rgba(59,130,246,0.12)] text-[#93c5fd] border border-[rgba(59,130,246,0.45)]' },
+    COMPLETED: { label: '已完成', cls: 'bg-[rgba(16,185,129,0.12)] text-[#10b981] border border-[rgba(16,185,129,0.35)]' },
+    FAILED: { label: '失败', cls: 'bg-[rgba(239,68,68,0.12)] text-[#ef4444] border border-[rgba(239,68,68,0.4)]' },
+    CANCELLED: { label: '已取消', cls: 'bg-[#111827] text-[#6b7280] border border-[#2d3a4d]' },
   }
-  return (s && map[s]) || { label: s || '—', cls: 'bg-[#0f1927] text-[#708aa6] border border-[#1e324f]' }
+  return (s && map[s]) || { label: s || '—', cls: 'bg-[#111827] text-[#6b7280] border border-[#2d3a4d]' }
 }
 
 export function stepTypeLabel(t: string | null | undefined): string {

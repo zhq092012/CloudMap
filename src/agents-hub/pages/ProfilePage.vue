@@ -67,34 +67,34 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#060c14] text-[#a3b8cc] px-[40px] py-[36px] max-w-[760px]">
-    <h2 class="text-white font-bold text-2xl mb-7 tracking-tight">个人资料</h2>
+  <div class="min-h-screen bg-[#0a0e17] text-[#cbd5e1] px-[40px] py-[36px] max-w-[760px]">
+    <h2 class="text-white font-bold text-[19px] mb-7 tracking-tight">个人资料</h2>
 
-    <p v-if="loadErr" class="text-[#ef4444] text-sm mt-2">{{ loadErr }}</p>
-    <p v-else-if="loading" class="text-[#708aa6] text-sm mt-2">加载中…</p>
+    <p v-if="loadErr" class="text-[#ef4444] text-[12.5px] mt-2">{{ loadErr }}</p>
+    <p v-else-if="loading" class="text-[#9ca3af] text-[12.5px] mt-2">加载中…</p>
 
     <!-- Account -->
-    <div class="bg-[#0f1927] border border-[#1e324f] rounded-xl p-6 mb-5">
-      <span class="block text-[#708aa6] uppercase tracking-[0.1em] text-xs font-bold mb-4">账户</span>
+    <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-6 mb-5">
+      <span class="block text-[#9ca3af] uppercase tracking-[0.1em] text-[11.5px] font-bold mb-4">账户</span>
       <template v-if="profile">
         <div class="flex items-center gap-3.5 mb-3">
-          <span class="w-[120px] shrink-0 text-[#708aa6] text-sm">用户名</span>
-          <span class="text-[#a3b8cc] text-[0.95rem] font-semibold">{{ profile.username }}</span>
+          <span class="w-[120px] shrink-0 text-[#9ca3af] text-[12.5px]">用户名</span>
+          <span class="text-[#cbd5e1] text-[13px] font-semibold">{{ profile.username }}</span>
         </div>
         <div class="flex items-center gap-3.5 mb-3">
-          <span class="w-[120px] shrink-0 text-[#708aa6] text-sm">用户 ID</span>
-          <span class="font-mono text-[0.88rem] text-[#526e8c]">{{ profile.userId }}</span>
+          <span class="w-[120px] shrink-0 text-[#9ca3af] text-[12.5px]">用户 ID</span>
+          <span class="font-mono text-[13px] text-[#6b7280]">{{ profile.userId }}</span>
         </div>
         <div class="flex items-center gap-3.5 mb-3">
-          <span class="w-[120px] shrink-0 text-[#708aa6] text-sm">角色</span>
+          <span class="w-[120px] shrink-0 text-[#9ca3af] text-[12.5px]">角色</span>
           <span class="flex flex-wrap gap-2">
             <span
               v-for="r in profile.roles"
               :key="r"
-              class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border"
+              class="inline-block px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border"
               :class="r === 'admin'
-                ? 'bg-[#0b131f] border-[#2b5384] text-[#00f3ff]'
-                : 'bg-[#0b131f] border-[#1e324f] text-[#708aa6]'"
+                ? 'bg-[#111827] border-[#3d4d64] text-[#93c5fd]'
+                : 'bg-[#111827] border-[#2d3a4d] text-[#9ca3af]'"
             >{{ r }}</span>
           </span>
         </div>
@@ -102,44 +102,44 @@ function handleLogout() {
     </div>
 
     <!-- Change Password -->
-    <div class="bg-[#0f1927] border border-[#1e324f] rounded-xl p-6 mb-5">
-      <span class="block text-[#708aa6] uppercase tracking-[0.1em] text-xs font-bold mb-4">修改密码</span>
+    <div class="bg-[#1a2332] border border-[#2d3a4d] rounded-lg p-6 mb-5">
+      <span class="block text-[#9ca3af] uppercase tracking-[0.1em] text-[11.5px] font-bold mb-4">修改密码</span>
       <div class="grid grid-cols-3 gap-4">
         <div>
-          <label class="block text-sm font-medium text-[#a3b8cc] mb-2">当前密码</label>
+          <label class="block text-[12.5px] font-medium text-[#cbd5e1] mb-2">当前密码</label>
           <input
             v-model="curPwd"
             type="password"
-            class="w-full box-border px-3.5 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm focus:outline-none focus:border-[#2b5384]"
+            class="w-full box-border px-3.5 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] focus:outline-none focus:border-[#3d4d64]"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-[#a3b8cc] mb-2">新密码</label>
+          <label class="block text-[12.5px] font-medium text-[#cbd5e1] mb-2">新密码</label>
           <input
             v-model="newPwd"
             type="password"
             placeholder="至少 6 个字符"
-            class="w-full box-border px-3.5 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm focus:outline-none focus:border-[#2b5384]"
+            class="w-full box-border px-3.5 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] focus:outline-none focus:border-[#3d4d64]"
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-[#a3b8cc] mb-2">确认密码</label>
+          <label class="block text-[12.5px] font-medium text-[#cbd5e1] mb-2">确认密码</label>
           <input
             v-model="conPwd"
             type="password"
-            class="w-full box-border px-3.5 py-2.5 bg-[#0b131f] border border-[#1e324f] rounded-lg text-[#a3b8cc] text-sm focus:outline-none focus:border-[#2b5384]"
+            class="w-full box-border px-3.5 py-2.5 bg-[#111827] border border-[#2d3a4d] rounded-lg text-[#cbd5e1] text-[12.5px] focus:outline-none focus:border-[#3d4d64]"
           />
         </div>
       </div>
 
-      <p v-if="pwdErr" class="text-[#ef4444] text-sm mt-2.5">{{ pwdErr }}</p>
-      <p v-if="pwdOk" class="text-[#00ffc4] text-sm mt-2.5">密码修改成功！</p>
+      <p v-if="pwdErr" class="text-[#ef4444] text-[12.5px] mt-2.5">{{ pwdErr }}</p>
+      <p v-if="pwdOk" class="text-[#10b981] text-[12.5px] mt-2.5">密码修改成功！</p>
 
       <button
         :disabled="pwdLoading"
         @click="handleChangePwd"
-        class="mt-4 px-6 py-2.5 rounded-lg text-white text-sm font-semibold cursor-pointer disabled:opacity-50"
-        style="background:linear-gradient(135deg,#3b82f6 0%,#00f3ff 100%);box-shadow:0 2px 6px rgba(0,243,255,0.25)"
+        class="mt-4 px-6 py-2.5 rounded-lg text-white text-[12.5px] font-semibold cursor-pointer disabled:opacity-50"
+        style="background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);box-shadow:0 2px 6px rgba(59,130,246,0.25)"
       >
         {{ pwdLoading ? '更新中…' : '更新密码' }}
       </button>
@@ -148,7 +148,7 @@ function handleLogout() {
     <!-- Logout -->
     <button
       @click="handleLogout"
-      class="px-6 py-2.5 rounded-lg text-sm font-semibold border border-[#ef4444] text-[#ef4444] cursor-pointer hover:bg-[#ef4444] hover:text-white transition-colors"
+      class="px-6 py-2.5 rounded-lg text-[12.5px] font-semibold border border-[#ef4444] text-[#ef4444] cursor-pointer hover:bg-[#ef4444] hover:text-white transition-colors"
     >
       退出登录
     </button>
