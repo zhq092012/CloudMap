@@ -202,6 +202,12 @@ export default defineConfig(({ mode }) => {
         // 后端接口,可经 .env / .env.local 或环境变量 VITE_API_PROXY_URL 覆盖
         target: env.VITE_API_PROXY_URL || "http://localhost:8080",
         changeOrigin: true,
+        // KB 文档上传 + Ollama embedding 是慢路径：10-50MB PDF 切 512 字块约
+        // 1000-5000 chunks，Ollama qwen3-embedding 单 chunk 串行 100-500ms +
+        // 冷加载 60s。生产走异步上传 + 轮询（见知识库上传控制器 deferred 注释），
+        // 但本机/当前同步范式下上传必须能跑完，超时取 30min 兜底。
+        timeout: 1_800_000,
+        proxyTimeout: 1_800_000,
       },
     },
   },

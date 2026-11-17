@@ -131,6 +131,7 @@ const navItems: NavItem[] = [
   { key: "anomaly", label: "异常征候", path: "/anomaly" },
   { key: "analysis", label: "深度分析", path: "/deepanalysis" },
   { key: "agents", label: "智能体中心", path: "/agents-hub" },
+  { key: "knowledge", label: "知识库", path: "/knowledge" },
   // { key: "settings", label: "设置", path: "" },
 ];
 

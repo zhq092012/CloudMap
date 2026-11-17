@@ -38,6 +38,11 @@ const routes = [
         name: "AgentDetail",
         component: () => import("@/pages/AgentDetail.vue"),
       },
+      {
+        path: "knowledge",
+        name: "KnowledgeBase",
+        component: () => import("@/pages/KnowledgeBase.vue"),
+      },
       // ----- agents-hub (ported from agentbuilder-main) -----
       ...agentHubRoutes,
     ],

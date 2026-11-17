@@ -50,6 +50,10 @@ import type {
   CreateUserResponse,
   TemplateSummary,
   TemplateDetail,
+  KbSummary,
+  KbDocument,
+  KbSearchHit,
+  KbSearchResponse,
 } from '../types';
 
 const TOKEN_KEY = 'claw_token';
@@ -804,6 +808,153 @@ export async function deleteUser(userId: string): Promise<void> {
     headers: authHeaders(),
   });
   if (!res.ok && res.status !== 204) return asError(res);
+}
+
+// ===================== knowledge bases =====================
+export async function listKnowledgeBases(): Promise<KbSummary[]> {
+  const res = await fetch('/api/knowledge-bases', { headers: authHeaders() });
+  if (res.status === 503) return []; // module disabled
+  if (!res.ok) throw new Error('Failed to load knowledge bases');
+  return res.json();
+}
+
+export async function createKnowledgeBase(name: string, description?: string): Promise<KbSummary> {
+  const res = await fetch('/api/knowledge-bases', {
+    method: 'POST',
+    headers: jsonHeaders(),
+    body: JSON.stringify({ name, description }),
+  });
+  if (!res.ok) { const msg = await res.text().catch(() => `${res.status}`); throw new Error(msg); }
+  return res.json();
+}
+
+export async function getKnowledgeBase(id: string): Promise<KbSummary> {
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(id)}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error('Failed to load KB');
+  return res.json();
+}
+
+export async function deleteKnowledgeBase(id: string): Promise<void> {
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(id)}`, {
+    method: 'DELETE', headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to delete KB');
+}
+
+export async function listKbDocuments(kbId: string): Promise<KbDocument[]> {
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(kbId)}/documents`, { headers: authHeaders() });
+  if (res.status === 503) return [];
+  if (!res.ok) throw new Error('Failed to load KB documents');
+  return res.json();
+}
+
+/**
+ * 单文档状态查询（用于 202 之后的轮询）。
+ * 后端 POST /{id}/documents 改为「落临时 + 建 docRow + 提交后台 worker」，
+ * 立即回 202 + KbDocument(status: "indexing")；前端用本函数 1-2s 轮询到
+ * status ∈ {completed, failed} 为止。
+ */
+export async function getKbDocument(kbId: string, docId: string): Promise<KbDocument> {
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(kbId)}/documents/${encodeURIComponent(docId)}`, { headers: authHeaders() });
+  if (res.status === 503) throw new Error('KB module disabled');
+  if (!res.ok) { const msg = await res.text().catch(() => `${res.status}`); throw new Error(msg); }
+  return res.json();
+}
+
+/**
+ * 上传一个文件到知识库。
+ * @returns 200/202 响应里的 KbDocument（status 可能是 "indexing"，需要继续轮询）
+ */
+export async function uploadKbDocument(kbId: string, file: File): Promise<KbDocument> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(kbId)}/documents`, {
+    method: 'POST',
+    headers: authHeaders(), // no Content-Type — browser sets multipart boundary
+    body: fd,
+  });
+  if (!res.ok) { const msg = await res.text().catch(() => `${res.status}`); throw new Error(msg); }
+  return res.json();
+}
+
+/**
+ * 轮询一个 KB 文档的 indexing 状态，直到 completed 或 failed。
+ * 1.5s 一次，最长 30 分钟（Ollama 冷启 + 大 PDF 的本地嵌入富余）。
+ *
+ * @returns Promise 在第一个终态 {completed, failed}（或网络硬错 / 30 分钟超时）
+ *   兑现/拒绝；同时返回可控的错误闭包，调用方在 onBeforeUnmount (切页) 时可
+ *   调 cancel() 停止轮询而不触发 unhandled promise reject。
+ */
+export function pollKbDocumentUntilDone(
+  kbId: string,
+  docId: string,
+  onProgress?: (d: KbDocument) => void,
+): { promise: Promise<KbDocument>; cancel: () => void } {
+  const POLL_MS = 1500;
+  const MAX_MS = 30 * 60 * 1000;
+  const MAX_NET_ERRORS = 3;
+  const start = Date.now();
+  let cancelled = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let netErrs = 0;
+  let settled = false;
+
+  const promise = new Promise<KbDocument>((resolve, reject) => {
+    const tick = async () => {
+      if (cancelled) { return; }
+      if (Date.now() - start > MAX_MS) {
+        if (!settled) { settled = true; reject(new Error('Indexing timed out (30 min). Open the documents list to confirm.')); }
+        return;
+      }
+      let doc: KbDocument;
+      try {
+        doc = await getKbDocument(kbId, docId);
+      } catch (e) {
+        netErrs += 1;
+        if (netErrs > MAX_NET_ERRORS) {
+          if (!settled) { settled = true; reject(e as Error); }
+          return;
+        }
+        timer = setTimeout(tick, POLL_MS);
+        return;
+      }
+      netErrs = 0;
+      onProgress?.(doc);
+      if (doc.status === 'completed' || doc.status === 'failed' || doc.status === 'done') {
+        if (!settled) { settled = true; resolve(doc); }
+        return;
+      }
+      timer = setTimeout(tick, POLL_MS);
+    };
+    timer = setTimeout(tick, 0);
+  });
+
+  return {
+    promise,
+    cancel: () => {
+      if (cancelled || settled) return;
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    },
+  };
+}
+
+export async function deleteKbDocument(kbId: string, docId: string): Promise<void> {
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(kbId)}/documents/${encodeURIComponent(docId)}`, {
+    method: 'DELETE', headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to delete document');
+}
+
+export async function searchKnowledgeBase(kbId: string, query: string, limit?: number): Promise<KbSearchResponse> {
+  const res = await fetch(`/api/knowledge-bases/${encodeURIComponent(kbId)}/search`, {
+    method: 'POST',
+    headers: jsonHeaders(),
+    body: JSON.stringify({ query, limit }),
+  });
+  if (res.status === 503) return { hits: [], parent: null };
+  if (!res.ok) throw new Error('Search failed');
+  return res.json();
 }
 
 // ===================== templates =====================

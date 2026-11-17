@@ -33,6 +33,7 @@ export interface AgentDefinition {
   category?: string;
   tags?: string[];
   status?: string;
+  knowledgeBaseIds?: string[];
 }
 
 export interface AgentDraft {
@@ -55,6 +56,50 @@ export interface AgentCreateRequest {
   workspacePath?: string;
   category?: string;
   tags?: string[];
+  knowledgeBaseIds?: string[];
+}
+
+// ---- knowledge base ----
+export interface KbSummary {
+  id: string;
+  name: string;
+  description?: string;
+  dimensions: number;
+  docCount: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface KbDocument {
+  kbRowId: number;
+  docId: string;
+  fileName: string;
+  fileSize?: number;
+  chunkCount: number;
+  status: string;
+  errorMsg?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface KbSearchHit {
+  kbName: string;
+  kbId: string;
+  fileName: string;
+  score: number;
+  content: string;
+  docId: string;
+}
+
+export interface KbParentView {
+  parentPresent: boolean;
+  parentTotalCount: number;
+  text: string;
+}
+
+export interface KbSearchResponse {
+  hits: KbSearchHit[];
+  parent: KbParentView | null;
 }
 
 // ---- auth ----

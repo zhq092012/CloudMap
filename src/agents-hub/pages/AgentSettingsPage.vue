@@ -62,6 +62,32 @@
       </div>
     </section>
 
+    <!-- Knowledge Base -->
+    <section class="st-card mb-5" v-if="kbList.length > 0">
+      <div class="st-section-head">
+        <span class="st-section-bar"></span>
+        <span class="st-section-title">Knowledge Base</span>
+      </div>
+      <div class="p-4 space-y-2">
+        <label
+          v-for="kb in kbList"
+          :key="kb.id"
+          class="flex items-center gap-2 text-[13px] text-[#cbd5e1] cursor-pointer"
+          :class="{ 'opacity-40 cursor-not-allowed': readOnly }"
+        >
+          <input
+            type="checkbox"
+            :value="kb.id"
+            v-model="kbIdsArr"
+            :disabled="readOnly"
+            class="accent-[#3b82f6]"
+          />
+          {{ kb.name }} <span class="text-[11px] text-[#6b7280]">({{ kb.docCount }} 文档)</span>
+        </label>
+        <p class="text-[11px] text-[#6b7280] mt-2">勾选后该智能体可调用 knowledge_search 工具检索对应知识库（需知识库模块已启用）。</p>
+      </div>
+    </section>
+
     <!-- Organization -->
     <section class="st-card mb-5">
       <div class="st-section-head">
@@ -214,8 +240,9 @@
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import * as api from '../api';
+import { listKnowledgeBases } from '../api';
 import type { Ref } from 'vue';
-import type { AgentDefinition, AgentShareGrant, GranteeType, ShareTier } from '../types';
+import type { AgentDefinition, AgentShareGrant, GranteeType, ShareTier, KbSummary } from '../types';
 
 const CATEGORIES = [
   { value: 'scheduling', label: '调度类' },
@@ -253,6 +280,8 @@ const sysPrompt = ref('');
 const maxIters = ref('12');
 const category = ref('');
 const tagsArr = ref<string[]>([]);
+const kbList = ref<KbSummary[]>([]);
+const kbIdsArr = ref<string[]>([]);
 
 const saving = ref(false);
 const ok = ref(false);
@@ -267,6 +296,7 @@ function syncFromAgent() {
   maxIters.value = String(a.maxIters ?? 12);
   category.value = a.category ?? '';
   tagsArr.value = a.tags ?? [];
+  kbIdsArr.value = a.knowledgeBaseIds ?? [];
 }
 watch(() => agent?.value?.id, syncFromAgent, { immediate: true });
 
@@ -291,6 +321,7 @@ async function handleSave() {
       maxIters: Number.isFinite(iters) && iters > 0 ? iters : undefined,
       category: category.value || undefined,
       tags: tagsArr.value.length > 0 ? [...tagsArr.value] : undefined,
+      knowledgeBaseIds: kbIdsArr.value.length > 0 ? [...kbIdsArr.value] : [],
     });
     ok.value = true;
   } catch (e) {
@@ -401,6 +432,9 @@ function fmt(ts: number): string {
 }
 
 onMounted(async () => {
+  // Load KB list (not gated on canEdit — KB section is visible even when read-only)
+  listKnowledgeBases().then((ls) => { kbList.value = ls; }).catch(() => {});
+
   if (!canEdit.value) return;
   try {
     const [gs, us] = await Promise.all([
