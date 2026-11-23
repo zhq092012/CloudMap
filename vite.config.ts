@@ -89,127 +89,127 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
 
   return {
-  plugins: [
-    vue(),
-    tailwindcss(),
-    AutoImport({
-      resolvers: [ElementPlusResolver()],
-    }),
-    Components({
-      resolvers: [ElementPlusResolver()],
-    }),
-    compression({
-      algorithm: "gzip",
-      ext: ".gz",
-      threshold: 10240,
-      deleteOriginFile: false,
-    }),
-    optimizeBundleAssets(),
-    {
-      name: "strip-glsl-version",
-      enforce: "pre",
-      transform(code, id) {
-        const cleanId = id.split("?")[0];
-        if (/\.(glsl|vert|frag)$/.test(cleanId)) {
-          return code.replace(/#version\s+300\s+es/g, "");
-        }
+    plugins: [
+      vue(),
+      tailwindcss(),
+      AutoImport({
+        resolvers: [ElementPlusResolver()],
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()],
+      }),
+      compression({
+        algorithm: "gzip",
+        ext: ".gz",
+        threshold: 10240,
+        deleteOriginFile: false,
+      }),
+      optimizeBundleAssets(),
+      {
+        name: "strip-glsl-version",
+        enforce: "pre",
+        transform(code, id) {
+          const cleanId = id.split("?")[0];
+          if (/\.(glsl|vert|frag)$/.test(cleanId)) {
+            return code.replace(/#version\s+300\s+es/g, "");
+          }
+        },
       },
-    },
-  ],
-  build: {
-    reportCompressedSize: true,
-    chunkSizeWarningLimit: 1200,
-    rolldownOptions: {
-      onLog(level, log, defaultHandler) {
-        if (log.code === "EVAL") {
-          return;
-        }
-
-        defaultHandler(level, log);
-      },
-      output: {
-        manualChunks(id) {
-          if (!id.includes("node_modules")) {
+    ],
+    build: {
+      reportCompressedSize: true,
+      chunkSizeWarningLimit: 1200,
+      rolldownOptions: {
+        onLog(level, log, defaultHandler) {
+          if (log.code === "EVAL") {
             return;
           }
 
-          if (id.includes("cesium")) {
-            return "cesium";
-          }
+          defaultHandler(level, log);
+        },
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) {
+              return;
+            }
 
-          if (id.includes("element-plus")) {
-            return "element-plus";
-          }
+            if (id.includes("cesium")) {
+              return "cesium";
+            }
 
-          if (id.includes("vue")) {
-            return "vue";
-          }
+            if (id.includes("element-plus")) {
+              return "element-plus";
+            }
 
-          if (id.includes("three")) {
-            return "three";
-          }
-          if (id.includes("babylonjs")) {
-            return "babylonjs";
-          }
+            if (id.includes("vue")) {
+              return "vue";
+            }
 
-          return "vendor";
+            if (id.includes("three")) {
+              return "three";
+            }
+            if (id.includes("babylonjs")) {
+              return "babylonjs";
+            }
+
+            return "vendor";
+          },
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) {
+              return;
+            }
+
+            if (id.includes("cesium")) {
+              return "cesium";
+            }
+
+            if (id.includes("element-plus")) {
+              return "element-plus";
+            }
+
+            if (id.includes("vue")) {
+              return "vue";
+            }
+
+            if (id.includes("three")) {
+              return "three";
+            }
+
+            if (id.includes("babylonjs")) {
+              return "babylonjs";
+            }
+
+            return "vendor";
+          },
         },
       },
     },
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes("node_modules")) {
-            return;
-          }
-
-          if (id.includes("cesium")) {
-            return "cesium";
-          }
-
-          if (id.includes("element-plus")) {
-            return "element-plus";
-          }
-
-          if (id.includes("vue")) {
-            return "vue";
-          }
-
-          if (id.includes("three")) {
-            return "three";
-          }
-
-          if (id.includes("babylonjs")) {
-            return "babylonjs";
-          }
-
-          return "vendor";
+    resolve: {
+      alias: {
+        "@": path.resolve(import.meta.dirname, "src"),
+      },
+    },
+    server: {
+      port: 7105,
+      host: "0.0.0.0",
+      cors: true,
+      proxy: {
+        "/api": {
+          // 后端接口,可经 .env / .env.local 或环境变量 VITE_API_PROXY_URL 覆盖
+          target: "http://192.168.51.198:18090",
+          changeOrigin: true,
+          // KB 文档上传 + Ollama embedding 是慢路径：10-50MB PDF 切 512 字块约
+          // 1000-5000 chunks，Ollama qwen3-embedding 单 chunk 串行 100-500ms +
+          // 冷加载 60s。生产走异步上传 + 轮询（见知识库上传控制器 deferred 注释），
+          // 但本机/当前同步范式下上传必须能跑完，超时取 30min 兜底。
+          timeout: 1_800_000,
+          proxyTimeout: 1_800_000,
         },
       },
     },
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-    },
-  },
-  server: {
-    port: 7105,
-    host: "0.0.0.0",
-    cors: true,
-    proxy: {
-      "/api": {
-        // 后端接口,可经 .env / .env.local 或环境变量 VITE_API_PROXY_URL 覆盖
-        target: env.VITE_API_PROXY_URL || "http://localhost:8080",
-        changeOrigin: true,
-        // KB 文档上传 + Ollama embedding 是慢路径：10-50MB PDF 切 512 字块约
-        // 1000-5000 chunks，Ollama qwen3-embedding 单 chunk 串行 100-500ms +
-        // 冷加载 60s。生产走异步上传 + 轮询（见知识库上传控制器 deferred 注释），
-        // 但本机/当前同步范式下上传必须能跑完，超时取 30min 兜底。
-        timeout: 1_800_000,
-        proxyTimeout: 1_800_000,
-      },
-    },
-  },
   };
 });
