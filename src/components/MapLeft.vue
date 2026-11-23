@@ -4,14 +4,8 @@
     <!-- 「异常征候」视图（路由 /anomaly）：顶部 4 个筛选项 + 过滤后的异常列表 -->
     <div v-if="isAnomalyMode" class="anomaly-view">
       <div class="anomaly-filter">
-        <button
-          v-for="tab in anomalyTabs"
-          :key="tab.key"
-          type="button"
-          class="anomaly-filter-btn"
-          :class="{ active: activeAnomalyTab === tab.key }"
-          @click="activeAnomalyTab = tab.key"
-        >
+        <button v-for="tab in anomalyTabs" :key="tab.key" type="button" class="anomaly-filter-btn"
+          :class="{ active: activeAnomalyTab === tab.key }" @click="activeAnomalyTab = tab.key">
           <span>{{ tab.label }}</span>
           <span class="anomaly-filter-count">{{ tab.count }}</span>
         </button>
@@ -38,14 +32,8 @@
                   {{ item.count }}
                 </span>
                 <!-- 「异常」分组支持勾选后批量确认（提交 /anomalies/analyze） -->
-                <input
-                  v-model="selectedIds"
-                  type="checkbox"
-                  class="anomaly-checkbox"
-                  :value="item.id"
-                  :disabled="analysisAction"
-                  @click.stop
-                />
+                <input v-model="selectedIds" type="checkbox" class="anomaly-checkbox" :value="item.id"
+                  :disabled="analysisAction" @click.stop />
               </span>
             </div>
 
@@ -75,13 +63,8 @@
                 <button type="button" class="anomaly-card-btn is-detail" @click.stop="openAnomalyDetail(item)">
                   查看详情
                 </button>
-                <button
-                  type="button"
-                  class="anomaly-card-btn"
-                  :class="item.isAnalyzed ? 'is-analyzed' : 'is-analysis'"
-                  :disabled="analyzeBusyIds.includes(item.id)"
-                  @click.stop="toggleAnalysisStatus(item)"
-                >
+                <button type="button" class="anomaly-card-btn" :class="item.isAnalyzed ? 'is-analyzed' : 'is-analysis'"
+                  :disabled="analyzeBusyIds.includes(item.id)" @click.stop="toggleAnalysisStatus(item)">
                   {{ item.isAnalyzed ? "已加入深度分析" : "加入深度分析" }}
                 </button>
               </div>
@@ -110,14 +93,8 @@
             <button type="button" class="anomaly-detail-btn" @click.stop="openAnomalyDetail(item)">
               查看详情
             </button>
-            <input
-              v-if="analysisSelecting"
-              v-model="analysisSelectedIds"
-              type="checkbox"
-              class="anomaly-checkbox"
-              :value="item.id"
-              @click.stop
-            />
+            <input v-if="analysisSelecting" v-model="analysisSelectedIds" type="checkbox" class="anomaly-checkbox"
+              :value="item.id" @click.stop />
           </div>
         </div>
       </div>
@@ -136,20 +113,10 @@
           </div>
           <!-- 仅「待研判」分组可操作：右侧是单条确认按钮 + 勾选框 -->
           <div v-if="activeAnomalyTab === 'pending'" class="anomaly-item-actions">
-            <button
-              type="button"
-              class="anomaly-confirm-btn"
-              :disabled="pendingAction"
-              @click="confirmOne(item)"
-            >
+            <button type="button" class="anomaly-confirm-btn" :disabled="pendingAction" @click="confirmOne(item)">
               确认
             </button>
-            <input
-              v-model="selectedIds"
-              type="checkbox"
-              class="anomaly-checkbox"
-              :value="item.id"
-            />
+            <input v-model="selectedIds" type="checkbox" class="anomaly-checkbox" :value="item.id" />
           </div>
         </div>
       </div>
@@ -158,20 +125,12 @@
            未选中任何条目时两个按钮都不可点 -->
       <div v-if="activeAnomalyTab === 'confirmed'" class="anomaly-batch-bar">
         <span class="anomaly-batch-count">已选 {{ selectedIds.length }} 条</span>
-        <button
-          type="button"
-          class="anomaly-batch-btn is-confirm"
-          :disabled="analysisAction || selectedIds.length === 0"
-          @click="batchAnalyze"
-        >
+        <button type="button" class="anomaly-batch-btn is-confirm"
+          :disabled="analysisAction || selectedIds.length === 0" @click="batchAnalyze">
           批量确认
         </button>
-        <button
-          type="button"
-          class="anomaly-batch-cancel"
-          :disabled="analysisAction || selectedIds.length === 0"
-          @click="clearSelection"
-        >
+        <button type="button" class="anomaly-batch-cancel" :disabled="analysisAction || selectedIds.length === 0"
+          @click="clearSelection">
           取消
         </button>
       </div>
@@ -194,21 +153,12 @@
       <div v-if="activeAnomalyTab === 'analysis'" class="anomaly-analysis-bar">
         <button type="button" class="anomaly-deep-btn" @click="enterDeepAnalysis">进入云脑深度分析</button>
         <div class="anomaly-analysis-actions">
-          <button
-            type="button"
-            class="anomaly-analysis-btn"
-            :class="{ 'is-danger': analysisSelecting }"
-            :disabled="analysisAction"
-            @click="toggleAnalysisRemove"
-          >
+          <button type="button" class="anomaly-analysis-btn" :class="{ 'is-danger': analysisSelecting }"
+            :disabled="analysisAction" @click="toggleAnalysisRemove">
             {{ analysisSelecting ? `确认移除 (${analysisSelectedIds.length})` : "批量移除" }}
           </button>
-          <button
-            type="button"
-            class="anomaly-analysis-btn"
-            :disabled="analysisAction"
-            @click="analysisSelecting ? cancelAnalysisSelection() : clearAnalysisList()"
-          >
+          <button type="button" class="anomaly-analysis-btn" :disabled="analysisAction"
+            @click="analysisSelecting ? cancelAnalysisSelection() : clearAnalysisList()">
             {{ analysisSelecting ? "取消" : "清空分析栏" }}
           </button>
         </div>
@@ -298,31 +248,24 @@
       <el-tab-pane name="third">
         <template #label>
           <span class="tabs-label">
-            <el-icon><TrendCharts /></el-icon>
+            <el-icon>
+              <TrendCharts />
+            </el-icon>
             <span>态势图谱</span>
           </span>
         </template>
         <div class="graph-tip">
-        <div class="graph-filter">
-          <div class="graph-search-row">
-            <input
-              v-model="searchDraft"
-              class="graph-search"
-              type="text"
-              placeholder="搜索标题 / 国家 / 主题…"
-              @keyup.enter="applyGraphSearch"
-            />
-            <button class="graph-search-btn" type="button" @click="applyGraphSearch">搜索</button>
-          </div>
+          <div class="graph-filter">
+            <div class="graph-search-row">
+              <input v-model="searchDraft" class="graph-search" type="text" placeholder="搜索标题 / 国家 / 主题…"
+                @keyup.enter="applyGraphSearch" />
+              <button class="graph-search-btn" type="button" @click="applyGraphSearch">搜索</button>
+            </div>
 
             <div class="graph-sentiment">
-              <span
-                v-for="opt in sentimentOptions"
-                :key="opt.value"
-                class="sentiment-chip"
+              <span v-for="opt in sentimentOptions" :key="opt.value" class="sentiment-chip"
                 :class="{ active: homeStore.graphFilter.sentiment === opt.value }"
-                @click="homeStore.graphFilter.sentiment = opt.value"
-              >{{ opt.label }}</span>
+                @click="homeStore.graphFilter.sentiment = opt.value">{{ opt.label }}</span>
             </div>
 
             <label class="graph-breaking">
@@ -380,20 +323,13 @@
   <!-- 异常文章「查看警告信息」按钮触发的实时分析警告弹窗 -->
   <el-dialog v-model="warningDialogVisible" plain class="anomaly-dialog" width="880px" :close-on-click-modal="false"
     title="⚠️ 警告信息">
-    <WarningDialog
-      :article="warningArticle"
-      :state="warningState"
-      :content="warningContent"
-      :error="warningError"
-      :analyzed-at="warningAnalyzedAt"
-      @retry="reanalyzeWarning"
-      @reanalyze="reanalyzeWarning"
-    />
+    <WarningDialog :article="warningArticle" :state="warningState" :content="warningContent" :error="warningError"
+      :analyzed-at="warningAnalyzedAt" @retry="reanalyzeWarning" @reanalyze="reanalyzeWarning" />
   </el-dialog>
 
   <!-- 「异常」分组条目的「查看详情」弹窗（结构同 WarningLeftPanel.vue 的事件详情） -->
-  <el-dialog v-model="detailVisible" plain class="anomaly-dialog" width="520px" :close-on-click-modal="false" title="事件详情"
-    @closed="detailEvent = null">
+  <el-dialog v-model="detailVisible" plain class="anomaly-dialog" width="520px" :close-on-click-modal="false"
+    title="事件详情" @closed="detailEvent = null">
     <div v-loading="detailLoading" class="dialog-content">
       <div class="dialog-title">
         <span class="dialog-title-mark">◆</span>
@@ -427,19 +363,24 @@
         </div>
         <div v-if="detailSigint" class="dialog-meta">
           <span class="dialog-country">最新位置：{{ formatCoord(detailSigint.lat, detailSigint.lng) }}</span>
-          <span v-if="detailSigint.alt != null" class="dialog-country">高度：{{ Math.round(Number(detailSigint.alt)) }}</span>
-          <span v-if="detailSigint.speed != null" class="dialog-country">速度：{{ Math.round(Number(detailSigint.speed)) }}kt</span>
-          <span v-if="detailSigint.heading != null" class="dialog-country">航向：{{ Math.round(Number(detailSigint.heading)) }}°</span>
+          <span v-if="detailSigint.alt != null" class="dialog-country">高度：{{ Math.round(Number(detailSigint.alt))
+            }}</span>
+          <span v-if="detailSigint.speed != null" class="dialog-country">速度：{{ Math.round(Number(detailSigint.speed))
+            }}kt</span>
+          <span v-if="detailSigint.heading != null" class="dialog-country">航向：{{
+            Math.round(Number(detailSigint.heading))
+            }}°</span>
         </div>
         <div v-else class="dialog-meta">
           <span class="dialog-date">无 sigint_latest 最新快照（目标可能已离开监测范围）</span>
         </div>
         <div v-if="detailTrajectoryPoints.length" class="dialog-meta">
           <span class="dialog-country">轨迹点数：{{ detailTrajectoryPoints.length }}</span>
-          <span v-if="detailEvidence?.distanceKm != null"
-            class="dialog-country">距警戒区：{{ Number(detailEvidence.distanceKm).toFixed(0) }}km</span>
-          <span v-if="detailEvidence?.deviationScore != null"
-            class="dialog-country">偏离度：{{ detailEvidence.deviationScore }}</span>
+          <span v-if="detailEvidence?.distanceKm != null" class="dialog-country">距警戒区：{{
+            Number(detailEvidence.distanceKm).toFixed(0) }}km</span>
+          <span v-if="detailEvidence?.deviationScore != null" class="dialog-country">偏离度：{{
+            detailEvidence.deviationScore
+            }}</span>
         </div>
         <p v-if="detailTrajectorySummary" class="dialog-body">{{ detailTrajectorySummary }}</p>
         <p v-else class="dialog-body">暂无轨迹快照数据</p>
@@ -456,7 +397,7 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useHomeStore } from "@/store/modules/homeStore";
@@ -467,16 +408,57 @@ import WarningDialog from "./Dialogs/WarningDialog.vue";
 import { ElMessage } from "element-plus";
 import { getArticleAnalysis, saveArticleAnalysis } from "@/api/article-analyses"
 import { confirmAnomaly, confirmAnomalies, rejectAnomaly, getAnomalyById, analyzeAnomalies } from "@/api/anomalies"
+import type { AnomalyEvent } from "@/api/anomalies";
+import type { ArticleListItem } from "@/api/data-api";
+import type { WarningMarker, WarningItem } from "@/types/home";
 import { listAgents, stream } from "@/agents-hub/api";
+
+const homeStore = useHomeStore();
+
+/** 左栏文章列表展示行（mapArticle 输出） */
+interface MapLeftArticleRow {
+  id: number | null;
+  title: string;
+  sentiment: string;
+  publishedAt: string;
+  country: string;
+  region: string;
+  author: string;
+  agencyName: string;
+  url: string;
+  keywords: string[];
+  topics: string[];
+  importance: number | null;
+  content: string;
+  isBreaking: boolean;
+}
+
+type AnomalyTabKey = "pending" | "confirmed" | "analysis" | "history";
+type WarningStreamState = "loading" | "streaming" | "ready" | "error";
+
+/** 异常详情里文章 asset_data 快照字段 */
+interface ArticleAssetSnapshot {
+  title?: string;
+  content?: string;
+  summary?: string;
+  source?: string;
+  author?: string;
+  country?: string;
+}
+
+/** 轨迹类异常的 evidence_json 摘要字段 */
+interface TrajectoryEvidenceFields {
+  distanceKm?: number | string;
+  deviationScore?: number | string;
+}
 
 // 与 homeStore.mapLeftTab 双向绑定：点击地图聚合时 Map.vue 会把它切到 "second"（开源情报）
 const activeName = computed({
   get: () => homeStore.mapLeftTab,
-  set: (v) => {
+  set: (v: typeof homeStore.mapLeftTab) => {
     homeStore.mapLeftTab = v;
   },
 });
-const homeStore = useHomeStore();
 
 // ==================== 「异常征候」视图（路由 /anomaly） ====================
 // 数据源与右侧面板 data-mark="异常列表" 完全一致：homeStore.warningMarkers
@@ -488,23 +470,28 @@ const isAnomalyMode = computed(() => route.name === "Anomaly");
 // 保证页面长时间停留时条目能按时"过期"滑入历史。
 const HISTORY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const nowTs = ref(Date.now());
-let anomalyClock = null;
+let anomalyClock: ReturnType<typeof setInterval> | null = null;
 
-const parseTs = (value) => {
+const parseTs = (value: string | null | undefined) => {
   if (!value) return NaN;
   const text = String(value).trim();
   const ts = Date.parse(text.replace(" ", "T")); // 兼容 "2026-10-28 10:00:00"
   return Number.isNaN(ts) ? Date.parse(text) : ts;
 };
 
-const isHistoryItem = (marker) => {
+const isHistoryItem = (marker: WarningMarker) => {
   const ts = parseTs(marker.createdAt);
   return !Number.isNaN(ts) && nowTs.value - ts > HISTORY_WINDOW_MS;
 };
 
 // 四个分组互斥：超过 1 周的先归入「历史」，其余按 status 归入 待研判 / 异常 / 分析栏
 const anomalyBuckets = computed(() => {
-  const buckets = { pending: [], confirmed: [], analysis: [], history: [] };
+  const buckets: Record<AnomalyTabKey, WarningMarker[]> = {
+    pending: [],
+    confirmed: [],
+    analysis: [],
+    history: [],
+  };
   (homeStore.warningMarkers || []).forEach((marker) => {
     if (isHistoryItem(marker)) {
       buckets.history.push(marker);
@@ -532,17 +519,21 @@ const anomalyBuckets = computed(() => {
   return buckets;
 });
 
-const anomalyTabs = computed(() => [
-  { key: "pending", label: "待研判", count: anomalyBuckets.value.pending.length },
-  { key: "confirmed", label: "异常", count: anomalyBuckets.value.confirmed.length },
-  { key: "analysis", label: "分析栏", count: analysisItems.value.length },
-  { key: "history", label: "历史", count: anomalyBuckets.value.history.length },
-]);
+const anomalyTabs = computed(
+  (): Array<{ key: AnomalyTabKey; label: string; count: number }> => [
+    { key: "pending", label: "待研判", count: anomalyBuckets.value.pending.length },
+    { key: "confirmed", label: "异常", count: anomalyBuckets.value.confirmed.length },
+    { key: "analysis", label: "分析栏", count: analysisItems.value.length },
+    { key: "history", label: "历史", count: anomalyBuckets.value.history.length },
+  ],
+);
 
-const activeAnomalyTab = ref("pending");
-const filteredAnomalies = computed(() => anomalyBuckets.value[activeAnomalyTab.value] || []);
+const activeAnomalyTab = ref<AnomalyTabKey>("pending");
+const filteredAnomalies = computed(
+  () => anomalyBuckets.value[activeAnomalyTab.value] ?? [],
+);
 
-const statusText = (status) => {
+const statusText = (status: string | null | undefined) => {
   switch (String(status || "").toUpperCase()) {
     case "CONFIRMED":
       return "异常";
@@ -555,23 +546,30 @@ const statusText = (status) => {
   }
 };
 
-const statusClass = (status) => `is-${String(status || "POTENTIAL").toLowerCase()}`;
+const statusClass = (status: string | null | undefined) =>
+  `is-${String(status || "POTENTIAL").toLowerCase()}`;
 
 // ==================== 待研判条目的确认 / 排除 ====================
 // 勾选只在「待研判」分组内有效；切换分组时清空，避免其它分组里残留隐藏的选中项
-const selectedIds = ref([]);
+const selectedIds = ref<string[]>([]);
 const pendingAction = ref(false);
 
 const clearSelection = () => {
   selectedIds.value = [];
 };
 
-const applyStatus = async (ids, handler, actionText) => {
+const applyStatus = async (
+  ids: string[],
+  handler: (id: string) => Promise<unknown>,
+  actionText: string,
+) => {
   if (pendingAction.value || ids.length === 0) return;
   pendingAction.value = true;
   try {
     const results = await Promise.allSettled(ids.map((id) => handler(id)));
-    const failed = results.filter((r) => r.status === "rejected");
+    const failed = results.filter(
+      (r): r is PromiseRejectedResult => r.status === "rejected",
+    );
     const okCount = ids.length - failed.length;
     if (failed.length > 0) {
       const reason = failed[0].reason;
@@ -589,7 +587,8 @@ const applyStatus = async (ids, handler, actionText) => {
   }
 };
 
-const confirmOne = (item) => applyStatus([item.id], (id) => confirmAnomaly(id), "确认");
+const confirmOne = (item: { id: string }) =>
+  applyStatus([item.id], (id) => confirmAnomaly(id), "确认");
 
 // 批量确认：走批量接口 POST /api/v1/anomalies/confirm，body { anomalyIds: [...] }
 // 选中项的 id 一次性提交，不再是逐条循环请求
@@ -620,7 +619,7 @@ const batchReject = () => applyStatus([...selectedIds.value], (id) => rejectAnom
 // 列表数据来自接口 status=ANALYSIS 的事件；移除/清空 = 调 /anomalies/confirm 把状态改回已确认，
 // 接口成功后本地乐观置为 CONFIRMED（条目随即离开分析栏、回到「异常」分组）再拉一次接口对齐。
 const analysisSelecting = ref(false);
-const analysisSelectedIds = ref([]);
+const analysisSelectedIds = ref<string[]>([]);
 // 分析栏/异常分组的请求互斥标记（避免连点重复提交）
 const analysisAction = ref(false);
 
@@ -630,7 +629,11 @@ const cancelAnalysisSelection = () => {
 };
 
 // 移出分析栏：批量确认后状态变 CONFIRMED
-const submitAnalysisRemoval = async (ids, successText, failText) => {
+const submitAnalysisRemoval = async (
+  ids: string[],
+  successText: string,
+  failText: string,
+) => {
   if (analysisAction.value || ids.length === 0) return;
   analysisAction.value = true;
   try {
@@ -688,11 +691,11 @@ watch(activeAnomalyTab, () => {
 });
 
 // 列表时间显示：createdAt 按本地时间格式化到分钟，取不到时间时退回 YYYY-MM-DD
-const formatItemTime = (item) => {
+const formatItemTime = (item: WarningMarker) => {
   const ts = parseTs(item.createdAt);
   if (!Number.isNaN(ts)) {
     const d = new Date(ts);
-    const pad = (n) => String(n).padStart(2, "0");
+    const pad = (n: number) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
   return item.date || "";
@@ -702,30 +705,32 @@ const formatItemTime = (item) => {
 // 参考 WarningLeftPanel.vue 中 data-mark="异常列表" 的映射规则：
 // 威胁度优先取 threatLevel（纯数字才认，否则退回 score），等级 > 85 记为高危（琥珀色条），
 // 异常度取 deviationScore，区域取接口 location（Map.vue 映射到了 marker.description）。
-const ASSET_TYPE_LABELS = {
+const ASSET_TYPE_LABELS: Record<string, string> = {
   article: "开源情报",
   aircraft: "飞机轨迹",
   vessel: "舰船轨迹",
   satellite: "卫星轨迹",
 };
-const assetTypeLabel = (asset) => (asset && ASSET_TYPE_LABELS[asset]) || "其他";
+const assetTypeLabel = (asset: string | null | undefined) =>
+  (asset && ASSET_TYPE_LABELS[asset]) || "其他";
 
-const formatScore = (value) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
+const formatScore = (value: number) =>
+  (Number.isInteger(value) ? String(value) : value.toFixed(1));
 
-const threatDisplay = (marker) => {
+const threatDisplay = (marker: WarningMarker) => {
   const raw = String(marker.threatLevel ?? "").trim();
   if (/^\d+(\.\d+)?$/.test(raw)) return formatScore(Number(raw));
   return formatScore(Number(marker.score) || 0);
 };
 
-const durationSince = (value) => {
+const durationSince = (value: string | null | undefined) => {
   const ts = parseTs(value);
   if (Number.isNaN(ts)) return "未知";
   const days = Math.floor((nowTs.value - ts) / 86400000);
   return days >= 1 ? `${days}天` : "不足1天";
 };
 
-const toWarningItem = (marker) => {
+const toWarningItem = (marker: WarningMarker): WarningItem => {
   const threat = threatDisplay(marker);
   const confidence = String(Math.round(Number(marker.confidence) || 0));
   return {
@@ -757,9 +762,9 @@ const analysisItems = computed(() =>
 
 // 加入深度分析：提交 POST /anomalies/analyze（{ anomalyIds }）把该条置为分析中，
 // 成功后本地乐观改状态 + 入全局分析篮（深度分析页左侧栏、跳转 ids 都复用这份），再拉接口对齐
-const analyzeBusyIds = ref([]);
+const analyzeBusyIds = ref<string[]>([]);
 
-const markLocalAnalyzing = (ids) => {
+const markLocalAnalyzing = (ids: string[]) => {
   homeStore.warningMarkers.forEach((marker) => {
     if (ids.includes(marker.id)) {
       marker.status = "ANALYSIS";
@@ -768,7 +773,12 @@ const markLocalAnalyzing = (ids) => {
   });
 };
 
-const submitAnalyze = async (ids, items, successText, failText) => {
+const submitAnalyze = async (
+  ids: string[],
+  items: WarningItem[] | null | undefined,
+  successText: string,
+  failText: string,
+) => {
   if (analysisAction.value || ids.length === 0) return;
   analysisAction.value = true;
   try {
@@ -786,7 +796,7 @@ const submitAnalyze = async (ids, items, successText, failText) => {
   }
 };
 
-const toggleAnalysisStatus = async (item) => {
+const toggleAnalysisStatus = async (item: WarningItem) => {
   if (analyzeBusyIds.value.includes(item.id) || analysisAction.value) return;
   analyzeBusyIds.value = [...analyzeBusyIds.value, item.id];
   try {
@@ -808,9 +818,9 @@ const batchAnalyze = async () => {
 // ---- 「查看详情」弹窗：结构同 WarningLeftPanel 的事件详情 ----
 const detailVisible = ref(false);
 const detailLoading = ref(false);
-const detailEvent = ref(null);
+const detailEvent = ref<AnomalyEvent | null>(null);
 
-const openAnomalyDetail = async (item) => {
+const openAnomalyDetail = async (item: WarningItem) => {
   detailVisible.value = true;
   detailLoading.value = true;
   detailEvent.value = null;
@@ -825,11 +835,12 @@ const openAnomalyDetail = async (item) => {
   }
 };
 
-const parseJsonField = (value) => {
+const parseJsonField = (value: unknown) => {
   if (!value) return null;
   if (typeof value === "object") return value;
+  if (typeof value !== "string") return null;
   try {
-    return JSON.parse(value);
+    return JSON.parse(value) as unknown;
   } catch {
     return null;
   }
@@ -856,7 +867,7 @@ const detailArticle = computed(() => {
       };
     }
   }
-  const snap = parseJsonField(ev.assetData);
+  const snap = parseJsonField(ev.assetData) as ArticleAssetSnapshot | null;
   if (snap && (snap.title || snap.content)) {
     return {
       title: snap.title ?? "",
@@ -880,9 +891,11 @@ const detailTrajectoryPoints = computed(() => {
   return Array.isArray(d) ? d : [];
 });
 
-const detailEvidence = computed(() => {
+const detailEvidence = computed((): TrajectoryEvidenceFields | null => {
   const d = parseJsonField(detailEvent.value?.evidenceJson);
-  return d && typeof d === "object" && !Array.isArray(d) ? d : null;
+  return d && typeof d === "object" && !Array.isArray(d)
+    ? (d as TrajectoryEvidenceFields)
+    : null;
 });
 
 const detailTrajectorySummary = computed(() => {
@@ -897,10 +910,10 @@ const detailTrajectorySummary = computed(() => {
   return text + "。";
 });
 
-const formatCoord = (lat, lng) =>
+const formatCoord = (lat: number | string | null | undefined, lng: number | string | null | undefined) =>
   lat != null && lng != null ? `(${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)})` : "--";
 
-const formatEventTime = (value) => {
+const formatEventTime = (value: string | null | undefined) => {
   if (!value) return "未知";
   // 与列表同源：不做时区转换，避免两边相差 8 小时
   const m = String(value).match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/);
@@ -919,7 +932,8 @@ onUnmounted(() => {
 });
 
 // 战场图谱（文章关系网）的情感筛选选项
-const sentimentOptions = [
+type GraphSentiment = "all" | "positive" | "negative" | "neutral";
+const sentimentOptions: Array<{ label: string; value: GraphSentiment }> = [
   { label: "全部", value: "all" },
   { label: "消极", value: "negative" },
   { label: "中立", value: "neutral" },
@@ -982,8 +996,8 @@ watch(selectedCategory, (categoryId) => {
 }, { immediate: true });
 
 const facilityCountByType = computed(() => {
-  const normalizeType = (type) => type || "other";
-  return facilities.value.reduce((acc, facility) => {
+  const normalizeType = (type: string | null | undefined) => type || "other";
+  return facilities.value.reduce<Record<string, number>>((acc, facility) => {
     const t = normalizeType(facility.type);
     acc[t] = (acc[t] || 0) + 1;
     return acc;
@@ -991,8 +1005,8 @@ const facilityCountByType = computed(() => {
 });
 
 const categoryCount = computed(() => {
-  return facilityTypeCategories.reduce((acc, category) => {
-    acc[category.id] = category.typeIds.reduce(
+  return facilityTypeCategories.reduce<Record<string, number>>((acc, category) => {
+    acc[category.id] = category.typeIds.reduce<number>(
       (sum, typeId) => sum + (facilityCountByType.value[typeId] || 0),
       0,
     );
@@ -1002,12 +1016,12 @@ const categoryCount = computed(() => {
 
 const selectedSentiment = ref("all");
 const articleDialogVisible = ref(false);
-const selectedArticle = ref(null);
+const selectedArticle = ref<MapLeftArticleRow | null>(null);
 
 // 将单篇文章映射为列表展示项
-const mapArticle = (article) => ({
+const mapArticle = (article: ArticleListItem): MapLeftArticleRow => ({
   id: article.id ?? null,
-  title: article.title || article.name || "",
+  title: article.title || "",
   sentiment: article.sentiment || "neutral",
   publishedAt: article.publishedAt || "",
   country: article.country || "",
@@ -1015,8 +1029,8 @@ const mapArticle = (article) => ({
   author: article.author || "",
   agencyName: article.agencyName || article.source || "",
   url: article.url || "",
-  keywords: article.keywords || [],
-  topics: article.topics || [],
+  keywords: article.keywords ?? [],
+  topics: article.topics ?? [],
   importance: article.importance ?? null,
   content: article.content || article.summary || "",
   isBreaking: article.isBreaking === true,
@@ -1048,23 +1062,12 @@ const classifyValue = computed(() => {
   }
 });
 
-const filteredArticleTitles = computed(() => {
-  return currentArticles.value.map((item) => ({
-    id: item.id,
-    title: item.title,
-    country: item.country,
-    region: item.region,
-    author: item.author,
-    agencyName: item.agencyName,
-    url: item.url,
-    keywords: item.keywords,
-    topics: item.topics,
-    importance: item.importance,
+const filteredArticleTitles = computed((): MapLeftArticleRow[] =>
+  currentArticles.value.map((item) => ({
+    ...item,
     publishedAt: item.publishedAt ? item.publishedAt.slice(0, 10) : "",
-    content: item.content,
-    isBreaking: item.isBreaking,
-  }));
-});
+  })),
+);
 
 // 清除地图聚合筛选，恢复展示全部文章
 // 此处必须同时清除 store.selectedClusterIds（选中态），否则 30s 轮询刷新后
@@ -1073,7 +1076,7 @@ const clearClusterFilter = () => {
   homeStore.clearClusterFilter();
 };
 
-const openArticle = (article) => {
+const openArticle = (article: MapLeftArticleRow) => {
   selectedArticle.value = article;
   articleDialogVisible.value = true;
 };
@@ -1087,14 +1090,17 @@ const ANALYST_AGENT_NAME = "异常情报分析师";
 const ANALYST_AGENT_ID = "f4058fd6";
 
 const warningDialogVisible = ref(false);
-const warningState = ref("loading"); // 'loading' | 'streaming' | 'ready' | 'error'
-const warningArticle = ref(null);
+const warningState = ref<WarningStreamState>("loading");
+const warningArticle = ref<MapLeftArticleRow | null>(null);
 const warningContent = ref("");
 const warningError = ref("");
 const warningAnalyzedAt = ref("");
 // 会话内内存缓存：articleId -> { content, updatedAt }（PUT 失败兜底 + 免重复分析）
-const warningMemoryCache = new Map();
-let warningAborter = null;
+const warningMemoryCache = new Map<
+  string,
+  { content: string; updatedAt: string }
+>();
+let warningAborter: AbortController | null = null;
 
 const stopWarningStream = () => {
   if (warningAborter) {
@@ -1103,7 +1109,7 @@ const stopWarningStream = () => {
   }
 };
 
-const buildAnalysisPrompt = (a) => {
+const buildAnalysisPrompt = (a: MapLeftArticleRow) => {
   const body = a.content || "";
   return [
     "【文章研判任务】",
@@ -1117,7 +1123,7 @@ const buildAnalysisPrompt = (a) => {
   ].join("\n");
 };
 
-const runWarningAnalysis = async (article) => {
+const runWarningAnalysis = async (article: MapLeftArticleRow) => {
   stopWarningStream();
   warningState.value = "streaming";
   warningContent.value = "";
@@ -1155,6 +1161,7 @@ const runWarningAnalysis = async (article) => {
           const cacheItem = { content: text, updatedAt: warningAnalyzedAt.value };
           warningMemoryCache.set(String(article.id), cacheItem);
           try {
+            if (article.id == null) break;
             await saveArticleAnalysis(article.id, {
               content: text,
               analyzedBy: ANALYST_AGENT_NAME,
@@ -1184,7 +1191,7 @@ const runWarningAnalysis = async (article) => {
   }
 };
 
-const openWarningDialog = (article) => {
+const openWarningDialog = (article: MapLeftArticleRow) => {
   stopWarningStream();
   warningArticle.value = article;
   warningDialogVisible.value = true;
@@ -1198,6 +1205,7 @@ const openWarningDialog = (article) => {
   }
   warningState.value = "loading";
   warningContent.value = "";
+  if (article.id == null) return;
   getArticleAnalysis(article.id)
     .then((res) => {
       if (warningArticle.value?.id !== article.id || !warningDialogVisible.value) return;

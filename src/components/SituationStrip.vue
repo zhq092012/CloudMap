@@ -1,20 +1,13 @@
 <template>
-  <!-- 态势条：复刻原型 `#page-surveillance` 里的 `.yt-situation-strip`
-       （原位置 = 中部主区顶部浮层，见 xxx/improvements.css 的 #situationStrip）。
-       本项目按需求裁剪：不渲染「威胁评估」卡片及其摘要入口。 -->
+  <!-- 潜在异常浮窗 -->
   <div ref="hostRef" class="situation-strip-host">
     <section class="situation-strip" :class="{ 'is-collapsed': isCollapsed }">
       <div class="strip-summary">
         <span class="strip-summary-label">
           潜在异常 <b>{{ pendingItems.length }}</b>
         </span>
-        <button
-          v-if="!autoCollapsed"
-          type="button"
-          class="strip-collapse"
-          :aria-label="isCollapsed ? '展开列表' : '收起列表'"
-          @click="toggleCollapsed"
-        >
+        <button v-if="!autoCollapsed" type="button" class="strip-collapse" :aria-label="isCollapsed ? '展开列表' : '收起列表'"
+          @click="toggleCollapsed">
           {{ isCollapsed ? "展开" : "收起" }}
         </button>
       </div>
@@ -22,7 +15,8 @@
       <div v-if="!isCollapsed" class="strip-cards">
         <section class="situation-card">
           <header>
-            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+              aria-hidden="true">
               <path d="M12 3 2 21h20L12 3Z" />
               <path d="M12 9v5m0 3v1" />
             </svg>
@@ -37,12 +31,7 @@
 
           <div class="situation-rows">
             <div v-for="row in topRows" :key="row.id" class="situation-row">
-              <button
-                type="button"
-                class="strip-name"
-                :title="row.tip"
-                @click="goAnomaly"
-              >
+              <button type="button" class="strip-name" :title="row.tip" @click="goAnomaly">
                 {{ row.name }}
               </button>
               <span class="yt-tag" :class="row.toneClass">{{ row.deviationText }}</span>
@@ -156,8 +145,8 @@ const goAnomaly = () => router.push({ name: "Anomaly" });
 .situation-strip-host {
   position: absolute;
   top: 12px;
-  left: 372px;
-  right: calc(380px + 12px);
+  left: 300px;
+  /* right: calc(380px + 12px); */
   /* Leaflet 的 .leaflet-pane 自身带 400~700 的 z-index，地图容器又没建层叠上下文，
      这里必须高于 pane 才能浮在地图之上（原型是自绘地图，只用了 20） */
   z-index: 900;
