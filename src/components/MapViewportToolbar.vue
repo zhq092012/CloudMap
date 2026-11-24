@@ -9,7 +9,6 @@
       <button type="button" class="map-vp-btn" title="缩小" aria-label="缩小" @click="zoomOut">−</button>
       <button type="button" class="map-vp-btn map-vp-btn--text" @click="fitOverview">全览</button>
     </div>
-    <div class="map-vp-caption">卫星影像 · Esri World Imagery</div>
   </nav>
 </template>
 
@@ -55,10 +54,10 @@ const fitOverview = () => {
   transition: left 0.22s ease;
   z-index: 900;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 10px;
-  min-width: 148px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
   background: rgba(17, 24, 39, 0.9);
   border: 1px solid rgba(45, 58, 77, 0.95);
   border-radius: 8px;
@@ -69,10 +68,12 @@ const fitOverview = () => {
 
 .map-vp-check {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 12px;
   color: #e5e7eb;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -108,14 +109,8 @@ const fitOverview = () => {
 }
 
 .map-vp-btn--text {
-  flex: 1;
+  min-width: 44px;
   font-size: 12px;
   font-weight: 500;
-}
-
-.map-vp-caption {
-  font-size: 10px;
-  color: #6b7280;
-  line-height: 1.3;
 }
 </style>
