@@ -1,6 +1,6 @@
 <template>
   <!-- 态势监控页根：左栏 + 右栏/图谱侧栏 + 中央主视区（地图或关系网）并列，互不占路由分支 -->
-  <div class="flex h-full relative">
+  <div class="situation-monitor-page" :style="sideLayoutStyle">
     <!--
       主视区 · 地图模式（!isGraphMode）
       isGraphMode = homeStore.mapLeftTab === "third"（左栏切到「战场图谱」）
@@ -27,16 +27,43 @@
       <GraphMain />
     </div>
 
-    <!-- 左侧固定栏：作战要素 / 开源情报 / 战场图谱 Tab（图谱 Tab 激活即触发上方 isGraphMode） -->
-    <SurveillanceMapLeft />
+    <CollapsibleSidePanel
+      v-model:collapsed="leftPanelCollapsed"
+      side="left"
+      layout="overlay"
+      :width="360"
+      label="态势左栏"
+      aria-label="态势监控左栏"
+    >
+      <SurveillanceMapLeft />
+    </CollapsibleSidePanel>
 
     <!-- 地图中部态势条：潜在异常 + 威胁评估；图谱模式不展示以免遮挡关系网 -->
     <SituationStrip v-if="!isGraphMode" />
 
-    <!-- 右侧云脑智能面板（态势监控专用）；图谱时用 v-show 隐藏而非卸载，保留滚动态可选 -->
-    <RightPanel v-show="!isGraphMode" />
-    <!-- 图谱模式右侧文章列表，与 RightPanel 互斥展示 -->
-    <RightGraphList v-show="isGraphMode" />
+  <CollapsibleSidePanel
+    v-show="!isGraphMode"
+    v-model:collapsed="rightPanelCollapsed"
+    side="right"
+    layout="overlay"
+    :width="380"
+    label="云脑面板"
+    aria-label="云脑智能面板"
+  >
+    <RightPanel />
+  </CollapsibleSidePanel>
+
+  <CollapsibleSidePanel
+    v-show="isGraphMode"
+    v-model:collapsed="rightPanelCollapsed"
+    side="right"
+    layout="overlay"
+    :width="380"
+    label="文章列表"
+    aria-label="图谱文章列表"
+  >
+    <RightGraphList />
+  </CollapsibleSidePanel>
 
     <!-- 图谱模式：手动拉文章（store.articlesRefetch）；该模式下 Map 内 30s 轮询已暂停 -->
     <button
@@ -59,6 +86,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useHomeStore } from "@/store/modules/homeStore";
+import CollapsibleSidePanel from "@/components/layout/CollapsibleSidePanel.vue";
 
 /** 地图与右栏之间的底部态势条（潜在异常 + 威胁评估）；仅非图谱模式挂载。 */
 import SituationStrip from "@/components/SituationStrip.vue";
@@ -83,8 +111,26 @@ import {
   MAP_NODE_DOCK_RESERVE_COLLAPSED_PX,
   MAP_NODE_DOCK_CLEARANCE_GAP_PX,
 } from "@/mock/mapNodeDock";
+import { mapChromeLayoutVars } from "@/constants/mapChromeLayout";
 
 const store = useHomeStore();
+
+/** 左侧态势栏收起态 */
+const leftPanelCollapsed = ref(false);
+/** 右侧栏收起态（地图云脑 / 图谱文章列表共用） */
+const rightPanelCollapsed = ref(false);
+
+/**
+ * 根据左右侧栏收起态为 Dock、刷新按钮等提供边距 CSS 变量。
+ * 返回内联 style 对象。
+ */
+/**
+ * 计算左右侧栏收起态对应的地图浮层边距 CSS 变量。
+ * 返回内联 style，供工具条、图例、态势条、图层开关、底部 Dock 同步靠边。
+ */
+const sideLayoutStyle = computed(() =>
+  mapChromeLayoutVars(leftPanelCollapsed.value, rightPanelCollapsed.value),
+);
 
 /**
  * 计算是否为战场图谱主视区模式。
@@ -155,11 +201,18 @@ const handleGraphRefresh = async () => {
 </script>
 
 <style scoped>
+.situation-monitor-page {
+  position: relative;
+  display: flex;
+  height: 100%;
+}
+
 .map-node-dock-host {
   position: absolute;
   z-index: 1000;
-  left: calc(360px + 12px);
-  right: calc(380px + 12px);
+  left: var(--map-chrome-left, 372px);
+  right: var(--map-chrome-right, 392px);
+  transition: left 0.22s ease, right 0.22s ease;
   bottom: 12px;
   pointer-events: none;
 }
@@ -167,7 +220,8 @@ const handleGraphRefresh = async () => {
 .graph-refresh-btn {
   position: absolute;
   top: 16px;
-  right: calc(380px + 20px);
+  right: var(--map-chrome-right, 392px);
+  transition: right 0.22s ease;
   z-index: 10;
   display: flex;
   align-items: center;

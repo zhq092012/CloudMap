@@ -1199,13 +1199,14 @@ onUnmounted(() => {
   position: absolute;
   /* 右下角：底边距随底部节点统计条抬高；距右 = 右栏 w-95(380px) + 12px */
   bottom: calc(20px + var(--map-dock-reserve, 0px));
-  right: calc(380px + 12px);
+  right: var(--map-chrome-right, 392px);
   z-index: 1100;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
   pointer-events: none;
+  transition: right 0.22s ease;
   /* 高于底部 Dock(host z-1000)，避免叠层遮挡 */
 }
 

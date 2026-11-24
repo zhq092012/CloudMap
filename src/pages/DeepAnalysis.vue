@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
+import CollapsibleSidePanel from "@/components/layout/CollapsibleSidePanel.vue";
 import { useRoute } from "vue-router";
 import { ElMessageBox } from "element-plus";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { useHomeStore } from "@/store/modules/homeStore";
 import { listIncompleteWorkflows } from "@/api/deep-analysis";
-import DeepAnalysisIntentRightPanel from "@/components/deepAnalysis/DeepAnalysisIntentRightPanel.vue";
-import DeepAnalysisAttackRightPanel from "@/components/deepAnalysis/DeepAnalysisAttackRightPanel.vue";
-import DeepAnalysisDefenseRightPanel from "@/components/deepAnalysis/DeepAnalysisDefenseRightPanel.vue";
-import DeepAnalysisEvaluationRightPanel from "@/components/deepAnalysis/DeepAnalysisEvaluationRightPanel.vue";
-import DeepAnalysisLeftPanel from "@/components/DeepAnalysisLeftPanel.vue";
-import DeepAnalysisMain from "@/components/DeepAnalysisMain.vue";
+import DeepAnalysisWorkspace from "@/components/deepAnalysis/DeepAnalysisWorkspace.vue";
+import DeepAnalysisCloudBrainPanel from "@/components/deepAnalysis/DeepAnalysisCloudBrainPanel.vue";
+/** 最右侧云脑栏收起态 */
+const cloudBrainCollapsed = ref(false);
+
 const store = useAnalysisStore();
 const homeStore = useHomeStore();
 const route = useRoute();
@@ -52,18 +52,29 @@ onMounted(async () => {
 </script>
 
 <template>
-  <!-- 左中右布局 ，左侧panel，中间内容，右侧panel -->
-  <div class="da-page flex h-full">
-    <DeepAnalysisLeftPanel />
-
-    <DeepAnalysisMain class="flex-1" />
-
-    <DeepAnalysisIntentRightPanel v-if="store.analysisType === 'default'" />
-    <DeepAnalysisAttackRightPanel v-if="store.analysisType === 'attack'" />
-    <DeepAnalysisDefenseRightPanel v-if="store.analysisType === 'defense'" />
-    <DeepAnalysisEvaluationRightPanel v-if="store.analysisType === 'evaluation'" />
+  <!-- 左：步骤条 + 分析栏 | 图谱 | 分析面板；右：云脑智能分析 -->
+  <div class="da-page">
+    <DeepAnalysisWorkspace />
+    <CollapsibleSidePanel
+      v-model:collapsed="cloudBrainCollapsed"
+      side="right"
+      layout="flex"
+      :width="272"
+      label="云脑"
+      aria-label="云脑智能分析"
+    >
+      <DeepAnalysisCloudBrainPanel />
+    </CollapsibleSidePanel>
   </div>
 </template>
+
+<style scoped lang="scss">
+.da-page {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+</style>
 
 <style lang="scss">
 /* 「深度分析栏为空」提示框：跟随面板深色皮肤（弹窗 teleport 到 body，故用非 scoped + 唯一类名） */

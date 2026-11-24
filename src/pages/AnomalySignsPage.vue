@@ -1,28 +1,68 @@
 <template>
-  <!-- 异常征候页根：全屏地图 + 左栏异常分组 + 右栏云脑（无态势条 / Dock / 图谱分支） -->
-  <div class="flex h-full relative">
-    <!-- 主视区：仅地图层，异常条目由 Map 渲染并与 homeStore.warningMarkers 同步 -->
-    <div class="absolute inset-0 map-stage">
+  <!-- 异常征候页根：全屏地图 + 左栏异常分组 + 右栏云脑 -->
+  <div class="anomaly-signs-page" :style="chromeLayoutStyle">
+    <div class="anomaly-signs-page__stage map-stage">
       <Map />
+      <MapViewportToolbar />
+      <MapResourceLegend :dock-reserve-px="0" />
     </div>
 
-    <!-- 左栏：待研判 / 异常 / 分析栏 / 历史 四分 Tab 与批量操作 -->
-    <AnomalySignsLeftPanel />
+    <CollapsibleSidePanel
+      v-model:collapsed="leftCollapsed"
+      side="left"
+      layout="overlay"
+      :width="360"
+      label="异常征候"
+      aria-label="异常征候左栏"
+    >
+      <AnomalySignsLeftPanel />
+    </CollapsibleSidePanel>
 
-    <!-- 右栏：云脑面板与简报区（原 WarningRightPanel 能力），贴右侧全高 -->
-    <AnomalySignsRightPanel class="absolute right-0 top-0 z-1000" />
+    <CollapsibleSidePanel
+      v-model:collapsed="rightCollapsed"
+      side="right"
+      layout="overlay"
+      :width="380"
+      label="云脑面板"
+      aria-label="云脑智能面板"
+    >
+      <AnomalySignsRightPanel />
+    </CollapsibleSidePanel>
   </div>
 </template>
 
 <script setup lang="ts">
-/**
- * 异常征候页：地图 + 异常左栏（分组列表）+ 云脑右栏。
- * 与态势监控页独立路由，不再通过 Home 内分支切换。
- */
-/** 主视区地图，承载异常点位与 refetch 回调。 */
+import { computed, ref } from "vue";
+import CollapsibleSidePanel from "@/components/layout/CollapsibleSidePanel.vue";
+import { mapChromeLayoutVars } from "@/constants/mapChromeLayout";
 import Map from "@/components/Map.vue";
-/** 异常征候专用左栏（分组列表、详情弹窗、深度分析跳转）。 */
+import MapViewportToolbar from "@/components/MapViewportToolbar.vue";
+import MapResourceLegend from "@/components/MapResourceLegend.vue";
 import AnomalySignsLeftPanel from "@/components/AnomalySignsLeftPanel.vue";
-/** 异常征候专用右栏（统计总览、简报与云脑区块）。 */
 import AnomalySignsRightPanel from "@/components/AnomalySignsRightPanel.vue";
+
+/** 左栏收起态 */
+const leftCollapsed = ref(false);
+/** 右栏收起态 */
+const rightCollapsed = ref(false);
+
+/**
+ * 侧栏收起时缩小 --map-chrome-left/right，使缩放工具条与图例随主视区靠边。
+ */
+const chromeLayoutStyle = computed(() =>
+  mapChromeLayoutVars(leftCollapsed.value, rightCollapsed.value),
+);
 </script>
+
+<style scoped lang="scss">
+.anomaly-signs-page {
+  position: relative;
+  display: flex;
+  height: 100%;
+}
+
+.anomaly-signs-page__stage {
+  position: absolute;
+  inset: 0;
+}
+</style>

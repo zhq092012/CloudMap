@@ -249,8 +249,8 @@ const onThreatViewAll = () => {
 .situation-strip-observe {
   position: absolute;
   top: 12px;
-  left: 372px;
-  right: 392px;
+  left: var(--map-chrome-left, 372px);
+  right: var(--map-chrome-right, 392px);
   height: 1px;
   pointer-events: none;
   visibility: hidden;
@@ -259,13 +259,18 @@ const onThreatViewAll = () => {
 .situation-strip-host {
   position: absolute;
   top: 12px;
-  right: calc(380px + 12px);
+  right: var(--map-chrome-right, 392px);
   z-index: 900;
   pointer-events: none;
+  transition: right 0.22s ease;
 }
 
 .situation-strip {
-  width: min(640px, calc(100vw - 380px - 360px - 36px));
+  width: min(
+    640px,
+    calc(100vw - var(--map-chrome-left, 372px) - var(--map-chrome-right, 392px) - 12px)
+  );
+  transition: width 0.22s ease;
   margin-left: auto;
   pointer-events: auto;
   font-size: 12px;

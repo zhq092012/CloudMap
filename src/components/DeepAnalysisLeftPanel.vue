@@ -1,70 +1,88 @@
 <template>
-  <div class="da-panel da-panel--left w-95 h-full shrink-0 select-none">
-    <div class="flex items-center justify-between gap-2 mb-3 shrink-0">
+  <div class="da-panel da-panel--left da-left-panel">
+    <div class="da-left-panel__head">
       <h2 class="da-panel-title">深度分析栏</h2>
       <button type="button" class="da-btn da-btn--ghost da-btn--sm" :disabled="loading" @click="loadWorkflowList">
         {{ loading ? "刷新中" : "刷新" }}
       </button>
     </div>
 
-    <div v-if="analysisStore.workflowTitle"
-      class="shrink-0 mb-2.5 px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-panel)]">
-      <div class="text-[12px] text-[var(--text-muted)] truncate" :title="analysisStore.workflowTitle">
+    <div v-if="analysisStore.workflowTitle" class="da-left-panel__flow-banner">
+      <div class="da-left-panel__flow-title" :title="analysisStore.workflowTitle">
         当前流程：{{ analysisStore.workflowTitle }}
       </div>
     </div>
 
-    <div class="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2.5 custom-scrollbar" data-mark="深度分析栏列表">
+    <div class="da-left-panel__list custom-scrollbar" data-mark="深度分析栏列表">
       <!-- 异常视图：从「异常证候」页面跳转进入（URL 携带 from=homepage&ids）：
            展示所选异常事件，「开始分析」新建工作流对所选异常开始深度分析 -->
       <template v-if="showAnomalyItems">
-        <div v-for="(item, idx) in anomalyItems" :key="idx"
-          class="da-card da-card--sunken hover:border-[var(--border-strong)] transition-colors">
-          <div class="flex flex-col gap-2">
-            <div class="text-[12.5px] font-semibold text-[var(--text)] flex items-start gap-1.5 leading-snug"
-              :title="item.title">
-              <span :class="item.isHexagon ? 'text-[var(--orange)] font-mono text-[13px]' : 'text-[var(--orange)] text-[12px]'">
+        <div v-for="(item, idx) in anomalyItems" :key="idx" class="da-card da-card--sunken da-left-panel__card">
+          <div class="da-left-panel__card-inner">
+            <div class="da-left-panel__card-title" :title="item.title">
+              <span
+                class="da-left-panel__card-mark"
+                :class="{ 'da-left-panel__card-mark--hex': item.isHexagon }"
+              >
                 {{ item.isHexagon ? "⬢" : "◆" }}
               </span>
-              <span class="flex-1">{{ item.title }}</span>
+              <span class="da-left-panel__card-title-text">{{ item.title }}</span>
             </div>
 
-            <div class="flex items-center gap-4 text-[12px] text-[var(--text-muted)]">
+            <div class="da-left-panel__metrics">
               <div>
                 {{ item.isHexagon ? "综合威胁度" : "威胁度" }}
-                <span class="text-[var(--orange)] font-mono font-bold ml-1">{{ item.threat }}</span>
+                <span class="da-left-panel__metric da-left-panel__metric--threat">{{ item.threat }}</span>
               </div>
-
               <div>
                 {{ item.isHexagon ? "综合异常度" : "异常度" }}
-                <span class="text-[var(--text-2)] font-mono font-bold ml-1">{{ item.anomaly }}</span>
-                <span class="text-[var(--text-faint)] font-mono ml-0.5">&nbsp;(置信度 {{ item.anomalyConf }})</span>
+                <span class="da-left-panel__metric da-left-panel__metric--anomaly">{{ item.anomaly }}</span>
+                <span class="da-left-panel__metric-conf">&nbsp;(置信度 {{ item.anomalyConf }})</span>
               </div>
             </div>
 
-            <!-- Start Analysis Action footer：逻辑沿用深度分析栏此前的实现 -->
-            <div class="flex justify-between items-center pt-2 border-t border-[var(--border)] shrink-0">
-              <span class="text-[12px] text-[var(--text-faint)]">
+            <div class="da-left-panel__card-foot">
+              <span class="da-left-panel__status">
                 状态: {{ isAlreadyLoaded(item) ? "分析中" : "就绪" }}
               </span>
-              <button v-if="!isAlreadyLoaded(item) && !isAnalyzingItem(item)" type="button"
-                class="da-btn da-btn--primary da-btn--sm shrink-0" @click.stop="startAnalysis(item)">
+              <button
+                v-if="!isAlreadyLoaded(item) && !isAnalyzingItem(item)"
+                type="button"
+                class="da-btn da-btn--primary da-btn--sm da-left-panel__foot-action"
+                @click.stop="startAnalysis(item)"
+              >
                 开始分析
               </button>
-              <button v-else-if="isAnalyzingItem(item)" type="button" disabled
-                class="da-btn da-btn--sm shrink-0">
+              <button
+                v-else-if="isAnalyzingItem(item)"
+                type="button"
+                disabled
+                class="da-btn da-btn--sm da-left-panel__foot-action"
+              >
                 ⏳ 分析中
               </button>
-              <span v-else-if="isAlreadyLoaded(item) && isInCurrentFlow(item)"
-                class="text-[12px] text-[var(--green)] font-semibold flex items-center gap-1 shrink-0">
+              <span
+                v-else-if="isAlreadyLoaded(item) && isInCurrentFlow(item)"
+                class="da-left-panel__loaded"
+              >
                 ✓ 已载入图谱
               </span>
-              <button v-else-if="analysisStore.workflowId" type="button" :disabled="isJoiningItem(item)"
-                class="da-btn da-btn--warn da-btn--sm shrink-0" @click.stop="joinToCurrentFlow(item)">
+              <button
+                v-else-if="analysisStore.workflowId"
+                type="button"
+                :disabled="isJoiningItem(item)"
+                class="da-btn da-btn--warn da-btn--sm da-left-panel__foot-action"
+                @click.stop="joinToCurrentFlow(item)"
+              >
                 {{ isJoiningItem(item) ? "⏳ 载入中" : "加入当前分析" }}
               </button>
-              <button v-else type="button" :disabled="isJoiningItem(item)"
-                class="da-btn da-btn--sm shrink-0" @click.stop="loadHistoryAnomaly(item)">
+              <button
+                v-else
+                type="button"
+                :disabled="isJoiningItem(item)"
+                class="da-btn da-btn--sm da-left-panel__foot-action"
+                @click.stop="loadHistoryAnomaly(item)"
+              >
                 {{ isJoiningItem(item) ? "⏳ 载入中" : "载入历史分析" }}
               </button>
             </div>
@@ -76,51 +94,58 @@
            展示未完成的工作流实例列表（最近更新的在前，即最新 workflow 实例） -->
       <template v-else>
         <!-- 数据源：GET /api/v1/agent-flows/workflows/incomplete（未完成工作流列表） -->
-        <div v-if="loading && workflowItems.length === 0"
-          class="da-card da-card--sunken text-[12px] text-[var(--text-muted)]">
+        <div v-if="loading && workflowItems.length === 0" class="da-card da-card--sunken da-left-panel__placeholder">
           正在加载未完成的分析流程…
         </div>
-        <div v-else-if="workflowItems.length === 0"
-          class="da-card da-card--sunken text-[12px] text-[var(--text-muted)] leading-relaxed">
+        <div
+          v-else-if="workflowItems.length === 0"
+          class="da-card da-card--sunken da-left-panel__placeholder da-left-panel__placeholder--multiline"
+        >
           暂无未完成的分析流程
         </div>
 
-        <div v-for="item in workflowItems" :key="item.workflowId"
-          class="da-card da-card--sunken hover:border-[var(--border-strong)] transition-colors"
-          :class="{ 'da-card--accent': isCurrentWorkflow(item) }">
-          <div class="flex flex-col gap-2">
-            <div class="text-[12.5px] font-semibold text-[var(--text)] flex items-start gap-1.5 leading-snug"
-              :title="`${item.title || '未命名流程'}（${item.workflowId}）`">
-              <span class="text-[var(--orange)] text-[12px]">◆</span>
-              <span class="flex-1">{{ item.title || "未命名分析流程" }}</span>
-              <span v-if="isCurrentWorkflow(item)" class="da-chip shrink-0">画布中</span>
+        <div
+          v-for="item in workflowItems"
+          :key="item.workflowId"
+          class="da-card da-card--sunken da-left-panel__card"
+          :class="{ 'da-card--accent': isCurrentWorkflow(item) }"
+        >
+          <div class="da-left-panel__card-inner">
+            <div
+              class="da-left-panel__card-title"
+              :title="`${item.title || '未命名流程'}（${item.workflowId}）`"
+            >
+              <span class="da-left-panel__card-mark">◆</span>
+              <span class="da-left-panel__card-title-text">{{ item.title || "未命名分析流程" }}</span>
+              <span v-if="isCurrentWorkflow(item)" class="da-chip da-left-panel__chip">画布中</span>
             </div>
 
-            <div class="flex items-center gap-4 text-[12px] text-[var(--text-muted)]">
+            <div class="da-left-panel__metrics">
               <div>
                 阶段
-                <span class="text-[var(--orange)] font-mono font-bold ml-1">{{ phaseText(item) }}</span>
+                <span class="da-left-panel__metric da-left-panel__metric--threat">{{ phaseText(item) }}</span>
               </div>
-
               <div>
                 关联异常
-                <span class="text-[var(--text-2)] font-mono font-bold ml-1">{{ anomalyCount(item) }}</span>
-                <span class="text-[var(--text-faint)] font-mono ml-0.5">项</span>
+                <span class="da-left-panel__metric da-left-panel__metric--anomaly">{{ anomalyCount(item) }}</span>
+                <span class="da-left-panel__metric-suffix">项</span>
               </div>
             </div>
 
-            <!-- 载入到画布：调 analysisStore.loadWorkflow（按该工作流自身的节点类型完整还原链路） -->
-            <div class="flex justify-between items-center pt-2 border-t border-[var(--border)] shrink-0">
-              <span class="text-[12px] text-[var(--text-faint)] truncate">
+            <div class="da-left-panel__card-foot">
+              <span class="da-left-panel__status da-left-panel__status--truncate">
                 状态: {{ statusText(item.status) }} · {{ formatTime(item.updatedAt) }}
               </span>
-              <button v-if="!isCurrentWorkflow(item)" type="button" :disabled="!!loadingWorkflowId"
-                class="da-btn da-btn--primary da-btn--sm shrink-0" @click.stop="loadWorkflowItem(item)">
+              <button
+                v-if="!isCurrentWorkflow(item)"
+                type="button"
+                :disabled="!!loadingWorkflowId"
+                class="da-btn da-btn--primary da-btn--sm da-left-panel__foot-action"
+                @click.stop="loadWorkflowItem(item)"
+              >
                 {{ loadingWorkflowId === item.workflowId ? "⏳ 载入中" : "载入分析" }}
               </button>
-              <span v-else class="text-[12px] text-[var(--green)] font-semibold flex items-center gap-1 shrink-0">
-                ✓ 已载入
-              </span>
+              <span v-else class="da-left-panel__loaded">✓ 已载入</span>
             </div>
           </div>
         </div>
@@ -357,8 +382,170 @@ const loadWorkflowItem = async (item: AgentFlow) => {
 onMounted(loadWorkflowList);
 </script>
 
-<style scoped>
-/* 针对情报系统定制的窄轨道暗色暗色微型滚动条 */
+<style scoped lang="scss">
+.da-left-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.da-left-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.da-left-panel__flow-banner {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.da-left-panel__flow-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da-left-panel__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.da-left-panel__card {
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.da-left-panel__card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.da-left-panel__card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.da-left-panel__card-mark {
+  color: var(--orange);
+  font-size: 12px;
+  flex-shrink: 0;
+
+  &--hex {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+  }
+}
+
+.da-left-panel__card-title-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.da-left-panel__chip {
+  flex-shrink: 0;
+}
+
+.da-left-panel__metrics {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.da-left-panel__metric {
+  margin-left: 4px;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+
+  &--threat {
+    color: var(--orange);
+  }
+
+  &--anomaly {
+    color: var(--text-2);
+  }
+}
+
+.da-left-panel__metric-conf,
+.da-left-panel__metric-suffix {
+  margin-left: 2px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-faint);
+}
+
+.da-left-panel__card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.da-left-panel__status {
+  font-size: 12px;
+  color: var(--text-faint);
+
+  &--truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    margin-right: 8px;
+  }
+}
+
+.da-left-panel__foot-action {
+  flex-shrink: 0;
+}
+
+.da-left-panel__loaded {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.da-left-panel__placeholder {
+  font-size: 12px;
+  color: var(--text-muted);
+
+  &--multiline {
+    line-height: 1.6;
+  }
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

@@ -51,7 +51,8 @@ const fitOverview = () => {
 .map-vp-toolbar {
   position: absolute;
   top: 12px;
-  left: calc(360px + 12px);
+  left: var(--map-chrome-left, 372px);
+  transition: left 0.22s ease;
   z-index: 900;
   display: flex;
   flex-direction: column;

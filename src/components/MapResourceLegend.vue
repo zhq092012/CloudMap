@@ -51,13 +51,17 @@ const symbolClass = (tone?: MapResourceLegendItem["tone"]) => {
 <style scoped>
 .map-resource-legend {
   position: absolute;
-  left: calc(360px + 12px);
+  left: var(--map-chrome-left, 372px);
   z-index: 900;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 14px;
-  max-width: min(640px, calc(100vw - 360px - 380px - 36px));
+  max-width: min(
+    640px,
+    calc(100vw - var(--map-chrome-left, 372px) - var(--map-chrome-right, 392px) - 12px)
+  );
+  transition: left 0.22s ease, max-width 0.22s ease;
   padding: 8px 12px;
   background: rgba(17, 24, 39, 0.88);
   border: 1px solid rgba(45, 58, 77, 0.95);

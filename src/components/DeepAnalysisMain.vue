@@ -1,82 +1,124 @@
 <template>
-  <div class="w-full h-full min-h-187.5 bg-[var(--bg)] flex flex-col relative select-none">
-    <div class="h-11 px-4 bg-[var(--bg-sunken)] border-b border-[var(--border)] flex items-center justify-between z-10 shrink-0">
-      <div class="flex items-center gap-2 overflow-hidden">
-        <span class="da-chip shrink-0">
-          🧠 云脑多Agent并行推导
-        </span>
-      </div>
-
-      <!-- 画布提示：中部区域窄时让位给标题，避免挤成多行 -->
-      <div class="hidden xl:flex items-center gap-1 text-[12px] text-[var(--text-faint)] font-mono whitespace-nowrap">
-        <span>画布操作: 鼠标滚轮缩放 | 拖拽任意画布与节点</span>
-      </div>
-    </div>
-
-    <div ref="containerRef" class="flex-1 w-full h-full relative overflow-hidden">
-      <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-[rgba(10,14,23,0.9)] z-20">
-        <div class="text-center space-y-2">
-          <div class="w-8 h-8 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <div class="text-[12px] text-[var(--text-muted)] font-mono">
-            正在渲染云脑智能推导拓扑图...
-          </div>
+  <div class="da-main">
+    <div ref="containerRef" class="da-main__canvas">
+      <div v-if="isLoading" class="da-main__loading">
+        <div class="da-main__loading-inner">
+          <div class="da-main__spinner" />
+          <div class="da-main__loading-text">正在渲染云脑智能推导拓扑图...</div>
         </div>
       </div>
 
       <Teleport to="body" :disabled="logMode === 'docked'">
-      <div :class="logPanelClass" :style="logPanelStyle">
-        <div class="flex items-center gap-2 px-3.5 h-9 border-b border-[var(--border)] shrink-0 overflow-hidden whitespace-nowrap"
-          :class="{ 'cursor-move': logMode === 'popup' }"
-          @mousedown="startLogHeaderDrag">
-          <el-icon class="shrink-0 text-[var(--accent-text)] text-[13px]"><Document /></el-icon>
-          <span class="shrink-0 text-[12.5px] font-semibold text-[var(--text)]">分析执行日志</span>
-          <span v-if="store.progressLogs.length > 0" class="shrink-0 text-[12px] text-[var(--text-faint)] font-mono">[{{ store.progressLogs.length }} 条]</span>
-          <span v-if="store.isAnalyzing" class="ml-auto shrink-0 text-[12px] text-[var(--accent-text)] animate-pulse">◉ 分析中...</span>
-          <span v-else-if="store.progressLogs.some(l => l.type === 'success')" class="ml-auto shrink-0 text-[12px] text-[var(--green)]">✓ 完成</span>
-          <span v-if="store.currentPhase >= 0" class="shrink-0 text-[12px] text-[var(--text-muted)] font-mono">Phase {{
-            store.currentPhase === 0 ? 'ORIGIN' : store.currentPhase === 1 ? 'INTENT' : store.currentPhase === 2 ? 'BLUE_PLAN' : store.currentPhase === 3 ? 'RED_PLAN' : 'EVALUATION'
-          }}</span>
-          <el-icon class="ml-auto shrink-0 cursor-pointer text-[var(--text-muted)] hover:text-[var(--accent-text)]"
-            :title="logMode === 'docked' ? '转换为弹出窗口' : '收回到底部'"
-            @click="toggleLogPopup" @mousedown.stop>
-            <Expand v-if="logMode === 'docked'" />
-            <Fold v-else />
-          </el-icon>
-        </div>
-        <div ref="logContainer" class="flex-1 min-h-0 overflow-y-auto font-mono text-[11.5px] space-y-0.5 px-3.5 py-1.5">
-        <div v-for="(logItem, idx) in store.progressLogs" :key="idx"
-          class="py-0.5 leading-relaxed"
-          :class="{
-            'text-[var(--accent-text)]': logItem.type === 'info',
-            'text-[var(--green)]': logItem.type === 'success',
-            'text-[#f87171]': logItem.type === 'error',
-            'text-[#fbbf24]': logItem.type === 'warning',
-          }">
-          <div class="flex items-start gap-1.5">
-            <span class="text-[var(--text-faint)] shrink-0 tabular-nums">{{ logItem.time }}</span>
-            <span class="flex-1 min-w-0"
-              :class="isExpandable(logItem)
-                ? 'underline decoration-[var(--border-strong)] underline-offset-2 cursor-pointer hover:text-[var(--accent-text)]'
-                : ''"
-              @click="isExpandable(logItem) && toggleExpand(logItem)">{{ logItem.text }}</span>
-            <span v-if="isExpandable(logItem)"
-              class="shrink-0 cursor-pointer text-[var(--text-faint)] hover:text-[var(--text)] px-0.5 opacity-70"
-              @click="toggleExpand(logItem)">{{ logItem.expanded ? '▾' : '▸' }}</span>
+        <div class="da-main-log" :class="logPanelClass" :style="logPanelStyle">
+          <div
+            class="da-main-log__header"
+            :class="{ 'da-main-log__header--draggable': logMode === 'popup' }"
+            @mousedown="startLogHeaderDrag"
+          >
+            <el-icon class="da-main-log__doc-icon"><Document /></el-icon>
+            <span class="da-main-log__title">分析执行日志</span>
+            <span v-if="store.progressLogs.length > 0" class="da-main-log__count">
+              [{{ store.progressLogs.length }} 条]
+            </span>
+            <span v-if="store.isAnalyzing" class="da-main-log__badge da-main-log__badge--pulse">◉ 分析中...</span>
+            <span
+              v-else-if="store.progressLogs.some((l) => l.type === 'success')"
+              class="da-main-log__badge da-main-log__badge--done"
+            >
+              ✓ 完成
+            </span>
+            <span v-if="store.currentPhase >= 0" class="da-main-log__phase">
+              Phase
+              {{
+                store.currentPhase === 0
+                  ? "ORIGIN"
+                  : store.currentPhase === 1
+                    ? "INTENT"
+                    : store.currentPhase === 2
+                      ? "BLUE_PLAN"
+                      : store.currentPhase === 3
+                        ? "RED_PLAN"
+                        : "EVALUATION"
+              }}
+            </span>
+            <el-icon
+              v-if="logMode === 'docked'"
+              class="da-main-log__toggle da-main-log__toggle--collapse"
+              :title="logDockCollapsed ? '展开日志区域' : '向下收起'"
+              @click="toggleLogDockCollapse"
+              @mousedown.stop
+            >
+              <ArrowDown v-if="!logDockCollapsed" />
+              <ArrowUp v-else />
+            </el-icon>
+            <el-icon
+              class="da-main-log__toggle"
+              :title="logMode === 'docked' ? '转换为弹出窗口' : '收回到底部'"
+              @click="toggleLogPopup"
+              @mousedown.stop
+            >
+              <Expand v-if="logMode === 'docked'" />
+              <Fold v-else />
+            </el-icon>
           </div>
-          <pre v-if="isExpandable(logItem) && logItem.expanded"
-            class="whitespace-pre-wrap break-words text-[var(--text-2)] max-h-60 overflow-auto my-1 pl-4 border-l border-[var(--border)]">{{ expandText(logItem) }}</pre>
+          <div
+            v-if="logMode === 'docked' && !logDockCollapsed"
+            class="da-main-log__resize da-main-log__resize--n"
+            title="拖动调整高度"
+            @mousedown="startDockLogResize"
+          />
+          <div
+            v-show="logMode !== 'docked' || !logDockCollapsed"
+            ref="logContainer"
+            class="da-main-log__body"
+          >
+            <div
+              v-for="(logItem, idx) in store.progressLogs"
+              :key="idx"
+              class="da-main-log__line"
+              :class="`da-main-log__line--${logItem.type}`"
+            >
+              <div class="da-main-log__line-row">
+                <span class="da-main-log__time">{{ logItem.time }}</span>
+                <span
+                  class="da-main-log__text"
+                  :class="{ 'da-main-log__text--expandable': isExpandable(logItem) }"
+                  @click="isExpandable(logItem) && toggleExpand(logItem)"
+                >
+                  {{ logItem.text }}
+                </span>
+                <span
+                  v-if="isExpandable(logItem)"
+                  class="da-main-log__chevron"
+                  @click="toggleExpand(logItem)"
+                >
+                  {{ logItem.expanded ? "▾" : "▸" }}
+                </span>
+              </div>
+              <pre v-if="isExpandable(logItem) && logItem.expanded" class="da-main-log__pre">{{
+                expandText(logItem)
+              }}</pre>
+            </div>
+            <div v-if="store.progressLogs.length === 0" class="da-main-log__empty">等待分析启动...</div>
+          </div>
+          <div
+            v-if="logMode === 'popup'"
+            class="da-main-log__resize da-main-log__resize--e"
+            @mousedown="startLogResize('e', $event)"
+          />
+          <div
+            v-if="logMode === 'popup'"
+            class="da-main-log__resize da-main-log__resize--s"
+            @mousedown="startLogResize('s', $event)"
+          />
+          <div
+            v-if="logMode === 'popup'"
+            class="da-main-log__resize da-main-log__resize--se"
+            @mousedown="startLogResize('se', $event)"
+          />
         </div>
-        <div v-if="store.progressLogs.length === 0" class="text-[var(--text-faint)] text-center py-3">
-          等待分析启动...
-        </div>
-      </div>
-      <div v-if="logMode === 'popup'" class="absolute right-[-1px] top-2 bottom-2 w-1.5 cursor-ew-resize" @mousedown="startLogResize('e', $event)"></div>
-      <div v-if="logMode === 'popup'" class="absolute bottom-[-1px] left-2 right-2 h-1.5 cursor-ns-resize" @mousedown="startLogResize('s', $event)"></div>
-      <div v-if="logMode === 'popup'" class="absolute right-[-2px] bottom-[-2px] w-3.5 h-3.5 cursor-nwse-resize" @mousedown="startLogResize('se', $event)"></div>
-      </div>
       </Teleport>
     </div>
-
   </div>
 </template>
 
@@ -87,7 +129,7 @@ import { Rect as GRect, Text as GText } from "@antv/g";
 import type { EdgeData, GraphData, NodeData } from "@antv/g6";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { storeToRefs } from "pinia";
-import { Document, Expand, Fold } from "@element-plus/icons-vue";
+import { ArrowDown, ArrowUp, Document, Expand, Fold } from "@element-plus/icons-vue";
 import { parseDetailSections, stripInferredSuffix } from "@/utils/detailSections";
 
 const store = useAnalysisStore();
@@ -121,7 +163,15 @@ function toggleExpand(logItem: any) {
 
 /* ── 4.1.1 执行日志浮动窗口（docked=覆盖画布底部的浮动栏；popup=可拖拽/可调整大小的独立弹出窗口） ── */
 const logMode = ref<"docked" | "popup">("docked");
+/** 停靠栏标题行高度（px），与 `.da-main-log__header` 一致 */
+const LOG_HEADER_H = 36;
 const LOG_DOCK_H = 180;
+const LOG_DOCK_MIN_H = LOG_HEADER_H + 72;
+const LOG_DOCK_MAX_H = 480;
+/** 停靠模式下是否仅保留标题栏（向下收起） */
+const logDockCollapsed = ref(false);
+/** 停靠模式展开时面板总高度（含标题栏） */
+const dockLogHeight = ref(LOG_DOCK_H);
 const POPUP_MIN_W = 360;
 const POPUP_MIN_H = 180;
 const popupPos = ref({ x: 48, y: 48 });
@@ -130,22 +180,56 @@ let logDragState:
   | { mode: "move" | "e" | "s" | "se"; mx: number; my: number; x: number; y: number; w: number; h: number }
   | null = null;
 
-const logPanelClass = computed(() =>
-  logMode.value === "docked"
-    ? "absolute inset-x-0 bottom-0 z-30 flex flex-col border-t border-[var(--border)] bg-[rgba(17,24,39,0.97)] shadow-[0_-6px_18px_rgba(0,0,0,0.45)]"
-    : "fixed z-[9999] flex flex-col rounded-md border border-[var(--border-strong)] bg-[var(--bg-sunken)] shadow-2xl"
-);
+const logPanelClass = computed(() => {
+  const base = logMode.value === "docked" ? "da-main-log--docked" : "da-main-log--popup";
+  if (logMode.value === "docked" && logDockCollapsed.value) {
+    return `${base} da-main-log--dock-collapsed`;
+  }
+  return base;
+});
 
 const logPanelStyle = computed(() =>
   logMode.value === "docked"
-    ? { height: `${LOG_DOCK_H}px` }
+    ? {
+        height: `${logDockCollapsed.value ? LOG_HEADER_H : dockLogHeight.value}px`,
+      }
     : {
         left: `${popupPos.value.x}px`,
         top: `${popupPos.value.y}px`,
         width: `${popupSize.value.w}px`,
         height: `${popupSize.value.h}px`,
-      }
+      },
 );
+
+function toggleLogDockCollapse() {
+  logDockCollapsed.value = !logDockCollapsed.value;
+}
+
+let dockResizeState: { startY: number; startH: number } | null = null;
+
+function onDockLogResizeMove(e: MouseEvent) {
+  if (!dockResizeState) return;
+  const dy = dockResizeState.startY - e.clientY;
+  dockLogHeight.value = Math.min(
+    LOG_DOCK_MAX_H,
+    Math.max(LOG_DOCK_MIN_H, dockResizeState.startH + dy),
+  );
+}
+
+function stopDockLogResize() {
+  dockResizeState = null;
+  window.removeEventListener("mousemove", onDockLogResizeMove);
+  window.removeEventListener("mouseup", stopDockLogResize);
+}
+
+function startDockLogResize(e: MouseEvent) {
+  if (logMode.value !== "docked" || logDockCollapsed.value) return;
+  e.preventDefault();
+  e.stopPropagation();
+  dockResizeState = { startY: e.clientY, startH: dockLogHeight.value };
+  window.addEventListener("mousemove", onDockLogResizeMove);
+  window.addEventListener("mouseup", stopDockLogResize);
+}
 
 function toggleLogPopup() {
   if (logMode.value === "docked") {
@@ -213,7 +297,7 @@ function beginLogDrag(e: MouseEvent, mode: "move" | "e" | "s" | "se") {
 
 function startLogHeaderDrag(e: MouseEvent) {
   const t = e.target as HTMLElement | null;
-  if (t && t.closest(".cursor-pointer, button")) return;
+  if (t && t.closest(".cursor-pointer, button, .da-main-log__toggle")) return;
   beginLogDrag(e, "move");
 }
 
@@ -958,18 +1042,313 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-.animate-spin {
-  animation: spin 1s linear infinite;
+<style scoped lang="scss">
+.da-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg);
+  user-select: none;
 }
 
-@keyframes spin {
+.da-main__canvas {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.da-main__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 23, 0.9);
+}
+
+.da-main__loading-inner {
+  text-align: center;
+}
+
+.da-main__loading-inner > * + * {
+  margin-top: 8px;
+}
+
+.da-main__spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  border: 4px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: da-main-spin 1s linear infinite;
+}
+
+.da-main__loading-text {
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-muted);
+}
+
+.da-main-log {
+  display: flex;
+  flex-direction: column;
+}
+
+.da-main-log--docked {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  border-top: 1px solid var(--border);
+  background: rgba(17, 24, 39, 0.97);
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.45);
+  transition: height 0.18s ease;
+}
+
+.da-main-log--dock-collapsed {
+  .da-main-log__header {
+    border-bottom: none;
+  }
+}
+
+.da-main-log--popup {
+  position: fixed;
+  z-index: 9999;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-sunken);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+}
+
+.da-main-log__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+
+  &--draggable {
+    cursor: move;
+  }
+}
+
+.da-main-log__doc-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--accent-text);
+}
+
+.da-main-log__title {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.da-main-log__count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-faint);
+}
+
+.da-main-log__badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+
+  &--pulse {
+    color: var(--accent-text);
+    animation: da-main-pulse 2s ease-in-out infinite;
+  }
+
+  &--done {
+    color: var(--green);
+  }
+}
+
+.da-main-log__phase {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-muted);
+}
+
+.da-main-log__toggle {
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+
+  &:hover {
+    color: var(--accent-text);
+  }
+
+  &:not(&--collapse) {
+    margin-left: auto;
+  }
+
+  &--collapse {
+    margin-left: auto;
+  }
+
+  &--collapse + & {
+    margin-left: 4px;
+  }
+}
+
+.da-main-log__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 14px;
+  font-family: ui-monospace, monospace;
+  font-size: 11.5px;
+}
+
+.da-main-log__line {
+  padding: 2px 0;
+  line-height: 1.5;
+
+  &--info {
+    color: var(--accent-text);
+  }
+
+  &--success {
+    color: var(--green);
+  }
+
+  &--error {
+    color: #f87171;
+  }
+
+  &--warning {
+    color: #fbbf24;
+  }
+}
+
+.da-main-log__line-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.da-main-log__time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.da-main-log__text {
+  flex: 1;
+  min-width: 0;
+
+  &--expandable {
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 2px;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--accent-text);
+    }
+  }
+}
+
+.da-main-log__chevron {
+  flex-shrink: 0;
+  padding: 0 2px;
+  opacity: 0.7;
+  cursor: pointer;
+  color: var(--text-faint);
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.da-main-log__pre {
+  margin: 4px 0 4px 0;
+  padding-left: 16px;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-2);
+  border-left: 1px solid var(--border);
+}
+
+.da-main-log__empty {
+  padding: 12px 0;
+  text-align: center;
+  color: var(--text-faint);
+}
+
+.da-main-log__resize {
+  position: absolute;
+
+  &--n {
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: ns-resize;
+  }
+
+  &--e {
+    right: -1px;
+    top: 8px;
+    bottom: 8px;
+    width: 6px;
+    cursor: ew-resize;
+  }
+
+  &--s {
+    bottom: -1px;
+    left: 8px;
+    right: 8px;
+    height: 6px;
+    cursor: ns-resize;
+  }
+
+  &--se {
+    right: -2px;
+    bottom: -2px;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+  }
+}
+
+@keyframes da-main-spin {
   from {
     transform: rotate(0deg);
   }
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes da-main-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
   }
 }
 </style>
