@@ -9,7 +9,22 @@
         <button class="graph-search-btn" type="button" @click="applyGraphSearch">搜索</button>
       </div>
 
-      <!-- 态势图谱情感 -->
+      <div class="graph-groupby">
+        <span class="graph-groupby-label">聚合维度</span>
+        <div class="graph-groupby-row">
+          <span
+            v-for="opt in groupByOptions"
+            :key="opt.value"
+            class="sentiment-chip"
+            :class="{ active: homeStore.graphFilter.groupBy === opt.value }"
+            @click="setGroupBy(opt.value)"
+          >
+            {{ opt.label }}
+          </span>
+        </div>
+      </div>
+
+      <!-- 态势图谱情感（筛选当前画布文章，与情感聚合维度可组合使用） -->
       <div class="graph-sentiment">
         <span v-for="opt in sentimentOptions" :key="opt.value" class="sentiment-chip"
           :class="{ active: homeStore.graphFilter.sentiment === opt.value }"
@@ -48,6 +63,13 @@
         <div class="legend-item"><span class="line line-author"></span>作者关联</div>
         <div class="legend-item"><span class="line line-topic"></span>主题关联</div>
       </div>
+      <div v-if="homeStore.graphFilter.groupBy === 'sentiment'" class="legend-group">
+        <div class="legend-title">情感聚合（大圆分组）</div>
+        <div class="legend-item"><span class="dot" style="background: #22c55e"></span>积极 · 圆形容器包裹组内文章</div>
+        <div class="legend-item"><span class="dot" style="background: #ef4444"></span>消极 · 圆形容器包裹组内文章</div>
+        <div class="legend-item"><span class="dot" style="background: #94a3b8"></span>中立 · 圆形容器包裹组内文章</div>
+        <div class="legend-item">点击大圆或圆内文章 → 右侧列出该组文章</div>
+      </div>
     </div>
   </div>
 </template>
@@ -57,8 +79,20 @@ import { ref } from "vue";
 import { useHomeStore } from "@/store/modules/homeStore";
 
 type GraphSentiment = "all" | "positive" | "negative" | "neutral";
+type GraphGroupBy = "geo" | "sentiment";
 
 const homeStore = useHomeStore();
+
+const groupByOptions: Array<{ label: string; value: GraphGroupBy }> = [
+  { label: "国家/作者", value: "geo" },
+  { label: "情感", value: "sentiment" },
+];
+
+const setGroupBy = (value: GraphGroupBy) => {
+  if (homeStore.graphFilter.groupBy === value) return;
+  homeStore.graphFilter.groupBy = value;
+  homeStore.selectedGraphAggId = null;
+};
 
 const sentimentOptions: Array<{ label: string; value: GraphSentiment }> = [
   { label: "全部", value: "all" },
@@ -148,6 +182,24 @@ const applyGraphSearch = () => {
   &:active {
     filter: brightness(0.94);
   }
+}
+
+.graph-groupby {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.graph-groupby-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: $text-3;
+}
+
+.graph-groupby-row {
+  display: flex;
+  gap: 6px;
 }
 
 .graph-sentiment {

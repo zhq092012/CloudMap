@@ -9,12 +9,13 @@
           </h2>
           <p v-if="aggInfo" class="mt-1 text-[12px] text-[#9ca3af]">
             <span v-if="aggInfo.kind === 'country'" class="text-[#93c5fd]">▲ 国家</span>
-            <span v-else class="text-[#a78bfa]">◆ 作者</span>
+            <span v-else-if="aggInfo.kind === 'author'" class="text-[#a78bfa]">◆ 作者</span>
+            <span v-else :style="{ color: sentimentColor(aggInfo.key) }">● 情感</span>
             ：<b class="text-[#e5e7eb]">{{ aggInfo.label }}</b>
             <span class="text-[#6b7280]"> · 共 {{ list.length }} 篇</span>
           </p>
           <p v-else class="mt-1 text-[12px] text-[#6b7280]">
-            点击图谱中的聚合点（▲ 国家 / ◆ 作者）查看对应文章
+            {{ aggHint }}
           </p>
         </div>
 
@@ -48,7 +49,7 @@
 
         <!-- 未选中：提示 -->
         <div v-else class="text-[12px] text-[#6b7280] text-center py-10 leading-relaxed">
-          尚未选择聚合点<br />在左侧图谱中点击 ▲ 国家 或 ◆ 作者 节点
+          尚未选择聚合点<br />{{ aggHint }}
         </div>
       </div>
     </div>
@@ -111,29 +112,60 @@ const sentimentLabel = (s?: string): string => {
   }
 };
 
-// 当前选中的聚合节点解析（country:X / author:Y）
+/** 与 GraphMain 相同的搜索 / 情感 / 异常筛选，避免右侧列表与画布不一致 */
+const filterArticlesLikeGraph = (base: any[]): any[] => {
+  const f = homeStore.graphFilter;
+  const kw = (f.search || "").trim().toLowerCase();
+  return base.filter((a: any) => {
+    if (f.onlyBreaking && a.isBreaking !== true) return false;
+    if (f.sentiment !== "all" && (a.sentiment || "neutral") !== f.sentiment) return false;
+    if (kw) {
+      const hay = `${a.title || ""} ${a.country || ""} ${a.author || ""} ${a.agencyName || ""} ${(a.topics || []).join(" ")}`.toLowerCase();
+      if (!hay.includes(kw)) return false;
+    }
+    return true;
+  });
+};
+
+// 当前选中的聚合节点解析（country:X / author:Y / sentiment:Z）
 const aggInfo = computed(() => {
   const id = homeStore.selectedGraphAggId;
   if (!id) return null;
   if (id.startsWith("country:")) {
     const key = id.slice("country:".length);
-    return { kind: "country", key, label: key };
+    return { kind: "country" as const, key, label: key };
   }
   if (id.startsWith("author:")) {
     const key = id.slice("author:".length);
-    return { kind: "author", key, label: key };
+    return { kind: "author" as const, key, label: key };
+  }
+  if (id.startsWith("sentiment:")) {
+    const key = id.slice("sentiment:".length);
+    return { kind: "sentiment" as const, key, label: sentimentLabel(key) };
   }
   return null;
 });
 
-// 该聚合点对应的文章列表（取当前作用域内的全部文章，与 GraphMain 的数据源一致）
+/** 未选中聚合点时的引导文案（随聚合维度切换） */
+const aggHint = computed(() =>
+  homeStore.graphFilter.groupBy === "sentiment"
+    ? "点击情感大圆（积极 / 消极 / 中立）或圆内文章查看列表"
+    : "点击图谱中的聚合点（▲ 国家 / ◆ 作者）查看对应文章",
+);
+
+// 该聚合点对应的文章列表（数据源与筛选项与 GraphMain 一致）
 const list = computed(() => {
   const info = aggInfo.value;
   if (!info) return [];
   const base: any[] = homeStore.clusterArticles ?? homeStore.articles;
-  return base.filter((a: any) =>
-    info.kind === "country" ? countryKeyOf(a) === info.key : authorKeyOf(a) === info.key,
-  );
+  const scoped = filterArticlesLikeGraph(base);
+  if (info.kind === "country") {
+    return scoped.filter((a: any) => countryKeyOf(a) === info.key);
+  }
+  if (info.kind === "author") {
+    return scoped.filter((a: any) => authorKeyOf(a) === info.key);
+  }
+  return scoped.filter((a: any) => (a.sentiment || "neutral") === info.key);
 });
 
 const articleDialogVisible = ref(false);

@@ -62,8 +62,10 @@ interface HomeState {
     sentiment: "all" | "positive" | "negative" | "neutral";
     /** 是否只显示 Breaking 文章 */
     onlyBreaking: boolean;
+    /** 图谱聚合维度：国家+作者锚点 / 情感（积极·消极·中立）锚点 */
+    groupBy: "geo" | "sentiment";
   };
-  /** 战场图谱中当前选中的聚合节点 id（country:X 或 author:Y）；为 null 表示未选中。
+  /** 战场图谱中当前选中的聚合节点 id（country:X、author:Y 或 sentiment:Z）；为 null 表示未选中。
    *  RightGraphList 据此列出该聚合点对应的文章。 */
   selectedGraphAggId: string | null;
   /** 文章接口手动刷新函数（由 Map.vue 注册，供图谱右上角「刷新」按钮调用）；
@@ -948,7 +950,7 @@ export const useHomeStore = defineStore("home", {
     clusterArticles: null,
     selectedClusterIds: null,
     mapLeftTab: "elements",
-    graphFilter: { search: "", sentiment: "all", onlyBreaking: false },
+    graphFilter: { search: "", sentiment: "all", onlyBreaking: false, groupBy: "sentiment" },
     selectedGraphAggId: null,
     articlesRefetch: null,
     anomaliesRefetch: null,

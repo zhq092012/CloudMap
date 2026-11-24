@@ -22,6 +22,15 @@
         <div class="info-type" v-if="selectedNode.authorName">作者：{{ selectedNode.authorName }}</div>
         <div class="info-type">关联文章：{{ selectedNode.count }} 篇</div>
       </template>
+      <template v-else-if="selectedNode.kind === 'sentiment'">
+        <div class="info-type">类型：情感聚合节点</div>
+        <div class="info-type">
+          情感：<span :style="{ color: sentimentColor(selectedNode.sentiment) }">{{
+            sentimentLabel(selectedNode.sentiment)
+          }}</span>
+        </div>
+        <div class="info-type">关联文章：{{ selectedNode.count }} 篇</div>
+      </template>
       <template v-else>
         <div class="info-type">国家：{{ selectedNode.country || "未知" }}</div>
         <div class="info-type">作者：{{ selectedNode.authorName || "未知" }}</div>
@@ -92,16 +101,47 @@ const sentimentLabel = (s?: string): string => {
   }
 };
 
+/** 情感聚合锚点固定三类（与后端 sentiment 字段对齐） */
+const SENTIMENT_GROUP_KEYS = ["positive", "negative", "neutral"] as const;
+
+/** 情感 Circle Combo 填充色（大圆分组底） */
+const sentimentComboFill = (s: string): string => {
+  switch (s) {
+    case "positive":
+      return "rgba(34, 197, 94, 0.12)";
+    case "negative":
+      return "rgba(239, 68, 68, 0.12)";
+    default:
+      return "rgba(148, 163, 184, 0.12)";
+  }
+};
+
+/** 组内力导向参数（geo 全图 / 情感 combo 内层共用） */
+const graphForceLayout = {
+  type: "force" as const,
+  preventOverlap: true,
+  collideStrength: 1,
+  nodeSize: 140,
+  gravity: 1.5,
+  factor: 1.2,
+  nodeStrength: 1800,
+  edgeStrength: 1,
+  linkDistance: 280,
+  maxIteration: 600,
+};
+
 const authorKeyOf = (a: any): string => a.author || a.agencyName || a.source || "未知来源";
 const countryKeyOf = (a: any): string => a.country || "未知国家";
 
-// 将 store 中的文章构建为按「国家 + 作者」聚合的关系网：
-// - 国家聚合锚点（金色三角形）、作者聚合锚点（紫色菱形）
-// - 文章节点形状按聚合归属：同作者（组内≥2）=> 菱形；否则同国家（组内≥2）=> 三角形；独立 => 正方形
-// - 边：文章→国家锚点（国家关联，金）、文章→作者锚点（作者关联，紫）、同主题文章链状相连（主题关联，蓝虚线）
+// 将 store 中的文章构建为关系网：
+// - groupBy=geo：国家锚点（金三角）+ 作者锚点（紫菱形）
+// - groupBy=sentiment：积极 / 消极 / 中立 三个 Circle Combo（大圆包裹组内文章）
+// - 文章节点形状按国家/作者组内规模决定；颜色按情感 / 异常
+// - 主题关联：同 topic 链状相连（蓝虚线）
 const buildArticleGraph = () => {
   const base: any[] = (store.clusterArticles ?? store.articles) || [];
   const f = store.graphFilter;
+  const groupBy = f.groupBy === "sentiment" ? "sentiment" : "geo";
 
   // 1) 搜索 / 情感 / 仅异常 过滤
   const kw = (f.search || "").trim().toLowerCase();
@@ -122,15 +162,24 @@ const buildArticleGraph = () => {
 
   const nodes: any[] = [];
   const edges: any[] = [];
+  const combos: any[] = [];
+  const sentimentMemberIds: Record<(typeof SENTIMENT_GROUP_KEYS)[number], string[]> = {
+    positive: [],
+    negative: [],
+    neutral: [],
+  };
 
   // 聚合组计数（用于决定文章节点形状）
   const countryGroup = new Map<string, number>();
   const authorGroup = new Map<string, number>();
+  const sentimentGroup = new Map<string, number>();
   arts.forEach((a: any) => {
     const c = countryKeyOf(a);
     const an = authorKeyOf(a);
+    const s = a.sentiment || "neutral";
     countryGroup.set(c, (countryGroup.get(c) || 0) + 1);
     authorGroup.set(an, (authorGroup.get(an) || 0) + 1);
+    sentimentGroup.set(s, (sentimentGroup.get(s) || 0) + 1);
   });
 
   // 主题关联：每个 topic 串成一条链（首个含该 topic 的文章为锚点）
@@ -145,14 +194,14 @@ const buildArticleGraph = () => {
     const fill = isBreaking ? "#ef4444" : sentimentColor(sentiment);
     const stroke = isBreaking ? "#7f1d1d" : "#334155";
     const rawTitle = a.title || "无标题";
-    const label = rawTitle.length > 16 ? rawTitle.slice(0, 16) + "…" : rawTitle;
+    const label = rawTitle.length > 18 ? rawTitle.slice(0, 18) + "…" : rawTitle;
 
     // 文章节点形状：同作者组(≥2)=菱形，否则同国家组(≥2)=三角形，独立=正方形
     const aCount = authorGroup.get(authorName) || 0;
     const cCount = countryGroup.get(c) || 0;
     const shape = aCount >= 2 ? "diamond" : cCount >= 2 ? "triangle" : "rect";
 
-    nodes.push({
+    const nodeDatum: any = {
       id,
       type: shape,
       data: {
@@ -167,39 +216,49 @@ const buildArticleGraph = () => {
         publishedAt: a.publishedAt || "",
       },
       style: {
-        size: isBreaking ? 16 : 11,
+        size: isBreaking ? 54 : 50,
         fill,
         stroke,
-        lineWidth: isBreaking ? 2 : 1,
+        lineWidth: isBreaking ? 3 : 2,
         zIndex: 1,
         labelText: label,
         labelFill: "#e2e8f0",
-        labelFontSize: 10,
+        labelFontSize: 50,
+        labelFontWeight: 600,
         labelPlacement: "bottom",
         labelBackground: true,
-        labelBackgroundFill: "rgba(11,15,26,0.75)",
-        labelBackgroundRadius: 3,
-        labelPadding: [2, 4],
+        labelBackgroundFill: "rgba(11,15,26,0.88)",
+        labelBackgroundRadius: 6,
+        labelPadding: [4, 8],
       },
-    });
+    };
+    if (groupBy === "sentiment") {
+      nodeDatum.combo = `combo-sentiment-${sentiment}`;
+      const sk = sentiment as (typeof SENTIMENT_GROUP_KEYS)[number];
+      if (SENTIMENT_GROUP_KEYS.includes(sk)) {
+        sentimentMemberIds[sk].push(id);
+      } else {
+        sentimentMemberIds.neutral.push(id);
+      }
+    }
+    nodes.push(nodeDatum);
 
-    // 国家关联边：文章 → 所属国家锚点（金色实线）
-    edges.push({
-      id: `e-c:${id}`,
-      source: id,
-      target: `country:${c}`,
-      type: "line",
-      style: { stroke: "rgba(193,164,101,1)", lineWidth: 1, opacity: 1 },
-    });
-
-    // 作者关联边：文章 → 所属作者锚点（紫色实线）
-    edges.push({
-      id: `e-a:${id}`,
-      source: id,
-      target: `author:${authorName}`,
-      type: "line",
-      style: { stroke: "rgba(167,139,250,1)", lineWidth: 1, opacity: 1 },
-    });
+    if (groupBy === "geo") {
+      edges.push({
+        id: `e-c:${id}`,
+        source: id,
+        target: `country:${c}`,
+        type: "line",
+        style: { stroke: "rgba(193,164,101,1)", lineWidth: 1, opacity: 1 },
+      });
+      edges.push({
+        id: `e-a:${id}`,
+        source: id,
+        target: `author:${authorName}`,
+        type: "line",
+        style: { stroke: "rgba(167,139,250,1)", lineWidth: 1, opacity: 1 },
+      });
+    }
 
     // 主题关联边：与首个含该 topic 的文章相连（链状，蓝色虚线）
     (a.topics || []).forEach((tp: string) => {
@@ -218,64 +277,261 @@ const buildArticleGraph = () => {
     });
   });
 
-  // 聚合锚点统一在文章节点之后追加 → 绘制在最上层（zIndex 高），
-  // 避免被埋在文章星型簇中心而点不中；同时加大尺寸 + 光晕，便于识别与点击。
-  // 国家聚合锚点（金色三角形，带光晕）
-  [...countryGroup.keys()].forEach((c) => {
-    const count = countryGroup.get(c)!;
-    nodes.push({
-      id: `country:${c}`,
-      type: "triangle",
-      data: { title: c, rawType: "country", kind: "country", count },
-      style: {
-        size: 46 + Math.min(count, 30),
-        fill: "#c1a465",
-        stroke: "#fff3d6",
-        lineWidth: 3,
-        zIndex: 100,
-        shadowColor: "rgba(193,164,101,0.65)",
-        shadowBlur: 18,
-        labelText: `${c} (${count})`,
-        labelFill: "#fde9b8",
-        labelFontSize: 13,
-        labelPlacement: "bottom",
-        labelFontWeight: 700,
-        labelBackground: false,
-      },
+  // 聚合锚点统一在文章节点之后追加 → 绘制在最上层（zIndex 高），便于点击。
+  if (groupBy === "geo") {
+    [...countryGroup.keys()].forEach((c) => {
+      const count = countryGroup.get(c)!;
+      nodes.push({
+        id: `country:${c}`,
+        type: "triangle",
+        data: { title: c, rawType: "country", kind: "country", count },
+        style: {
+          size: 56 + Math.min(count, 28),
+          fill: "#c1a465",
+          stroke: "#fff3d6",
+          lineWidth: 3.5,
+          zIndex: 100,
+          shadowColor: "rgba(193,164,101,0.65)",
+          shadowBlur: 20,
+          labelText: `${c} (${count})`,
+          labelFill: "#fde9b8",
+          labelFontSize: 15,
+          labelPlacement: "bottom",
+          labelFontWeight: 700,
+          labelBackground: false,
+        },
+      });
     });
-  });
 
-  // 作者聚合锚点（紫色菱形，带光晕）
-  [...authorGroup.keys()].forEach((name) => {
-    const count = authorGroup.get(name)!;
-    nodes.push({
-      id: `author:${name}`,
-      type: "diamond",
-      data: { title: name, rawType: "author", kind: "author", count, authorName: name },
-      style: {
-        size: 32 + Math.min(count, 22),
-        fill: "#a78bfa",
-        stroke: "#ede9fe",
-        lineWidth: 3,
-        zIndex: 100,
-        shadowColor: "rgba(167,139,250,0.65)",
-        shadowBlur: 18,
-        labelText: `${name} (${count})`,
-        labelFill: "#f3eefe",
-        labelFontSize: 12,
-        labelPlacement: "bottom",
-        labelFontWeight: 700,
-        labelBackground: false,
-      },
+    [...authorGroup.keys()].forEach((name) => {
+      const count = authorGroup.get(name)!;
+      nodes.push({
+        id: `author:${name}`,
+        type: "diamond",
+        data: { title: name, rawType: "author", kind: "author", count, authorName: name },
+        style: {
+          size: 42 + Math.min(count, 20),
+          fill: "#a78bfa",
+          stroke: "#ede9fe",
+          lineWidth: 3.5,
+          zIndex: 100,
+          shadowColor: "rgba(167,139,250,0.65)",
+          shadowBlur: 20,
+          labelText: `${name} (${count})`,
+          labelFill: "#f3eefe",
+          labelFontSize: 14,
+          labelPlacement: "bottom",
+          labelFontWeight: 700,
+          labelBackground: false,
+        },
+      });
     });
-  });
+  } else {
+    SENTIMENT_GROUP_KEYS.forEach((s) => {
+      const count = sentimentGroup.get(s) || 0;
+      combos.push({
+        id: `combo-sentiment-${s}`,
+        type: "circle",
+        data: {
+          kind: "sentiment",
+          sentiment: s,
+          label: sentimentLabel(s),
+          count,
+        },
+        style: {
+          padding: 40,
+          fill: sentimentComboFill(s),
+          fillOpacity: 0.45,
+          stroke: sentimentColor(s),
+          strokeOpacity: 0.95,
+          lineWidth: 3,
+          lineDash: [0],
+          labelText: `${sentimentLabel(s)} · ${count} 篇`,
+          labelFill: "#f1f5f9",
+          labelFontSize: 70,
+          labelFontWeight: 700,
+          labelPlacement: "top",
+          labelBackground: true,
+          labelBackgroundFill: "rgba(15, 23, 42, 0.88)",
+          labelBackgroundRadius: 8,
+          labelPadding: [8, 14],
+        },
+      });
+    });
+  }
 
-  return { nodes, edges, total: base.length, shown: arts.length };
+  return {
+    nodes,
+    edges,
+    combos,
+    sentimentMemberIds,
+    total: base.length,
+    shown: arts.length,
+    groupBy,
+  };
 };
+
+/** 情感分组外轮廓（布局完成后随节点位置包裹，强化「成簇」观感） */
+const buildSentimentHullPlugins = (memberIds: Record<(typeof SENTIMENT_GROUP_KEYS)[number], string[]>) =>
+  SENTIMENT_GROUP_KEYS.filter((s) => memberIds[s].length > 0).map((s) => ({
+    type: "hull",
+    key: `sentiment-hull-${s}`,
+    members: memberIds[s],
+    padding: 48,
+    concavity: Infinity,
+    corner: "rounded" as const,
+    fill: sentimentComboFill(s),
+    fillOpacity: 0.22,
+    stroke: sentimentColor(s),
+    strokeOpacity: 0.85,
+    lineWidth: 2.5,
+  }));
+
+/** @antv/layout v2 combo-combined：外层 grid 摆放大圆，内层 force 排文章 */
+/** 当前关系高亮的焦点节点 id；点空白或切换节点时重置 */
+let focusedGraphNodeId: string | null = null;
+/** 图谱初始节点 / 边样式快照，用于恢复高亮（主题关联边须保留 lineDash） */
+const nodeStyleBase = new Map<string, Record<string, unknown>>();
+const edgeStyleBase = new Map<string, Record<string, unknown>>();
+
+/** 记录构建数据中的 style，作为高亮还原基准 */
+const captureGraphStyleBaseline = (nodes: any[], edges: any[]) => {
+  nodeStyleBase.clear();
+  edgeStyleBase.clear();
+  focusedGraphNodeId = null;
+  nodes.forEach((n) => {
+    if (n.id && n.style) nodeStyleBase.set(n.id, { ...n.style });
+  });
+  edges.forEach((e) => {
+    if (e.id && e.style) edgeStyleBase.set(e.id, { ...e.style });
+  });
+};
+
+/** 高亮增量样式：不设置 lineDash，避免主题虚线被改成实线 */
+const graphHighlightStyle = {
+  focusNode: { opacity: 1, lineWidth: 5, shadowBlur: 26, shadowColor: "rgba(248,250,252,0.5)" },
+  neighborNode: { opacity: 1, lineWidth: 3.5 },
+  dimNode: { opacity: 0.18 },
+  relatedEdge: { opacity: 1, lineWidth: 2.5 },
+  dimEdge: { opacity: 0.1, lineWidth: 1 },
+} as const;
+
+/** 取消节点关系高亮，恢复全部节点与边的初始样式 */
+const resetGraphRelationHighlight = () => {
+  if (!graph) return;
+  focusedGraphNodeId = null;
+  try {
+    const nodes = graph.getNodeData();
+    if (nodes.length) {
+      graph.updateNodeData(
+        nodes.map((n) => ({
+          id: n.id,
+          style: { ...(nodeStyleBase.get(n.id) ?? {}) },
+        })),
+      );
+    }
+    const edgePatches = graph
+      .getEdgeData()
+      .filter((e) => e.id)
+      .map((e) => ({
+        id: e.id as string,
+        style: { ...(edgeStyleBase.get(e.id as string) ?? {}) },
+      }));
+    if (edgePatches.length) graph.updateEdgeData(edgePatches);
+  } catch {
+    /* 实例重建中忽略 */
+  }
+};
+
+/**
+ * 高亮当前节点及一度相邻节点、关联边；其余元素淡化。
+ * 先 reset 再应用，保证切换节点时取消上一次高亮。
+ */
+const applyGraphRelationHighlight = (nodeId: string) => {
+  if (!graph) return;
+  resetGraphRelationHighlight();
+  focusedGraphNodeId = nodeId;
+
+  const neighborIds = new Set<string>();
+  const relatedEdgeIds = new Set<string>();
+
+  try {
+    graph.getEdgeData().forEach((edge) => {
+      const eid = edge.id;
+      if (!eid) return;
+      const src = String(edge.source);
+      const tgt = String(edge.target);
+      if (src === nodeId || tgt === nodeId) {
+        relatedEdgeIds.add(eid);
+        if (src !== nodeId) neighborIds.add(src);
+        if (tgt !== nodeId) neighborIds.add(tgt);
+      }
+    });
+
+    graph.updateNodeData(
+      graph.getNodeData().map((n) => {
+        const base = { ...(nodeStyleBase.get(n.id) ?? {}) };
+        if (n.id === nodeId) {
+          return { id: n.id, style: { ...base, ...graphHighlightStyle.focusNode } };
+        }
+        if (neighborIds.has(n.id)) {
+          return { id: n.id, style: { ...base, ...graphHighlightStyle.neighborNode } };
+        }
+        return { id: n.id, style: { ...base, ...graphHighlightStyle.dimNode } };
+      }),
+    );
+
+    const edgePatches = graph
+      .getEdgeData()
+      .filter((e) => e.id)
+      .map((e) => {
+        const id = e.id as string;
+        const base = { ...(edgeStyleBase.get(id) ?? {}) };
+        if (relatedEdgeIds.has(id)) {
+          return { id, style: { ...base, ...graphHighlightStyle.relatedEdge } };
+        }
+        return { id, style: { ...base, ...graphHighlightStyle.dimEdge } };
+      });
+    if (edgePatches.length) graph.updateEdgeData(edgePatches);
+  } catch {
+    /* 实例重建中忽略 */
+  }
+};
+
+const buildSentimentComboLayout = () => ({
+  type: "combo-combined",
+  comboPadding: 40,
+  comboSpacing: 140,
+  layout: (comboId: string | null) => {
+    if (comboId == null) {
+      return {
+        type: "grid",
+        cols: 3,
+        rows: 1,
+        sortBy: "id",
+        preventOverlap: true,
+        nodeSpacing: 100,
+      };
+    }
+    return {
+      type: "force",
+      preventOverlap: true,
+      collideStrength: 1,
+      nodeSize: 135,
+      gravity: 0.6,
+      factor: 0.9,
+      nodeStrength: 900,
+      edgeStrength: 0.55,
+      linkDistance: 180,
+      maxIteration: 450,
+    };
+  },
+});
 
 const destroyGraph = () => {
   settleTimers.forEach((t) => clearTimeout(t));
   settleTimers = [];
+  focusedGraphNodeId = null;
   if (graph) {
     try {
       graph.destroy();
@@ -303,11 +559,14 @@ const render = async () => {
     return;
   }
   isEmpty.value = false;
+  captureGraphStyleBaseline(data.nodes, data.edges);
 
   // 数据指纹：节点 id + 形状 + 填充色。相同视为「数据未变」
-  const dataKey = data.nodes
-    .map((n: any) => `${n.id}|${n.type}|${n.style?.fill}`)
-    .join("~");
+  const dataKey = `${store.graphFilter.groupBy}|${(data.combos ?? [])
+    .map((c: any) => c.id)
+    .join(",")}|${data.nodes
+    .map((n: any) => `${n.id}|${n.type}|${n.style?.fill}|${n.combo ?? ""}`)
+    .join("~")}`;
 
   // 快速路径：实例仍在且数据未变（如切 tab 回来 / 文章轮询返回相同数据）→
   // 只恢复尺寸并自适应，不销毁重建、不重跑力导向布局，秒开
@@ -335,27 +594,31 @@ const render = async () => {
     // 测量容器尺寸；若因布局时机拿到 0，则回退到父元素 / 视口尺寸，避免画布高度塌陷
     const cw = el.clientWidth || el.parentElement?.clientWidth || window.innerWidth;
     const ch = el.clientHeight || el.parentElement?.clientHeight || window.innerHeight;
+    const graphData = {
+      nodes: data.nodes,
+      edges: data.edges,
+      combos: data.combos ?? [],
+    };
+    const isSentimentCombo = data.groupBy === "sentiment";
     graph = new Graph({
       container: el,
       width: cw,
       height: ch,
       autoResize: true,
       autoFit: "view",
-      data,
-      layout: {
-        type: "force",
-        // 关键修复：nodeStrength 必须为正（斥力权重 = weightParam * nodeStrength），
-        // 之前写成负数 -60 会变成「吸力」，导致所有节点聚成一团。
-        preventOverlap: true,
-        collideStrength: 1,
-        nodeSize: 55, // 碰撞直径（含留白），防止节点重叠
-        gravity: 1.5, // 低中心引力 → 节点向四周散开，而不是被吸向中心
-        factor: 1.2, // 库伦斥力系数，越大越分散
-        nodeStrength: 1800, // 斥力（正）= 节点互相推开
-        edgeStrength: 1,
-        linkDistance: 280, // 连接边更长，让聚类之间分开
-        maxIteration: 600, // 充分迭代让布局收敛、分散稳定
-      },
+      data: graphData,
+      layout: isSentimentCombo ? buildSentimentComboLayout() : { ...graphForceLayout },
+      combo: isSentimentCombo
+        ? {
+            type: "circle",
+            style: {
+              fillOpacity: 0.4,
+              strokeOpacity: 0.95,
+              lineWidth: 3,
+            },
+          }
+        : undefined,
+      plugins: isSentimentCombo ? buildSentimentHullPlugins(data.sentimentMemberIds) : [],
       // 注意：不要设置 node: { type: "circle" } 之类的全局默认——
       // G6 v5 的 getElementType 取 `options[node].type || datum.type`，
       // 全局默认会覆盖数据里每个节点的 type，导致三角形/菱形/正方形全部变圆形。
@@ -387,18 +650,41 @@ const render = async () => {
         if (raw.kind === "country" || raw.kind === "author") {
           store.selectedGraphAggId = id;
         } else if (raw.kind === "article") {
-          // 文章节点本身不是聚合点，但点击它也应给出相关文章：
-          // 回退到其所属「国家聚合」，使右侧列出该国全部文章（任何节点点击都有结果）
-          store.selectedGraphAggId = `country:${raw.country || "未知国家"}`;
+          if (store.graphFilter.groupBy === "sentiment") {
+            store.selectedGraphAggId = `sentiment:${raw.sentiment || "neutral"}`;
+          } else {
+            store.selectedGraphAggId = `country:${raw.country || "未知国家"}`;
+          }
         }
+        applyGraphRelationHighlight(id);
       } catch {
         /* 节点不存在时忽略 */
+      }
+    });
+
+    graph.on("combo:click", (evt: any) => {
+      try {
+        const id = evt.itemId ?? evt.target?.id;
+        if (!id) return;
+        const d = graph?.getComboData(id);
+        const raw = (d?.data || {}) as Record<string, any>;
+        if (raw.kind !== "sentiment") return;
+        store.selectedGraphAggId = `sentiment:${raw.sentiment}`;
+        selectedNode.value = {
+          title: String(raw.label ?? sentimentLabel(String(raw.sentiment))),
+          kind: "sentiment",
+          sentiment: raw.sentiment as string,
+          count: raw.count as number,
+        };
+      } catch {
+        /* ignore */
       }
     });
 
     graph.on("canvas:click", () => {
       selectedNode.value = null;
       store.selectedGraphAggId = null;
+      resetGraphRelationHighlight();
     });
 
     await graph.render();
@@ -455,6 +741,7 @@ watch(
       // 切回时 render() 走快速路径（数据未变即 setSize+fitView 秒开，不重跑力导向布局）
       selectedNode.value = null;
       store.selectedGraphAggId = null;
+      resetGraphRelationHighlight();
       if (renderTimer) clearTimeout(renderTimer);
       settleTimers.forEach((t) => clearTimeout(t));
       settleTimers = [];
