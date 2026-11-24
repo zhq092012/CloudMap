@@ -270,7 +270,7 @@ async function doRenderGraph(fitView = false) {
   if (fitView) {
     const nodes = graphInstance.getNodeData();
     if (nodes && nodes.length > 0) {
-      await graphInstance.fitView();
+      await graphInstance.fitView(undefined, false);
     }
   }
 }
@@ -901,8 +901,11 @@ onMounted(() => {
         rankdir: "LR",
         nodesep: 14,
         ranksep: 160,
+        /** 布局结果一次性落位，避免节点从原点飞入 */
+        animation: false,
       },
-      animation: true,
+      /** 关闭全局元素/视口动画（加载与刷新时直接呈现最终态） */
+      animation: false,
       behaviors: ["drag-canvas", "zoom-canvas", "drag-element"],
     });
 
