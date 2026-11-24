@@ -227,6 +227,21 @@ code {
   color: #93c5fd !important;
 }
 
+/* 地图底部 Dock「查看报告」：居中于左右侧栏之间的主视区（MapLeft w-90=360px，RightPanel w-95=380px） */
+.map-dock-report-overlay .map-dock-report-dialog.el-dialog {
+  margin: 0 !important;
+  position: fixed;
+  top: 50%;
+  left: calc(360px + (100vw - 360px - 380px) / 2);
+  transform: translate(-50%, -50%) !important;
+  max-height: calc(100vh - 3rem);
+}
+
+.map-dock-report-overlay .map-dock-report-dialog .el-dialog__body {
+  overflow: hidden;
+  max-height: calc(100vh - 7rem);
+}
+
 /* 确认框 / 提示框 */
 .el-message-box {
   background-color: var(--bg-panel) !important;

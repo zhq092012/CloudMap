@@ -108,12 +108,33 @@
       <button type="button" class="toolbar-clear" @click="selectedIds = []">取消选择</button>
     </footer>
     </template>
+
+    <el-dialog
+      v-model="reportDialogVisible"
+      plain
+      width="1160px"
+      append-to-body
+      align-center
+      :close-on-click-modal="false"
+      modal-class="map-dock-report-overlay"
+      class="map-dock-report-dialog"
+      destroy-on-close
+      title="综合态势报告"
+    >
+      <SituationReportDialog
+        @close="reportDialogVisible = false"
+        @map-locate="onReportMapLocate"
+        @export-pdf="onReportExportPdf"
+        @export-report="onReportExport"
+      />
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
+import SituationReportDialog from "@/components/Dialogs/SituationReportDialog.vue";
 import { mapNodeDockMock, type MapNodeDockMock } from "@/mock/mapNodeDock";
 
 /** 收起状态持久化键 */
@@ -165,6 +186,9 @@ const filterTabs = computed(() =>
 /** 批量勾选的行 id */
 const selectedIds = ref<string[]>([]);
 
+/** 综合态势报告详情弹窗 */
+const reportDialogVisible = ref(false);
+
 onMounted(() => {
   try {
     const stored = localStorage.getItem(COLLAPSE_STORAGE_KEY);
@@ -207,7 +231,19 @@ const toggleCollapsed = () => {
 };
 
 const onViewReport = () => {
-  ElMessage.info("查看报告（Mock）");
+  reportDialogVisible.value = true;
+};
+
+const onReportMapLocate = () => {
+  ElMessage.info("地图定位（Mock，待接业务）");
+};
+
+const onReportExportPdf = () => {
+  ElMessage.info("导出 PDF（Mock）");
+};
+
+const onReportExport = () => {
+  ElMessage.info("导出报告（Mock）");
 };
 
 const onTodoView = (id: string) => {
@@ -608,4 +644,5 @@ const onBatch = (action: string) => {
   background: #2d3a4d;
   border-radius: 3px;
 }
+
 </style>

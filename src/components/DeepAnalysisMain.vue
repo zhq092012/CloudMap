@@ -473,7 +473,7 @@ function buildNodeCard(node: any) {
   const pruned = String(node?.deleteStatus) === "1";
   const metaText = `置信度 ${conf} · 状态 ${pruned ? "已剪枝" : "正常"}`;
 
-  // 校验评估节点额外展示「风险等级 + 是否推荐」（口径与右栏 DeepAnalysisRightPanel_C 一致）
+  // 校验评估节点额外展示「风险等级 + 是否推荐」（口径与右栏 DeepAnalysisEvaluationRightPanel 一致）
   const isEvaluation = node.type === "Evaluation";
   const riskRaw = String(parsed?.riskLevel ?? node?.riskLevel ?? "").trim().toUpperCase();
   const riskLevel = riskRaw || "MEDIUM";

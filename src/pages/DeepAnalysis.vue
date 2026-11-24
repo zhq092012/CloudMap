@@ -5,11 +5,12 @@ import { ElMessageBox } from "element-plus";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { useHomeStore } from "@/store/modules/homeStore";
 import { listIncompleteWorkflows } from "@/api/deep-analysis";
-import DeepAnalysisRightPanel from "@/components/DeepAnalysisRightPanel.vue";
-import DeepAnalysisRightPanel_A from "@/components/DeepAnalysisRightPanel_A.vue";
-import DeepAnalysisRightPanel_B from "@/components/DeepAnalysisRightPanel_B.vue";
-import DeepAnalysisRightPanel_C from "@/components/DeepAnalysisRightPanel_C.vue";
-
+import DeepAnalysisIntentRightPanel from "@/components/deepAnalysis/DeepAnalysisIntentRightPanel.vue";
+import DeepAnalysisAttackRightPanel from "@/components/deepAnalysis/DeepAnalysisAttackRightPanel.vue";
+import DeepAnalysisDefenseRightPanel from "@/components/deepAnalysis/DeepAnalysisDefenseRightPanel.vue";
+import DeepAnalysisEvaluationRightPanel from "@/components/deepAnalysis/DeepAnalysisEvaluationRightPanel.vue";
+import DeepAnalysisLeftPanel from "@/components/DeepAnalysisLeftPanel.vue";
+import DeepAnalysisMain from "@/components/DeepAnalysisMain.vue";
 const store = useAnalysisStore();
 const homeStore = useHomeStore();
 const route = useRoute();
@@ -57,10 +58,10 @@ onMounted(async () => {
 
     <DeepAnalysisMain class="flex-1" />
 
-    <DeepAnalysisRightPanel v-if="store.analysisType === 'default'" />
-    <DeepAnalysisRightPanel_A v-if="store.analysisType === 'attack'" />
-    <DeepAnalysisRightPanel_B v-if="store.analysisType === 'defense'" />
-    <DeepAnalysisRightPanel_C v-if="store.analysisType === 'evaluation'" />
+    <DeepAnalysisIntentRightPanel v-if="store.analysisType === 'default'" />
+    <DeepAnalysisAttackRightPanel v-if="store.analysisType === 'attack'" />
+    <DeepAnalysisDefenseRightPanel v-if="store.analysisType === 'defense'" />
+    <DeepAnalysisEvaluationRightPanel v-if="store.analysisType === 'evaluation'" />
   </div>
 </template>
 

@@ -98,6 +98,14 @@ const offlineTilesVisible = ref(true);
 
 // 中东离线瓦片底图（来自 public/tiles，由 scripts/download_tiles.py 预下载）
 let offlineTileLayer: LeafletHandle | null = null;
+/** 道路 / 地名标注叠图（Esri 参考图层，默认不加载） */
+let roadLabelTileLayer: LeafletHandle | null = null;
+const roadLabelsVisible = ref(false);
+/** 无 geo 边界时的默认全览范围（中东） */
+const DEFAULT_OVERVIEW_BOUNDS: [[number, number], [number, number]] = [
+  [12, 24],
+  [42, 65],
+];
 
 // ─── 飞机数据：从 redroom CMS (getSiteContent) 获取 aircraft 值 + 实时航空数据 ───
 // 处于「战场图谱」模式（mapLeftTab === 'third'）时不再调用 /api/data/aviation 与 /api/data/cms
@@ -823,7 +831,7 @@ const fetchWarningData = async () => {
           score: Number(item.deviationScore) || 0,
           confidence: Math.round(Number(item.confidence) || 0),
           threatLevel: item.threatLevel ?? "",
-          // 「异常征候」左栏分组所需：状态 + 创建时间（原始字符串，时间判断在 MapLeft 内做）
+          // 「异常征候」左栏分组所需：状态 + 创建时间（原始字符串，时间判断在 AnomalySignsLeftPanel 内做）
           status: item.status ?? "",
           createdAt: item.createdAt || item.eventTime || "",
           // 「异常」分组按 WarningLeftPanel 的列表口径展示，需要异常类型
@@ -881,6 +889,15 @@ const initMap = async () => {
   });
   if (offlineTilesVisible.value) offlineTileLayer.addTo(map);
 
+  roadLabelTileLayer = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    {
+      maxZoom: 16,
+      opacity: 0.88,
+      className: "road-label-tile-layer",
+    },
+  );
+
   // 读取 public 下 geojson
   const res = await fetch("/world.geojson");
   const geoData = await res.json();
@@ -915,6 +932,36 @@ const initMap = async () => {
       });
     },
   }).addTo(map);
+
+  homeStore.mapViewportApi = {
+    zoomIn: () => {
+      map?.zoomIn();
+    },
+    zoomOut: () => {
+      map?.zoomOut();
+    },
+    fitOverview: () => {
+      if (!map) return;
+      try {
+        if (geoLayer?.getBounds) {
+          map.fitBounds(geoLayer.getBounds(), { padding: [32, 32], maxZoom: 6 });
+          return;
+        }
+      } catch {
+        /* fallback */
+      }
+      map.fitBounds(DEFAULT_OVERVIEW_BOUNDS, { padding: [32, 32], maxZoom: 6 });
+    },
+    setRoadLabelsVisible: (visible: boolean) => {
+      roadLabelsVisible.value = visible;
+      if (!map || !roadLabelTileLayer) return;
+      if (visible) {
+        if (!map.hasLayer(roadLabelTileLayer)) roadLabelTileLayer.addTo(map);
+      } else if (map.hasLayer(roadLabelTileLayer)) {
+        map.removeLayer(roadLabelTileLayer);
+      }
+    },
+  };
 
   // 渲染设施点位
   facilitiesLayer = L.layerGroup();
@@ -1098,6 +1145,7 @@ onMounted(async () => {
 onUnmounted(() => {
   // 兜底：离开页面时无论如何关闭 loading 遮罩
   loadingStore.finishMapLoading();
+  homeStore.mapViewportApi = null;
   if (map) {
     if (articleCluster) {
       articleCluster.clearLayers();
@@ -1123,6 +1171,7 @@ onUnmounted(() => {
     map.remove();
     map = null;
     geoLayer = null;
+    roadLabelTileLayer = null;
     facilitiesLayer = null;
     selectedLayer = null;
   }
@@ -1130,6 +1179,10 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss">
+.road-label-tile-layer {
+  pointer-events: none;
+}
+
 #world-map {
   background: #0c0c0c;
 }

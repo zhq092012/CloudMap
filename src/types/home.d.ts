@@ -41,6 +41,21 @@ export interface WarningMarker extends CesiumMarker {
   /** 异常类型：article / aircraft / vessel / satellite（左栏「异常」分组展示用） */
   assetType?: string;
 }
+/** 地图视图工具栏可调用的 Leaflet 能力（由 Map.vue 注册） */
+export interface MapViewportApi {
+  /** 放大一级 */
+  zoomIn: () => void;
+  /** 缩小一级 */
+  zoomOut: () => void;
+  /** 全览默认范围 */
+  fitOverview: () => void;
+  /**
+   * 道路/地名标注叠图显隐。
+   * @param visible - 是否显示
+   */
+  setRoadLabelsVisible: (visible: boolean) => void;
+}
+
 export interface WarningItem {
   id: string;
   itemId: number;

@@ -200,7 +200,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/api": {
           // 后端接口,可经 .env / .env.local 或环境变量 VITE_API_PROXY_URL 覆盖
-          target: "http://192.168.51.198:18090",
+          target: env.VITE_API_PROXY_URL || "http://192.168.51.198:18090",
           changeOrigin: true,
           // KB 文档上传 + Ollama embedding 是慢路径：10-50MB PDF 切 512 字块约
           // 1000-5000 chunks，Ollama qwen3-embedding 单 chunk 串行 100-500ms +

@@ -15,13 +15,13 @@ const routes = [
     children: [
       {
         path: "",
-        name: "Home",
-        component: () => import("@/pages/Home.vue"),
+        name: "SituationMonitor",
+        component: () => import("@/pages/SituationMonitorPage.vue"),
       },
       {
         path: "anomaly",
-        name: "Anomaly",
-        component: () => import("@/pages/Home.vue"),
+        name: "AnomalySigns",
+        component: () => import("@/pages/AnomalySignsPage.vue"),
       },
       {
         path: "deepanalysis",

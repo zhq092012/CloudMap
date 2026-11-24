@@ -1,4 +1,4 @@
-import type { CesiumMarker, MarkerType, WarningItem, WarningMarker } from "@/types/home";
+import type { CesiumMarker, MapViewportApi, MarkerType, WarningItem, WarningMarker } from "@/types/home";
 import {
   convertToG6Data,
   type G6Edge,
@@ -36,9 +36,9 @@ interface HomeState {
    *  与 clusterArticles 成对维护，作为「是否处于聚合筛选态」的唯一数据源，
    *  避免清除筛选时只清了一端导致轮询刷新后又复活旧筛选。 */
   selectedClusterIds: string | null;
-  /** MapLeft.vue 内部 el-tabs 当前激活页：first=作战要素，second=开源情报，third=战场图谱 */
+  /** SurveillanceMapLeft.vue 内部 el-tabs 当前激活页：first=作战要素，second=开源情报，third=战场图谱 */
   mapLeftTab: "first" | "second" | "third";
-  /** 战场图谱（文章关系网）的搜索 / 筛选状态，由 MapLeft.vue 的 graph-tip 控件写入，GraphMain.vue 读取 */
+  /** 战场图谱（文章关系网）的搜索 / 筛选状态，由 SurveillanceMapLeft.vue 的 graph-tip 控件写入，GraphMain.vue 读取 */
   graphFilter: {
     search: string;
     sentiment: "all" | "positive" | "negative" | "neutral";
@@ -53,6 +53,8 @@ interface HomeState {
   /** 异常事件手动刷新函数（由 Map.vue 注册）；「异常征候」左栏确认 / 排除后调用，
    *  fetchWarningData 只在 Map 挂载时跑一次，没有轮询，改状态后必须手动刷。null 表示未就绪。 */
   anomaliesRefetch: (() => Promise<void>) | null;
+  /** 地图缩放 / 全览 / 道路地名（由 Map.vue 注册） */
+  mapViewportApi: MapViewportApi | null;
   analysisList: WarningItem[]; // 用于存储已分析的异常事件簇列表
   selectedDate: string; // 新增当前选中的日期时间轴属性
   isWarningView: boolean; // 是否进入「异常列表」视图（替换左右面板为 Warning 系列面板）
@@ -927,6 +929,7 @@ export const useHomeStore = defineStore("home", {
     selectedGraphAggId: null,
     articlesRefetch: null,
     anomaliesRefetch: null,
+    mapViewportApi: null,
     analysisList: [],
     selectedDate: "2026-02-21",
     isWarningView: false,
