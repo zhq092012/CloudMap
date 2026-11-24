@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- 深度分析左侧主工作区：顶栏步骤 + 底栏左（分析栏）中（图谱）右（分析面板） -->
   <section class="da-workspace">
     <DeepAnalysisStepBar />
@@ -37,8 +37,8 @@
 import { provide, ref } from "vue";
 import DeepAnalysisStepBar from "@/components/deepAnalysis/DeepAnalysisStepBar.vue";
 import DeepAnalysisStepPanel from "@/components/deepAnalysis/DeepAnalysisStepPanel.vue";
-import DeepAnalysisLeftPanel from "@/components/DeepAnalysisLeftPanel.vue";
-import DeepAnalysisMain from "@/components/DeepAnalysisMain.vue";
+import DeepAnalysisLeftPanel from "@/components/deepAnalysis/DeepAnalysisLeftPanel.vue";
+import DeepAnalysisMain from "@/components/deepAnalysis/DeepAnalysisMain.vue";
 import CollapsibleSidePanel from "@/components/layout/CollapsibleSidePanel.vue";
 import { useDeepAnalysisUiSteps } from "@/composables/deepAnalysis/useDeepAnalysisUiSteps";
 import { deepAnalysisUiStepsKey } from "@/components/deepAnalysis/deepAnalysisUiStepsKey";

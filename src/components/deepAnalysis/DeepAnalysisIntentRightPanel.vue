@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="da-panel w-100 shrink-0 h-full font-sans">
     <div class="da-panel-title mb-4">
       意图详情
@@ -95,7 +95,7 @@ import { computed } from "vue";
 import { Warning } from "@element-plus/icons-vue";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { useAgentStore } from "@/store/modules/agentStore";
-import DetailSectionAccordion from "@/components/DetailSectionAccordion.vue";
+import DetailSectionAccordion from "@/components/analysis/DetailSectionAccordion.vue";
 import { useDeepAnalysisNodeData } from "@/composables/deepAnalysis/useDeepAnalysisNodeData";
 import { useDeepAnalysisOutputJsonEntries } from "@/composables/deepAnalysis/useDeepAnalysisOutputJsonEntries";
 

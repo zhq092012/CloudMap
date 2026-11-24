@@ -11,37 +11,56 @@ import { getFacilities as fetchFacilitiesAPI } from "@/api/facilities-api";
 // 默认激活的 Tab 标签，可以是 '要素'、'情报' 或 '图谱'
 export type TabType = "作战要素" | "开源情报" | "态势图谱";
 
+/**
+ * 态势监控左栏 Tab（与 SurveillanceMapLeft / 地图主区切换联动）。
+ */
+export type MapLeftTab =
+  /** 作战要素：设施分类与图层开关 */
+  | "elements"
+  /** 开源情报：文章列表与地图聚合筛选 */
+  | "intelligence"
+  /** 态势图谱：文章关系网（G6） */
+  | "graph";
+
 // 声明符合 Cesium 渲染要求的规范化点位实体接口
 
 // 定义 Home 模块的状态接口
 interface HomeState {
-  cesiumMarkers: CesiumMarker[]; // 添加 cesiumMarkers 状态
-  warningMarkers: WarningMarker[]; // 添加 warningMarkers 状态
+  /** 规范化点位实体列表 */
+  cesiumMarkers: CesiumMarker[];
+  /** 异常事件标记列表 */
+  warningMarkers: WarningMarker[];
+  /** 当前激活的 Tab 标签 */
   activeTab: TabType;
+  /** 图谱数据 */
   graphData: {
-    nodes: G6Node[]; // 根据实际情况定义节点数据类型
-    edges: G6Edge[]; // 根据实际情况定义边数据类型
-  } | null; // 用于存储生成的图谱数据
-  selectedEntity: CesiumMarker | null; // 新增 selectedEntity 状态，用于存储选中的实体信息
+    nodes: G6Node[];
+    edges: G6Edge[];
+  } | null;
+  /** 当前选中的实体 */
+  selectedEntity: CesiumMarker | null;
+  /** 实体可见性 */
   entityVisibility: {
     military: boolean;
     count: boolean;
     warning: boolean;
   };
+  /** 设施类型可见性 */
   facilityTypeVisibility: Record<string, boolean>;
+  /** 文章列表 */
   articles: any[];
   /** 地图点击聚合后筛选出的文章子集；为 null 表示不筛选（展示全部） */
   clusterArticles: any[] | null;
   /** 当前选中聚合的文章 id 集合（逗号分隔）；为 null 表示未选中任何聚合。
-   *  与 clusterArticles 成对维护，作为「是否处于聚合筛选态」的唯一数据源，
-   *  避免清除筛选时只清了一端导致轮询刷新后又复活旧筛选。 */
+   *  与 clusterArticles 成对维护，作为「是否处于聚合筛选态」的唯一数据源，避免清除筛选时只清了一端导致轮询刷新后又复活旧筛选。 */
   selectedClusterIds: string | null;
-  /** SurveillanceMapLeft.vue 内部 el-tabs 当前激活页：first=作战要素，second=开源情报，third=战场图谱 */
-  mapLeftTab: "first" | "second" | "third";
-  /** 战场图谱（文章关系网）的搜索 / 筛选状态，由 SurveillanceMapLeft.vue 的 graph-tip 控件写入，GraphMain.vue 读取 */
+  /** 左侧地图标签页：作战要素 / 开源情报 / 态势图谱 */
+  mapLeftTab: MapLeftTab;
+  /** 战场图谱（文章关系网）的搜索 / 筛选状态，由左侧地图标签页的 graph-tip 控件写入，GraphMain.vue 读取 */
   graphFilter: {
     search: string;
     sentiment: "all" | "positive" | "negative" | "neutral";
+    /** 是否只显示 Breaking 文章 */
     onlyBreaking: boolean;
   };
   /** 战场图谱中当前选中的聚合节点 id（country:X 或 author:Y）；为 null 表示未选中。
@@ -55,10 +74,14 @@ interface HomeState {
   anomaliesRefetch: (() => Promise<void>) | null;
   /** 地图缩放 / 全览 / 道路地名（由 Map.vue 注册） */
   mapViewportApi: MapViewportApi | null;
-  analysisList: WarningItem[]; // 用于存储已分析的异常事件簇列表
-  selectedDate: string; // 新增当前选中的日期时间轴属性
-  isWarningView: boolean; // 是否进入「异常列表」视图（替换左右面板为 Warning 系列面板）
-  facilities: Facility[]; // 从后端加载的基础设施数据
+  /** 已分析的异常事件簇列表 */
+  analysisList: WarningItem[];
+  /** 当前选中的日期时间轴属性 */
+  selectedDate: string;
+  /** 是否进入「异常列表」视图（替换左右面板为 Warning 系列面板） */
+  isWarningView: boolean;
+  /** 从后端加载的基础设施数据 */
+  facilities: Facility[];
 }
 
 export const useHomeStore = defineStore("home", {
@@ -908,9 +931,9 @@ export const useHomeStore = defineStore("home", {
       { id: "g_16", type: "count", count: 26, lng: 55.5, lat: 32.8, alt: 0, date: "2026-02-24" },
       { id: "g_22", type: "count", count: 5, lng: 50.8, lat: 30.5, alt: 0, date: "2026-02-21" },
     ],
-    warningMarkers: [], // 初始化 warningMarkers 为空数组
-    selectedEntity: null, // 新增 selectedEntity 状态，用于存储选中的实体信息
-    graphData: null, // 初始化 graphData 为 null，表示尚未生成图谱数据
+    warningMarkers: [],
+    selectedEntity: null,
+    graphData: null,
     activeTab: "作战要素",
     entityVisibility: {
       military: true,
@@ -924,7 +947,7 @@ export const useHomeStore = defineStore("home", {
     articles: [],
     clusterArticles: null,
     selectedClusterIds: null,
-    mapLeftTab: "first",
+    mapLeftTab: "elements",
     graphFilter: { search: "", sentiment: "all", onlyBreaking: false },
     selectedGraphAggId: null,
     articlesRefetch: null,
@@ -938,7 +961,9 @@ export const useHomeStore = defineStore("home", {
 
   // 定义 getters，用于从 state 中派生状态
   getters: {
+    /** 获取图谱数据 */
     getGraphData: (state) => state.graphData,
+    /** 获取过滤后的标记点 */
     getFilteredMarkers: (state) => {
       const allMarkers = [...state.cesiumMarkers, ...state.warningMarkers];
       return allMarkers.filter((marker) => {
@@ -956,10 +981,12 @@ export const useHomeStore = defineStore("home", {
         return true;
       });
     },
+    /** 获取设施数据 */
     getFacilities: (state) => state.facilities,
   },
 
   actions: {
+    /** 生成图谱数据 */
     generateGraphDataUseMarkers() {
       // 合并基础标记点和警告标记点，确保图谱中包含所有节点并能正确渲染连接边
       const allMarkers = [...this.cesiumMarkers, ...this.warningMarkers];
@@ -970,10 +997,12 @@ export const useHomeStore = defineStore("home", {
       const data = convertToG6Data(filteredMarkers);
       this.graphData = { nodes: data.nodes, edges: data.edges };
     },
+    /** 清除图谱数据 */
     clearGraphData() {
-      this.graphData = null; // 清除图谱数据
+      this.graphData = null;
     },
 
+    /** 加载设施数据 */
     async loadFacilities() {
       try {
         this.facilities = await fetchFacilitiesAPI();
@@ -983,31 +1012,32 @@ export const useHomeStore = defineStore("home", {
       }
     },
 
+    /** 设置选中的实体 */
     SetSelectedEntity(payload: { id: string; type: MarkerType }) {
-      // 这里可以将选中的实体信息存储到状态中，供对话框组件使用
-      // 例如：
-      console.log("Selected Entity:", payload);
-      // 可以在这里设置一个 selectedEntity 状态来存储选中的实体信息
       this.selectedEntity =
         this.cesiumMarkers.find((marker) => marker.id === payload.id) || null;
     },
 
+    /** 切换实体可见性 */
     toggleEntityVisibility(
       type: keyof HomeState["entityVisibility"],
       visible: boolean,
     ) {
       this.entityVisibility[type] = visible;
     },
+    /** 设置设施类型可见性 */
     setFacilityTypeVisibility(type: string, visible: boolean) {
       this.facilityTypeVisibility[type] = visible;
     },
+    /** 设置文章列表 */
     setArticles(articles: any[]) {
       this.articles = articles;
     },
+    /** 设置聚合文章列表 */
     setClusterArticles(articles: any[] | null) {
       this.clusterArticles = articles;
     },
-    /** 选中某个聚合：同时记录选中 id 集合与对应文章子集，二者成对维护 */
+    /** 选中某个聚合：同时记录选中 id 集合与对应文章子集，二者成对维护，确保后续轮询刷新（renderArticleMarkers 重跑）不会复活旧筛选。 */
     setClusterSelection(ids: string, articles: any[]) {
       this.selectedClusterIds = ids;
       this.clusterArticles = articles;
@@ -1026,12 +1056,14 @@ export const useHomeStore = defineStore("home", {
     setWarningMarkers(markers: WarningMarker[]) {
       this.warningMarkers = markers;
     },
+    /** 设置选中的异常事件标记 */
     setSelectedWarningMarker(payload: { id: string; type: MarkerType }) {
       const marker = this.warningMarkers.find(
         (marker) => marker.id === payload.id,
       );
       this.selectedEntity = marker || null;
     },
+    /** 添加到分析栏 */
     addToAnalysis(item: WarningItem) {
       const index = this.warningMarkers.findIndex(
         (marker) => marker.id === item.id,
@@ -1049,6 +1081,7 @@ export const useHomeStore = defineStore("home", {
         this.analysisList.push(item);
       }
     },
+    /** 从分析栏中移除 */
     removeFromAnalysisBatch(ids: string[]) {
       this.analysisList = this.analysisList.filter(
         (item) => !ids.includes(item.id),
@@ -1059,12 +1092,14 @@ export const useHomeStore = defineStore("home", {
         }
       });
     },
+    /** 清除分析栏 */
     clearAnalysis() {
       this.analysisList = [];
       this.warningMarkers.forEach((marker) => {
         marker.isAnalyzed = false;
       });
     },
+    /** 设置选中的日期 */
     setSelectedDate(date: string) {
       this.selectedDate = date;
     },

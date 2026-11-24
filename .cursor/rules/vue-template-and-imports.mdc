@@ -20,14 +20,14 @@ alwaysApply: false
 
 ```ts
 // 不允许：成堆 import 无任何说明
-import Map from "@/components/Map.vue";
-import SituationStrip from "@/components/SituationStrip.vue";
+import Map from "@/components/map/Map.vue";
+import SituationStrip from "@/components/situation/SituationStrip.vue";
 
 // 允许
 /** 主视区 Cesium 地图与异常/设施图层，占满底层。 */
-import Map from "@/components/Map.vue";
+import Map from "@/components/map/Map.vue";
 /** 地图与右栏之间的底部态势条（潜在异常 + 威胁评估）；仅非图谱模式展示。 */
-import SituationStrip from "@/components/SituationStrip.vue";
+import SituationStrip from "@/components/situation/SituationStrip.vue";
 ```
 
 同一文件顶部的**文件职责**仍用块注释（`/** ... */`）概括整页，import 注释写「这一块是干什么的」。

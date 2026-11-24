@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- 异常征候页根：全屏地图 + 左栏异常分组 + 右栏云脑 -->
   <div class="anomaly-signs-page" :style="chromeLayoutStyle">
     <div class="anomaly-signs-page__stage map-stage">
@@ -35,11 +35,11 @@
 import { computed, ref } from "vue";
 import CollapsibleSidePanel from "@/components/layout/CollapsibleSidePanel.vue";
 import { mapChromeLayoutVars } from "@/constants/mapChromeLayout";
-import Map from "@/components/Map.vue";
-import MapViewportToolbar from "@/components/MapViewportToolbar.vue";
-import MapResourceLegend from "@/components/MapResourceLegend.vue";
-import AnomalySignsLeftPanel from "@/components/AnomalySignsLeftPanel.vue";
-import AnomalySignsRightPanel from "@/components/AnomalySignsRightPanel.vue";
+import Map from "@/components/map/Map.vue";
+import MapViewportToolbar from "@/components/map/MapViewportToolbar.vue";
+import MapResourceLegend from "@/components/map/MapResourceLegend.vue";
+import AnomalySignsLeftPanel from "@/components/anomaly/AnomalySignsLeftPanel.vue";
+import AnomalySignsRightPanel from "@/components/anomaly/AnomalySignsRightPanel.vue";
 
 /** 左栏收起态 */
 const leftCollapsed = ref(false);

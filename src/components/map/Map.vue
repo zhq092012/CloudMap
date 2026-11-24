@@ -19,14 +19,7 @@
         <span class="map-control-label">异常</span>
         <el-switch v-model="breakingVisible" active-color="#ef4444" inactive-color="#9e9e9e" />
       </div>
-      <!-- <div class="map-control-row">
-        <span class="map-control-label">离线底图</span>
-        <el-switch
-          v-model="offlineTilesVisible"
-          active-color="#3b82f6"
-          inactive-color="#9e9e9e"
-        />
-      </div> -->
+
 
     </div>
   </div>
@@ -42,8 +35,6 @@ import { getAnomalyList } from "@/api/anomalies";
 import type { ArticleListItem } from "@/api/data-api";
 import type { AircraftData } from "@/composables/useAircraft";
 import type { WarningMarker } from "@/types/home";
-// leaflet 包未附带 .d.ts，且本任务仅改组件内类型
-// @ts-expect-error TS7016 — 无官方声明文件
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
@@ -53,53 +44,60 @@ import icon from "leaflet/dist/images/marker-icon.png";
 import { FACILITY_TYPES, FACILITY_TYPE_LABELS_ZH, FACILITY_THREAT_LEVELS_ZH } from "@/assets/facilities.js"; // 导入设施类型定义
 import { getCountryCenter } from "@/utils/countryCentroids";
 
-/** Leaflet 图层/地图实例句柄（无 @types/leaflet 时用宽松别名） */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LeafletHandle = any;
-
+/** 设施类型定义 */
 type FacilityTypeDef = (typeof FACILITY_TYPES)[number];
-type MarkerClusterLike = { getChildCount(): number; getAllChildMarkers(): Array<{ article?: ArticleListItem }> };
 
-let map: LeafletHandle | null = null;
-let geoLayer: LeafletHandle | null = null;
-let facilitiesLayer: LeafletHandle | null = null;
-let facilityMarkersByType: Record<string, LeafletHandle[]> = {};
-// 记录当前选中图层
-let selectedLayer: LeafletHandle | null = null;
+/** 地图实例 */
+let map: L.Map | null = null;
+/** 国界 GeoJSON 图层 */
+let geoLayer: L.GeoJSON | null = null;
+/** 设施图层 */
+let facilitiesLayer: L.LayerGroup | null = null;
+/** 设施标记按类型分组 */
+let facilityMarkersByType: Record<string, L.Marker[]> = {};
+/** 当前选中的国界 GeoJSON 子图层 */
+let selectedLayer: L.Path | null = null;
 
-// 文章聚合图层相关
-let articleCluster: LeafletHandle | null = null;
-// 有聚合文章的国家名称标注图层
-let countryLabelLayer: LeafletHandle | null = null;
+/** 开源情报文章 markercluster 图层 */
+let articleCluster: L.MarkerClusterGroup | null = null;
+/** 按国家名称标注的图层 */
+let countryLabelLayer: L.LayerGroup | null = null;
 
-// ─── 异常文章聚合图层 ───
-let breakingCluster: LeafletHandle | null = null;
+/** 异常文章 markercluster 图层 */
+let breakingCluster: L.MarkerClusterGroup | null = null;
 
-// ─── 飞机聚合 / 轨迹图层 ───
-let aircraftCluster: LeafletHandle | null = null;
-let trajectoryLayer: LeafletHandle | null = null;
+/** 飞机 markercluster 与轨迹折线图层 */
+let aircraftCluster: L.MarkerClusterGroup | null = null;
+let trajectoryLayer: L.LayerGroup | null = null;
 let selectedAircraftId: string | null = null;
 
+/** 主 store */
 const homeStore = useHomeStore();
+/** 加载状态 store */
 const loadingStore = useLoadingStore();
+/** 设施类型可见性 */
 const facilityVisibility = computed(() => homeStore.facilityTypeVisibility);
 
-// 地图图层显隐总开关
-// iconsVisible：仅控制「设施标记」的显隐（不影响文章聚合层）
-// clustersVisible：仅控制「文章聚合层」的显隐（与图标开关相互独立）
-// tracksVisible：仅控制「飞机轨迹聚合层」的显隐，默认关闭
-// breakingVisible：控制「异常文章标记层」的显隐，默认开启（一进地图即加载）
+
+/** 设施标记的显隐，默认开启 */
 const iconsVisible = ref(true);
+
+/** 文章聚合层的显隐，默认关闭 */
 const clustersVisible = ref(false);
+
+/** 飞机轨迹聚合层的显隐，默认关闭 */
 const tracksVisible = ref(false);
+
+/** 异常文章标记层的显隐，默认开启 */
 const breakingVisible = ref(true);
-// offlineTilesVisible：控制「中东离线瓦片底图」的显隐，默认开启
+
+/** 中东离线瓦片底图的显隐，默认开启 */
 const offlineTilesVisible = ref(true);
 
-// 中东离线瓦片底图（来自 public/tiles，由 scripts/download_tiles.py 预下载）
-let offlineTileLayer: LeafletHandle | null = null;
+/** 中东离线瓦片底图（来自 public/tiles，由 scripts/download_tiles.py 预下载） */
+let offlineTileLayer: L.TileLayer | null = null;
 /** 道路 / 地名标注叠图（Esri 参考图层，默认不加载） */
-let roadLabelTileLayer: LeafletHandle | null = null;
+let roadLabelTileLayer: L.TileLayer | null = null;
 const roadLabelsVisible = ref(false);
 /** 无 geo 边界时的默认全览范围（中东） */
 const DEFAULT_OVERVIEW_BOUNDS: [[number, number], [number, number]] = [
@@ -107,8 +105,8 @@ const DEFAULT_OVERVIEW_BOUNDS: [[number, number], [number, number]] = [
   [42, 65],
 ];
 
-// ─── 飞机数据：从 redroom CMS (getSiteContent) 获取 aircraft 值 + 实时航空数据 ───
-// 处于「战场图谱」模式（mapLeftTab === 'third'）时不再调用 /api/data/aviation 与 /api/data/cms
+/** ─── 飞机数据：从 redroom CMS (getSiteContent) 获取 aircraft 值 + 实时航空数据 ─── */
+/** 处于态势图谱模式（mapLeftTab === graph）时不再调用航空 / CMS 轮询 */
 const {
   aircraft: aircraftList,
   aircraftSignal,
@@ -116,26 +114,30 @@ const {
   refetch: refetchAircraft,
 } = useAircraft({
   refetchInterval: 30000,
-  enabled: () => homeStore.mapLeftTab !== "third",
+  enabled: () => homeStore.mapLeftTab !== "graph",
 });
 
-// 从战场图谱切回地图时，立即补拉一次航空/CMS 数据（图谱模式下被跳过了）
+/** 从战场图谱切回地图时，立即补拉一次航空/CMS 数据（图谱模式下被跳过了） */
 watch(
   () => homeStore.mapLeftTab,
   (tab) => {
-    if (tab !== "third") void refetchAircraft();
+    if (tab !== "graph") void refetchAircraft();
   },
 );
 
+/** 设施类型映射 */
 const facilityTypeMap = FACILITY_TYPES.reduce<Record<string, FacilityTypeDef>>((acc, type) => {
   acc[type.id] = type;
   return acc;
 }, {});
 
+/** 规范化设施类型 */
 const normalizeFacilityType = (type: string | null | undefined) => {
   if (!type || type === null || type === undefined || type === "") return "other";
   return type;
 };
+
+/** 创建设施标记图标 */
 const createFacilityIcon = (type: string | null | undefined) => {
   const normalized = normalizeFacilityType(type);
   const typeDef = facilityTypeMap[normalized] || facilityTypeMap["other"];
@@ -149,16 +151,16 @@ const createFacilityIcon = (type: string | null | undefined) => {
   });
 };
 
-// ============ 文章按国家聚合（leaflet.markercluster） ============
-// 单篇文章标记：只显示数字 “1”
+/** ============ 文章按国家聚合（leaflet.markercluster） ============ */
+/** 单篇文章标记：只显示数字 “1” */
 const articleMarkerIcon = L.divIcon({
   className: "article-marker",
   html: `<div class="article-marker__inner">1</div>`,
   iconSize: [30, 30],
 });
 
-// 聚合图标：只显示聚合的文章数目
-const createArticleClusterIcon = (cluster: MarkerClusterLike) => {
+/** 聚合图标：只显示聚合的文章数目 */
+const createArticleClusterIcon = (cluster: L.MarkerCluster) => {
   const count = cluster.getChildCount();
   return L.divIcon({
     className: "article-cluster",
@@ -167,7 +169,7 @@ const createArticleClusterIcon = (cluster: MarkerClusterLike) => {
   });
 };
 
-// 国家名称标注：取数据中的 country 字段，显示在有聚合文章的国家中心
+/** 国家名称标注：取数据中的 country 字段，显示在有聚合文章的国家中心 */
 // interactive:false 使其不拦截地图点击；文字通过 CSS 平移到聚合气泡下方
 const createCountryLabelIcon = (name: string, _count?: number) => {
   const safe = String(name ?? "").replace(/[<>&]/g, "");
@@ -178,7 +180,7 @@ const createCountryLabelIcon = (name: string, _count?: number) => {
   });
 };
 
-// 点击聚合 / 单篇标记 -> 设置文章筛选；再次点击同一聚合则取消筛选
+/** 点击聚合 / 单篇标记 -> 设置文章筛选；再次点击同一聚合则取消筛选 */
 const onArticlePick = (picked: ArticleListItem[]) => {
   const ids = picked
     .map((a: ArticleListItem) => a.id)
@@ -189,34 +191,43 @@ const onArticlePick = (picked: ArticleListItem[]) => {
   } else {
     homeStore.setClusterSelection(ids, picked);
     // 联动 MapLeft：自动切到「开源情报」标签并展示对应聚合文章
-    homeStore.mapLeftTab = "second";
+    homeStore.mapLeftTab = "intelligence";
   }
 };
 
-// 根据文章列表，按 country 聚合到地图对应国家
-// country 无值或无法匹配到坐标的文章将被跳过（不在地图显示）
+/** 根据文章聚合层，获取文章列表 */
+const articlesFromCluster = (cluster: L.MarkerCluster): ArticleListItem[] =>
+  cluster
+    .getAllChildMarkers()
+    .map((mk) => mk.article)
+    .filter((a): a is ArticleListItem => a != null);
+
+/** 点击文章聚合层，触发文章筛选 */
+const onArticleClusterClick: L.LeafletEventHandlerFn = (e) => {
+  onArticlePick(articlesFromCluster((e as L.MarkerClusterClickEvent).layer));
+};
+
+/** 根据文章列表，按 country 聚合到地图对应国家 */
+/** country 无值或无法匹配到坐标的文章将被跳过（不在地图显示） */
 const renderArticleMarkers = (list: ArticleListItem[] | null | undefined) => {
   if (!map) return;
   const items = list ?? [];
   if (!articleCluster) {
     articleCluster = L.markerClusterGroup({
-      showCoverageOnMaxZoom: false, // 关掉「聚合到最上层」的强制拆分，保持聚合稳定
       showCoverageOnHover: false,
       zoomToBoundsOnClick: false, // 点击聚合不缩放，保持聚合可见以便再次点击取消筛选
       spiderfyOnMaxZoom: false, // 禁用点击展开为多个小图标（蛛网/蜘蛛腿）的行为
       maxClusterRadius: 50,
       iconCreateFunction: createArticleClusterIcon,
     });
-    articleCluster.on("clusterclick", (e: { layer: MarkerClusterLike }) => {
-      const childMarkers = e.layer.getAllChildMarkers();
-      onArticlePick(childMarkers.map((mk) => mk.article).filter(Boolean) as ArticleListItem[]);
-    });
+    articleCluster.on("clusterclick", onArticleClusterClick);
     map.addLayer(articleCluster);
   } else {
     articleCluster.clearLayers();
   }
 
-  const markers = [];
+  /** 渲染文章标记点 */
+  const markers: L.Marker[] = [];
   for (const a of items) {
     const center = getCountryCenter(a.country);
     if (!center) continue; // country 没有值 / 无法匹配坐标 -> 不在地图显示
@@ -227,7 +238,7 @@ const renderArticleMarkers = (list: ArticleListItem[] | null | undefined) => {
   }
   articleCluster.addLayers(markers);
 
-  // 按 country 聚合，统计每个国家文章数，并在地图对应国家中心标注国家名称
+  /** 按 country 聚合，统计每个国家文章数，并在地图对应国家中心标注国家名称 */
   const countryCounts = new Map<string, number>();
   for (const a of items) {
     if (!getCountryCenter(a.country)) continue; // country 无值 / 无法匹配坐标 -> 跳过
@@ -250,9 +261,10 @@ const renderArticleMarkers = (list: ArticleListItem[] | null | undefined) => {
     countryLabelLayer.addLayer(label);
   }
 
-  // 数据轮询刷新时保持当前筛选状态（用新数据重新计算子集）
-  // 注意：以 store.selectedClusterIds 为唯一数据源，清除筛选（chip__close）后它为 null，
-  // 此处便不会再复活旧筛选；若新数据已不包含这些 id，则一并清除选择态。
+  /** 数据轮询刷新时保持当前筛选状态（用新数据重新计算子集） */
+  /** 注意：以 store.selectedClusterIds 为唯一数据源，清除筛选（chip__close）后它为 null，
+   * 此处便不会再复活旧筛选；若新数据已不包含这些 id，则一并清除选择态。
+   */
   if (homeStore.selectedClusterIds) {
     const idSet = new Set(homeStore.selectedClusterIds.split(",").map(Number));
     const filtered = items.filter((a) => idSet.has(a.id));
@@ -271,8 +283,8 @@ const renderArticleMarkers = (list: ArticleListItem[] | null | undefined) => {
 
 const breakingArticles = ref<ArticleListItem[]>([])
 
-// 异常文章聚合图标：数字 + 红色边框（与「情报」聚合样式一致，仅改色）
-const createBreakingClusterIcon = (cluster: MarkerClusterLike) => {
+/** 异常文章聚合图标：数字 + 红色边框（与「情报」聚合样式一致，仅改色） */
+const createBreakingClusterIcon = (cluster: L.MarkerCluster) => {
   const count = cluster.getChildCount();
   return L.divIcon({
     className: "breaking-cluster",
@@ -281,7 +293,7 @@ const createBreakingClusterIcon = (cluster: MarkerClusterLike) => {
   });
 };
 
-// 单篇异常文章标记：数字 "1" + 红色边框
+/** 单篇异常文章标记：数字 "1" + 红色边框 */
 const breakingMarkerIcon = L.divIcon({
   className: "breaking-marker",
   html: `<div class="breaking-marker__inner">1</div>`,
@@ -299,10 +311,7 @@ const renderBreakingMarkers = (list: ArticleListItem[] | null | undefined) => {
       maxClusterRadius: 50,
       iconCreateFunction: createBreakingClusterIcon,
     });
-    breakingCluster.on("clusterclick", (e: { layer: MarkerClusterLike }) => {
-      const childMarkers = e.layer.getAllChildMarkers();
-      onArticlePick(childMarkers.map((mk) => mk.article).filter(Boolean) as ArticleListItem[]);
-    });
+    breakingCluster.on("clusterclick", onArticleClusterClick);
     // 不在此处 addLayer 到 map，由 applyLayerVisibility 根据开关统一控制显隐
   } else {
     breakingCluster.clearLayers();
@@ -313,7 +322,7 @@ const renderBreakingMarkers = (list: ArticleListItem[] | null | undefined) => {
     return;
   }
 
-  const markers = [];
+  const markers: L.Marker[] = [];
   for (const a of list) {
     const center = getCountryCenter(a.country);
     if (!center) continue; // country 没有值 / 无法匹配坐标 -> 不在地图显示
@@ -372,7 +381,7 @@ function greatCircleArc(lat1d: number, lon1d: number, lat2d: number, lon2d: numb
  * 文章聚合：金色圆形 #c1a465
  * 飞机聚合：深/近黑六边形（具体配色见 CSS .aircraft-cluster__inner）
  */
-const createAircraftClusterIcon = (cluster: MarkerClusterLike) => {
+const createAircraftClusterIcon = (cluster: L.MarkerCluster) => {
   const count = cluster.getChildCount();
   const size = count >= 500 ? 46 : count >= 200 ? 40 : count >= 100 ? 34 : count >= 50 ? 30 : 26;
   const fontSize = size >= 40 ? 13 : size >= 34 ? 12 : size >= 30 ? 11 : 10;
@@ -459,7 +468,7 @@ const drawAircraftTrajectory = (ac: AircraftData) => {
     }
   }
 
-  // ── 高亮当前飞机位置 ──
+  /** ── 高亮当前飞机位置 ── */
   const pulse = L.circleMarker([ac.lat, ac.lon], {
     radius: 16,
     fillColor: color,
@@ -495,8 +504,8 @@ const drawAircraftTrajectory = (ac: AircraftData) => {
     trajectoryLayer.addLayer(oMarker);
   }
 
+  /** ── current → destination: 虚线大圆弧 ── */
   if (destination && destination.lat && destination.lon) {
-    // current → destination: 虚线大圆弧
     const arc2 = greatCircleArc(ac.lat, ac.lon, destination.lat, destination.lon, 30);
     L.polyline(arc2, {
       color,
@@ -520,7 +529,7 @@ const drawAircraftTrajectory = (ac: AircraftData) => {
     trajectoryLayer.addLayer(dMarker);
   }
 
-  // ── heading 投影（无 origin/destination 时的后备方案） ──
+  /** ── heading 投影（无 origin/destination 时的后备方案） ── */
   if (
     (!origin || !origin.lat) &&
     (!destination || !destination.lat) &&
@@ -559,7 +568,7 @@ const drawAircraftTrajectory = (ac: AircraftData) => {
     }).addTo(trajectoryLayer);
   }
 
-  // ── 自动飞到航线范围 ──
+  /** ── 自动飞到航线范围 ── */
   if (origin && origin.lat && destination && destination.lat) {
     const bounds = L.latLngBounds([
       [origin.lat, origin.lon],
@@ -577,7 +586,7 @@ const drawAircraftTrajectory = (ac: AircraftData) => {
 const renderAircraftMarkers = (list: AircraftData[]) => {
   if (!map) return;
 
-  // 初始化飞机聚合组
+  /** 初始化飞机聚合组 */
   if (!aircraftCluster) {
     aircraftCluster = L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -591,7 +600,7 @@ const renderAircraftMarkers = (list: AircraftData[]) => {
     aircraftCluster.clearLayers();
   }
 
-  // 初始化轨迹图层
+  /** 初始化轨迹图层 */
   if (!trajectoryLayer) {
     trajectoryLayer = L.layerGroup().addTo(map);
   }
@@ -601,7 +610,7 @@ const renderAircraftMarkers = (list: AircraftData[]) => {
     return;
   }
 
-  const markers = [];
+  const markers: L.Marker[] = [];
   for (const ac of list) {
     if (!ac.lat || !ac.lon) continue;
     const m = L.marker([ac.lat, ac.lon], { icon: createAircraftIcon(ac) });
@@ -623,7 +632,7 @@ const renderAircraftMarkers = (list: AircraftData[]) => {
     );
 
     // 点击 → 绘制轨迹
-    m.on("click", (e: { originalEvent?: Event }) => {
+    m.on("click", (e: L.LeafletMouseEvent) => {
       L.DomEvent.stopPropagation(e);
       // 如果点击的是当前选中的飞机，则清除轨迹
       const currentId = ac.icao24 || ac.callsign;
@@ -641,21 +650,21 @@ const renderAircraftMarkers = (list: AircraftData[]) => {
   applyLayerVisibility();
 };
 
-// 飞机数据变化时重新渲染
+/** 飞机数据变化时重新渲染 */
 watch(aircraftList, (list) => {
   renderAircraftMarkers(list || []);
 });
 
-// 监听 tracksVisible 开关变化
+/** 监听 tracksVisible 开关变化 */
 watch(tracksVisible, (visible) => {
   if (!map) return;
   if (visible) {
-    // 开启时，若已有数据则渲染
+    /** 开启时，若已有数据则渲染 */
     if (aircraftList.value && aircraftList.value.length > 0) {
       renderAircraftMarkers(aircraftList.value);
     }
   } else {
-    // 关闭时，移除飞机聚合层和轨迹
+    /** 关闭时，移除飞机聚合层和轨迹 */
     if (aircraftCluster && map.hasLayer(aircraftCluster)) {
       map.removeLayer(aircraftCluster);
     }
@@ -666,35 +675,36 @@ watch(tracksVisible, (visible) => {
   }
 });
 
-// 点击地图空白处清除轨迹
+/** 点击地图空白处清除轨迹 */
 const onMapClickClearTrajectory = () => {
   clearTrajectory();
 };
 
-// 统一根据显隐开关控制各图层
+/** 统一根据显隐开关控制各图层 */
 const applyLayerVisibility = () => {
   if (!map) return;
 
   // 设施标记：受「图标」总开关 + 各类型独立开关共同控制
-  if (facilitiesLayer) {
+  const facilityGroup = facilitiesLayer;
+  if (facilityGroup) {
     if (iconsVisible.value) {
       Object.entries(facilityMarkersByType).forEach(([type, markers]) => {
         const visible = homeStore.facilityTypeVisibility[type] ?? true;
-        markers.forEach((marker: LeafletHandle) => {
-          if (visible && !facilitiesLayer.hasLayer(marker)) {
-            facilitiesLayer.addLayer(marker);
-          } else if (!visible && facilitiesLayer.hasLayer(marker)) {
-            facilitiesLayer.removeLayer(marker);
+        markers.forEach((marker: L.Marker) => {
+          if (visible && !facilityGroup.hasLayer(marker)) {
+            facilityGroup.addLayer(marker);
+          } else if (!visible && facilityGroup.hasLayer(marker)) {
+            facilityGroup.removeLayer(marker);
           }
         });
       });
-      if (!map.hasLayer(facilitiesLayer)) map.addLayer(facilitiesLayer);
-    } else if (map.hasLayer(facilitiesLayer)) {
-      map.removeLayer(facilitiesLayer);
+      if (!map.hasLayer(facilityGroup)) map.addLayer(facilityGroup);
+    } else if (map.hasLayer(facilityGroup)) {
+      map.removeLayer(facilityGroup);
     }
   }
 
-  // 文章聚合层：仅受「聚合」开关独立控制，与「图标」开关无关
+  /** 文章聚合层：仅受「聚合」开关独立控制，与「图标」开关无关 */
   if (articleCluster) {
     const showCluster = clustersVisible.value;
     if (showCluster && !map.hasLayer(articleCluster)) {
@@ -704,7 +714,7 @@ const applyLayerVisibility = () => {
     }
   }
 
-  // 异常文章聚合层：受「异常」开关独立控制
+  /** 异常文章聚合层：受「异常」开关独立控制 */
   if (breakingCluster) {
     const showBreaking = breakingVisible.value;
     if (showBreaking && !map.hasLayer(breakingCluster)) {
@@ -714,8 +724,9 @@ const applyLayerVisibility = () => {
     }
   }
 
-  // 注意：国家名称标注层（countryLabelLayer）刻意不在此处处理，
-  // 它与文章聚合层「互不影响」——常驻地图上、独立显示，不受「聚合」开关控制。
+  /** 注意：国家名称标注层（countryLabelLayer）刻意不在此处处理，
+   * 它与文章聚合层「互不影响」——常驻地图上、独立显示，不受「聚合」开关控制。
+   */
   if (countryLabelLayer) {
     const showLabel = clustersVisible.value;
     if (showLabel && !map.hasLayer(countryLabelLayer)) {
@@ -725,7 +736,7 @@ const applyLayerVisibility = () => {
     }
   }
 
-  // 飞机聚合层 + 轨迹层：仅受「轨迹」开关独立控制
+  /** 飞机聚合层 + 轨迹层：仅受「轨迹」开关独立控制 */
   if (aircraftCluster) {
     const showAircraft = tracksVisible.value;
     if (showAircraft && !map.hasLayer(aircraftCluster)) {
@@ -744,7 +755,7 @@ const applyLayerVisibility = () => {
   }
 };
 
-// 样式配置
+/** 默认样式 */
 const STYLE_DEFAULT = {
   color: "#373737", // 边界颜色
   weight: 0.5,
@@ -752,6 +763,7 @@ const STYLE_DEFAULT = {
   fillOpacity: 0,
   opacity: 1,
 };
+/** 悬浮样式 */
 const STYLE_HOVER = {
   color: "#4488ff",
   weight: 1.2,
@@ -760,6 +772,7 @@ const STYLE_HOVER = {
   fillOpacity: 0.18,
   interactive: false
 };
+/** 选中样式 */
 const STYLE_SELECT = {
   color: "#ff4444",
   weight: 1.5,
@@ -769,13 +782,15 @@ const STYLE_SELECT = {
   interactive: false
 };
 
-// 获取异常事件数据并注入 homeStore.warningMarkers
+/** 获取异常事件数据并注入 homeStore.warningMarkers */
 const fetchWarningData = async () => {
   try {
+    /** 获取异常事件数据 */
     const res = await getAnomalyList();
     console.log("[Map] 获取到异常事件数据:", res);
 
     if (res && res.length > 0) {
+      /** 格式化日期 */
       const formatDateToYYYYMMDD = (dateStr: string | null | undefined) => {
         if (!dateStr) return "";
         try {
@@ -793,6 +808,7 @@ const fetchWarningData = async () => {
         }
       };
 
+      /** 解析轨迹数据 */
       const parseTrajectoryData = (td: unknown) => {
         if (!td) return null;
         try {
@@ -804,12 +820,14 @@ const fetchWarningData = async () => {
         return null;
       };
 
+      /** 解析位置坐标 */
       const parseLocationCoords = (loc: string | null | undefined) => {
         if (!loc) return null;
         const m = loc.match(/\(([-\d.]+),\s*([-\d.]+)\)/);
         return m ? { lat: parseFloat(m[1]), lng: parseFloat(m[2]) } : null;
       };
 
+      /** 解析异常事件数据 */
       const warningMarkers = res.map((item) => {
         let lat = 27.18;
         let lng = 56.26;
@@ -839,7 +857,7 @@ const fetchWarningData = async () => {
         };
       });
 
-      // 按 name 去重
+      /** 按 name 去重 */
       const seenNames = new Set();
       const uniqueWarningMarkers = warningMarkers.filter((marker) => {
         const trimmedName = (marker.name || "").trim();
@@ -848,6 +866,7 @@ const fetchWarningData = async () => {
         return true;
       });
 
+      /** 设置异常事件标记点 */
       homeStore.setWarningMarkers(uniqueWarningMarkers as WarningMarker[]);
       console.log("[Map] 异常警告标记点已成功注入:", uniqueWarningMarkers.length);
     }
@@ -855,7 +874,9 @@ const fetchWarningData = async () => {
     console.error("[Map] 获取警告数据失败:", error);
   }
 };
-
+/**
+ * 初始化地图
+ */
 const initMap = async () => {
   // marker图标修复
   const DefaultIcon = L.icon({
@@ -866,80 +887,89 @@ const initMap = async () => {
   L.Marker.prototype.options.icon = DefaultIcon;
 
   map = L.map("world-map", {
-    zoomControl: false,
-    minZoom: 3,
-    maxZoom: 12,
-    worldCopyJump: true,
-    attributionControl: false,
+    zoomControl: false,//关闭缩放控件
+    minZoom: 3,//最小缩放级别
+    maxZoom: 12,//最大缩放级别
+    worldCopyJump: true,//世界地图复制跳转
+    attributionControl: false,//关闭版权信息
     // 可选：设置地图画布背景色
     // preferCanvas: true
   }).setView([32.4279, 53.688], 4); // 伊朗地理中心
 
-  // ========== 移除底图！不再加载瓦片 ==========
+  // ========== 加载中东地区离线瓦片 ==========
   offlineTileLayer = L.tileLayer("/offline_tiles/{z}/{x}/{y}.jpg", {
     minZoom: 3,
     maxZoom: 12,
-    minNativeZoom: 4,
-    maxNativeZoom: 8,
-    attribution:
-      '© Esri — 离线瓦片（全球）| 边界数据 © OpenStreetMap',
-    errorTileUrl:
+    minNativeZoom: 4,//最小原生缩放级别
+    maxNativeZoom: 8,//最大原生缩放级别
+    attribution://版权信息
+      '© Esri — 离线瓦片（中东）| 边界数据 © OpenStreetMap',
+    errorTileUrl://错误瓦片URL
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC",
-    className: "offline-tile-layer",
+    className: "offline-tile-layer",//瓦片层类名
   });
-  if (offlineTilesVisible.value) offlineTileLayer.addTo(map);
+  if (offlineTilesVisible.value) offlineTileLayer.addTo(map);//添加到地图
 
+  // ========== 加载道路/地名标注叠图 ==========
   roadLabelTileLayer = L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",//瓦片URL
     {
-      maxZoom: 16,
-      opacity: 0.88,
-      className: "road-label-tile-layer",
+      maxZoom: 16,//最大缩放级别
+      opacity: 0.88,//透明度
+      className: "road-label-tile-layer",//瓦片层类名
     },
   );
 
-  // 读取 public 下 geojson
+  /** 读取 public 下 世界边界和地名geojson */
   const res = await fetch("/world.geojson");
   const geoData = await res.json();
-
+  /** 加载世界边界和地名geojson数据 */
   geoLayer = L.geoJSON(geoData, {
     style: () => STYLE_DEFAULT,
-    onEachFeature(_feature: unknown, layer: LeafletHandle) {
+    onEachFeature(_feature: GeoJSON.Feature, layer: L.Layer) {
+      const path = layer as L.Path;
       // 悬浮
-      layer.on("mouseover", () => {
-        if (layer !== selectedLayer) {
-          layer.setStyle(STYLE_HOVER);
+      path.on("mouseover", () => {
+        if (path !== selectedLayer) {
+          path.setStyle(STYLE_HOVER);
         }
       });
       // 离开
-      layer.on("mouseout", () => {
-        if (layer !== selectedLayer) {
-          geoLayer.resetStyle(layer);
+      path.on("mouseout", () => {
+        if (path !== selectedLayer && geoLayer) {
+          geoLayer.resetStyle(path);
         }
       });
       // 点击选中/取消选中
-      layer.on("click", () => {
-        if (selectedLayer === layer) {
-          geoLayer.resetStyle(layer);
+      path.on("click", () => {
+        if (!geoLayer) return;
+        if (selectedLayer === path) {
+          geoLayer.resetStyle(path);
           selectedLayer = null;
         } else {
           if (selectedLayer) {
             geoLayer.resetStyle(selectedLayer);
           }
-          layer.setStyle(STYLE_SELECT);
-          selectedLayer = layer;
+          path.setStyle(STYLE_SELECT);
+          selectedLayer = path;
         }
       });
     },
   }).addTo(map);
 
+  /**
+   * 地图缩放 / 全览 / 道路地名（由 Map.vue 注册）
+   */
   homeStore.mapViewportApi = {
+    /** 放大 */
     zoomIn: () => {
       map?.zoomIn();
     },
+    /** 缩小 */
     zoomOut: () => {
       map?.zoomOut();
     },
+    /** 全览 */
     fitOverview: () => {
       if (!map) return;
       try {
@@ -952,6 +982,7 @@ const initMap = async () => {
       }
       map.fitBounds(DEFAULT_OVERVIEW_BOUNDS, { padding: [32, 32], maxZoom: 6 });
     },
+    /** 设置道路地名标注的显隐 */
     setRoadLabelsVisible: (visible: boolean) => {
       roadLabelsVisible.value = visible;
       if (!map || !roadLabelTileLayer) return;
@@ -963,24 +994,38 @@ const initMap = async () => {
     },
   };
 
-  // 渲染设施点位
-  facilitiesLayer = L.layerGroup();
+  /** 渲染设施点位 */
+  const facilityGroup = L.layerGroup();
+  facilitiesLayer = facilityGroup;
   facilityMarkersByType = {};
+  /** 渲染设施点位 */
   homeStore.facilities.forEach((facility) => {
+    /** 规范化设施类型 */
     const normalizedType = normalizeFacilityType(facility.type);
+    /** 中文名称 */
     const zhName = facility.nameZh || facility.name;
+    /** 中文描述 */
     const zhDesc = facility.descriptionZh || facility.description || "—";
+    /** 中文类型标签 */
     const typeLabelZh = FACILITY_TYPE_LABELS_ZH[normalizedType] || normalizedType;
+    /** 城市 */
     const cityText = facility.city || "—";
+    /** 操作方 */
     const operatorText = facility.operator || "—";
+    /** 威胁等级 */
     const threatText = (facility.threatLevel && FACILITY_THREAT_LEVELS_ZH[facility.threatLevel]) || facility.threatLevel || "—";
+    /** 设施标记 */
     const marker = L.marker([facility.latitude, facility.longitude], {
+      /** 设施图标 */
       icon: createFacilityIcon(facility.type),
+      /** 中文名称 */
       title: zhName,
+      /** 悬浮时上升 */
       riseOnHover: true,
     });
+    /** 设施类型 */
     marker.facilityType = facility.type;
-
+    /** 绑定弹窗 */
     marker.bindPopup(
       `<div style="font-size:14px;line-height:1.6;color:#efefef;">
         <strong style="font-size:15px;display:block;margin-bottom:6px;margin-top:20px;">${zhName}</strong>
@@ -993,15 +1038,17 @@ const initMap = async () => {
       </div>`,
       { minWidth: 240 }
     );
-
-    facilitiesLayer.addLayer(marker);
+    /** 添加到设施组 */
+    facilityGroup.addLayer(marker);
+    /** 按类型分组 */
     if (!facilityMarkersByType[normalizedType]) {
       facilityMarkersByType[normalizedType] = [];
     }
     facilityMarkersByType[normalizedType].push(marker);
   });
-  facilitiesLayer.addTo(map);
+  facilityGroup.addTo(map);
 
+  /** 设施可见性变化时统一刷新图层 */
   watch(
     facilityVisibility,
     () => {
@@ -1010,24 +1057,27 @@ const initMap = async () => {
     { immediate: true, deep: true },
   );
 
-  // 显隐总开关变化时统一刷新图层
+  /** 显隐总开关变化时统一刷新图层 */
   watch([iconsVisible, clustersVisible, tracksVisible, breakingVisible], () => {
     applyLayerVisibility();
   });
 
+  /** 离线瓦片可见性变化时统一刷新图层 */
   watch(offlineTilesVisible, (v) => {
-    if (!offlineTileLayer) return;
+    if (!offlineTileLayer || !map) return;
     if (v) offlineTileLayer.addTo(map);
     else offlineTileLayer.remove();
   });
 
-  // 战场图谱模式：进入时地图被隐藏（v-show），切回地图时需重新计算画布尺寸，
-  // 否则地图容器在 display 切换后会出现尺寸错乱 / 瓦片空白。
+  /** 战场图谱模式：进入时地图被隐藏（v-show），切回地图时需重新计算画布尺寸，
+   * 否则地图容器在 display 切换后会出现尺寸错乱 / 瓦片空白。
+   */
   watch(
     () => homeStore.mapLeftTab,
     (tab) => {
-      if (tab !== "third" && map) {
-        nextTick(() => map.invalidateSize());
+      if (tab !== "graph" && map) {
+        const activeMap = map;
+        nextTick(() => activeMap.invalidateSize());
       }
     },
   );
@@ -1047,14 +1097,20 @@ const initMap = async () => {
 
 };
 
+/** 选中的主题 */
 const selectedTopics = ref<string[]>([]);
+/** 搜索查询 */
 const searchQuery = ref("");
+/** 区域 */
 const region = ref(undefined); // 默认 Global；如需按区域过滤在此赋值
+/** 时间窗口小时数 */
 const timeWindowHours = ref(24);
+/** 文章时间窗口 */
 const articlesSince = computed(
   () => new Date(Date.now() - timeWindowHours.value * 60 * 60 * 1000),
 );
 
+/** 文章列表 */
 const {
   articles,
   isLoading: articlesLoading,
@@ -1069,7 +1125,7 @@ const {
     // hours: 48
   }),
   // 战场图谱模式下暂停 30s 自动轮询（改为图谱右上角「刷新」按钮手动触发）
-  { refetchInterval: 30000, enabled: () => homeStore.mapLeftTab !== "third" },
+  { refetchInterval: 30000, enabled: () => homeStore.mapLeftTab !== "graph" },
 );
 
 // 注册手动刷新：图谱右上角「刷新」按钮通过 store.articlesRefetch 调用（force 绕过 enabled 门控）
@@ -1091,16 +1147,20 @@ watch(articles, (list) => {
 // 全局 loading 控制：底图(geojson) + 文章数据 + 飞机数据 全部就绪后才关闭遮罩
 // ═══════════════════════════════════════════════════════════════════
 const mapReady = ref(false);
+/** 文章数据是否就绪 */
 const articlesReady = ref(false);
+/** 飞机数据是否就绪 */
 const aircraftReady = ref(false);
 
+/** 检查所有数据是否就绪 */
 const checkAllReady = () => {
+  /** 如果地图、文章、飞机数据都已就绪，则关闭 loading 遮罩 */
   if (mapReady.value && articlesReady.value && aircraftReady.value) {
     loadingStore.finishMapLoading();
   }
 };
 
-// 文章首次加载完成（含失败）即视为就绪
+/** 文章首次加载完成（含失败）即视为就绪 */
 watch(articlesLoading, (loading) => {
   if (!loading) {
     articlesReady.value = true;
@@ -1108,7 +1168,7 @@ watch(articlesLoading, (loading) => {
   }
 });
 
-// 飞机数据首次加载完成（含失败）即视为就绪
+/** 飞机数据首次加载完成（含失败）即视为就绪 */
 watch(aviationLoading, (loading) => {
   if (!loading) {
     aircraftReady.value = true;
@@ -1116,6 +1176,7 @@ watch(aviationLoading, (loading) => {
   }
 });
 
+/** 挂载地图 */
 onMounted(async () => {
   // 进入地图即开启全屏 loading，直到底图与数据全部就绪
   loadingStore.startMapLoading();
@@ -1129,50 +1190,66 @@ onMounted(async () => {
   }, 20000);
 
   try {
+    /** 加载设施数据 */
     await homeStore.loadFacilities();
+    /** 初始化地图 */
     await initMap();
-    // 加载异常事件数据到 warningMarkers
+    /** 加载异常事件数据到 warningMarkers */
     await fetchWarningData();
   } catch (e) {
     console.error("[Map] init failed:", e);
   } finally {
     mapReady.value = true;
+    /** 清除安全定时器 */
     window.clearTimeout(safetyTimer);
+    /** 检查所有数据是否就绪 */
     checkAllReady();
   }
 });
 
 onUnmounted(() => {
-  // 兜底：离开页面时无论如何关闭 loading 遮罩
+  /** 兜底：离开页面时无论如何关闭 loading 遮罩 */
   loadingStore.finishMapLoading();
+  /** 清除地图视口 API */
   homeStore.mapViewportApi = null;
+  /** 清除地图 */
   if (map) {
+    /** 清除文章聚合 */
     if (articleCluster) {
       articleCluster.clearLayers();
       articleCluster = null;
     }
+    /** 清除国家标签 */
     if (countryLabelLayer) {
       countryLabelLayer.clearLayers();
       countryLabelLayer = null;
     }
+    /** 清除飞机聚合 */
     if (aircraftCluster) {
       aircraftCluster.clearLayers();
       aircraftCluster = null;
     }
+    /** 清除轨迹 */
     if (trajectoryLayer) {
       trajectoryLayer.clearLayers();
       trajectoryLayer = null;
     }
+    /** 清除异常事件聚合 */
     if (breakingCluster) {
       breakingCluster.clearLayers();
       breakingCluster = null;
     }
+    /** 清除聚合筛选 */
     homeStore.clearClusterFilter();
+    /** 移除地图 */
     map.remove();
     map = null;
+    /** 清除地理层 */
     geoLayer = null;
+    /** 清除道路标签层 */
     roadLabelTileLayer = null;
     facilitiesLayer = null;
+    /** 清除选中的层 */
     selectedLayer = null;
   }
 });

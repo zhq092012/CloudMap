@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="da-panel w-[400px] shrink-0 h-full font-sans">
     <div class="da-panel-title mb-4">
@@ -81,8 +81,8 @@ import { Document } from "@element-plus/icons-vue";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
 import { useAgentStore } from "@/store/modules/agentStore";
 import { ElMessage } from "element-plus";
-import DetailSectionAccordion from "@/components/DetailSectionAccordion.vue";
-import AnalysisNodeDetailDialog from "@/components/analysisNodeDetailDialog.vue";
+import DetailSectionAccordion from "@/components/analysis/DetailSectionAccordion.vue";
+import AnalysisNodeDetailDialog from "@/components/analysis/analysisNodeDetailDialog.vue";
 import { useDeepAnalysisNodeData } from "@/composables/deepAnalysis/useDeepAnalysisNodeData";
 import { useDeepAnalysisNodeDetailDialog } from "@/composables/deepAnalysis/useDeepAnalysisNodeDetailDialog";
 

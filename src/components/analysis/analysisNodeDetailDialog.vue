@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-dialog
     :model-value="visible"
     :title="dialogTitle"
@@ -123,7 +123,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAnalysisStore } from "@/store/modules/analysisStore";
-import AnalysisDetailBlocks from "@/components/analysisDetailBlocks.vue";
+import AnalysisDetailBlocks from "@/components/analysis/analysisDetailBlocks.vue";
 
 const props = defineProps<{ visible: boolean; node: any }>();
 const emit = defineEmits<{ (e: "update:visible", value: boolean): void }>();

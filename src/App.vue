@@ -1,7 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { watch } from "vue";
 import { useRoute } from "vue-router";
-import MapLoading from "@/components/MapLoading.vue";
+import MapLoading from "@/components/map/MapLoading.vue";
 import { useLoadingStore } from "@/store/modules/loadingStore";
 
 const route = useRoute();

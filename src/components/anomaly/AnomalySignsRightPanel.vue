@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <aside class="asrp-root" aria-label="云脑智能面板">
     <h2 class="asrp-root__title">🧠 云脑智能面板</h2>
 
@@ -34,9 +34,9 @@ import { onMounted, ref } from "vue";
 import { getAnomalyStats } from "@/api/anomalies";
 import type { AnomalyStats } from "@/api/anomalies";
 import BriefingDialog from "@/components/Dialogs/BriefingDialog.vue";
-import AnomalySignsRightPanelOverviewTab from "@/components/anomalySigns/AnomalySignsRightPanelOverviewTab.vue";
-import AnomalySignsRightPanelDeepTab from "@/components/anomalySigns/AnomalySignsRightPanelDeepTab.vue";
-import AnomalySignsRightPanelHypothesisTab from "@/components/anomalySigns/AnomalySignsRightPanelHypothesisTab.vue";
+import AnomalySignsRightPanelOverviewTab from "@/components/anomaly/anomalySigns/AnomalySignsRightPanelOverviewTab.vue";
+import AnomalySignsRightPanelDeepTab from "@/components/anomaly/anomalySigns/AnomalySignsRightPanelDeepTab.vue";
+import AnomalySignsRightPanelHypothesisTab from "@/components/anomaly/anomalySigns/AnomalySignsRightPanelHypothesisTab.vue";
 import { useBriefing } from "@/composables/useBriefing";
 import { mockAnomalyDeepJudgment, mockAnomalyHypothesisPanel } from "@/mock/anomalySignsRightPanel";
 import type { AnomalySignsRightPanelTab } from "@/types/anomalySignsRightPanel";

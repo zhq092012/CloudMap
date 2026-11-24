@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="da-cloud-brain" aria-label="云脑智能分析">
     <header class="da-cloud-brain__header">
         <div class="da-cloud-brain__header-main">
@@ -67,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import CloudBrainSectionShell from "@/components/cloudBrainPanel/CloudBrainSectionShell.vue";
+import CloudBrainSectionShell from "@/components/situation/cloudBrainPanel/CloudBrainSectionShell.vue";
 import { deepAnalysisCloudBrainMock } from "@/mock/deepAnalysisCloudBrain";
 
 /** 云脑栏展示用 Mock */

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="w-95 h-full absolute right-0 top-0 z-1000 bg-[#111827]/95 border-l border-[#2d3a4d] text-[#e5e7eb] flex flex-col font-sans select-none backdrop-blur-sm overflow-hidden">
     <div class="shrink-0 px-2.5 pt-2.5 pb-2 border-b border-[#2d3a4d]">
@@ -47,11 +47,11 @@
 import { ref } from "vue";
 import { ElMessage } from "element-plus";
 import BriefingDialog from "@/components/Dialogs/BriefingDialog.vue";
-import PotentialAnomalySection from "@/components/cloudBrainPanel/PotentialAnomalySection.vue";
-import CapabilityChangeSection from "@/components/cloudBrainPanel/CapabilityChangeSection.vue";
-import SituationReportSection from "@/components/cloudBrainPanel/SituationReportSection.vue";
-import KeyFocusSection from "@/components/cloudBrainPanel/KeyFocusSection.vue";
-import CommandTerminalSection from "@/components/cloudBrainPanel/CommandTerminalSection.vue";
+import PotentialAnomalySection from "@/components/situation/cloudBrainPanel/PotentialAnomalySection.vue";
+import CapabilityChangeSection from "@/components/situation/cloudBrainPanel/CapabilityChangeSection.vue";
+import SituationReportSection from "@/components/situation/cloudBrainPanel/SituationReportSection.vue";
+import KeyFocusSection from "@/components/situation/cloudBrainPanel/KeyFocusSection.vue";
+import CommandTerminalSection from "@/components/situation/cloudBrainPanel/CommandTerminalSection.vue";
 import { cloudBrainPanelMock } from "@/mock/cloudBrainPanel";
 import { useBriefing } from "@/composables/useBriefing";
 

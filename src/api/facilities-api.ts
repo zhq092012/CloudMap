@@ -31,7 +31,17 @@ export interface Facility {
   operationalSince?: string
   estimatedValue?: string
 }
-
+/**
+ * 获取设施数据
+ * @param params {
+ *   type?: string // 设施类型
+ *   country?: string // 国家
+ *   region?: string // 地区
+ *   status?: string // 状态
+ *   threatLevel?: string // 威胁等级
+ * }
+ * @returns Facility[] 设施数据
+ */
 export async function getFacilities(
   params?: {
     type?: string

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="h-full bg-[#060c14] text-[#a3b8cc] p-6 font-sans select-none overflow-y-auto custom-scrollbar">
 
     <div
@@ -117,9 +117,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
-import AgentCard from "@/components/AgentCard.vue";
+import AgentCard from "@/components/agents/AgentCard.vue";
 import type { AgentDefinition } from "@/types/agent";
-import AgentFormModal from "@/components/AgentFormModal.vue"; // 👈 引入表单
+import AgentFormModal from "@/components/agents/AgentFormModal.vue"; // 👈 引入表单
 import {
   createAgent,
   updateAgent,

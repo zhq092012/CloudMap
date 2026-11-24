@@ -7,18 +7,13 @@
           <path d="M2 17l10 5 10-5" />
           <path d="M2 12l10 5 10-5" />
         </svg>
-        云图
+        云图威胁分析与态势研判系统
       </div>
 
       <!-- 5 个页签：跳转地址在 script 的 navItems[].path 里补 -->
       <div class="nav-tabs">
-        <div
-          v-for="item in navItems"
-          :key="item.key"
-          class="nav-tab"
-          :class="activeNav === item.key && 'active'"
-          @click="goNav(item)"
-        >
+        <div v-for="item in navItems" :key="item.key" class="nav-tab" :class="activeNav === item.key && 'active'"
+          @click="goNav(item)">
           {{ item.label }}
         </div>
       </div>
@@ -32,30 +27,16 @@
             <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
           </svg>
         </button>
-        <el-popover
-          v-model:visible="menuOpen"
-          trigger="manual"
-          placement="bottom-end"
-          :width="232"
-          :show-arrow="false"
-          popper-class="user-menu-popper"
-        >
+        <el-popover v-model:visible="menuOpen" trigger="manual" placement="bottom-end" :width="232" :show-arrow="false"
+          popper-class="user-menu-popper">
           <template #reference>
-            <button
-              ref="menuRef"
-              type="button"
-              class="user-trigger"
-              :class="{ 'is-open': menuOpen }"
-              @click="menuOpen = !menuOpen"
-            >
-              <span
-                class="user-trigger__avatar"
-                :style="{
-                  background: store.isAdmin
-                    ? 'linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)'
-                    : 'linear-gradient(135deg,#64748b 0%,#475569 100%)',
-                }"
-              >
+            <button ref="menuRef" type="button" class="user-trigger" :class="{ 'is-open': menuOpen }"
+              @click="menuOpen = !menuOpen">
+              <span class="user-trigger__avatar" :style="{
+                background: store.isAdmin
+                  ? 'linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)'
+                  : 'linear-gradient(135deg,#64748b 0%,#475569 100%)',
+              }">
                 {{ avatarChar }}
               </span>
               <span class="user-trigger__name">{{ username }}</span>
@@ -65,10 +46,7 @@
           <div ref="menuContentRef" class="user-menu">
             <div class="user-menu__header">
               <div class="user-menu__title">{{ username }}</div>
-              <div
-                class="user-menu__role"
-                :class="store.isAdmin ? 'user-menu__role--admin' : 'user-menu__role--user'"
-              >
+              <div class="user-menu__role" :class="store.isAdmin ? 'user-menu__role--admin' : 'user-menu__role--user'">
                 {{ store.isAdmin ? "管理员" : "普通用户" }}
               </div>
             </div>

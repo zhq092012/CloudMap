@@ -424,7 +424,7 @@ const render = async () => {
 // 筛选 / 数据变化时的防抖重渲染，避免每次按键都重排
 let renderTimer: any = null;
 const scheduleRender = () => {
-  if (store.mapLeftTab !== "third") return;
+  if (store.mapLeftTab !== "graph") return;
   if (renderTimer) clearTimeout(renderTimer);
   renderTimer = setTimeout(() => {
     nextTick(() => render());
@@ -433,7 +433,7 @@ const scheduleRender = () => {
 
 const handleResize = () => {
   // 仅在图谱模式且实例存在时调整尺寸（隐藏状态下 0 尺寸的 resize 无意义）
-  if (!graph || !containerRef.value || store.mapLeftTab !== "third") return;
+  if (!graph || !containerRef.value || store.mapLeftTab !== "graph") return;
   try {
     graph.setSize(containerRef.value.clientWidth, containerRef.value.clientHeight);
   } catch {
@@ -445,7 +445,7 @@ const handleResize = () => {
 watch(
   () => store.mapLeftTab,
   (tab) => {
-    if (tab === "third") {
+    if (tab === "graph") {
       nextTick(() => render());
     } else {
       // 切出图谱：仅清空选中态与挂起的渲染任务，保留 G6 实例不销毁，
@@ -469,7 +469,7 @@ watch(
 
 onMounted(() => {
   window.addEventListener("resize", handleResize);
-  if (store.mapLeftTab === "third") nextTick(() => render());
+  if (store.mapLeftTab === "graph") nextTick(() => render());
 });
 
 onBeforeUnmount(() => {
