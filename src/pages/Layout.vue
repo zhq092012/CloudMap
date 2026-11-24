@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-screen flex flex-col">
+  <div class="layout-shell">
     <nav class="top-nav">
       <div class="nav-logo" @click="$router.push('/')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -44,12 +44,12 @@
             <button
               ref="menuRef"
               type="button"
-              class="flex items-center gap-2.5 rounded-full pl-1.5 pr-3 py-1.5 cursor-pointer select-none border transition-colors"
-              :class="menuOpen ? 'bg-[#1a2332] border-[#3d4d64]' : 'border-transparent hover:bg-[rgba(59,130,246,0.1)]'"
+              class="user-trigger"
+              :class="{ 'is-open': menuOpen }"
               @click="menuOpen = !menuOpen"
             >
               <span
-                class="w-8 h-8 rounded-full flex items-center justify-center text-[0.95rem] font-bold text-white flex-shrink-0"
+                class="user-trigger__avatar"
                 :style="{
                   background: store.isAdmin
                     ? 'linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)'
@@ -58,49 +58,39 @@
               >
                 {{ avatarChar }}
               </span>
-              <span class="text-sm font-semibold text-white">{{ username }}</span>
-              <span
-                class="text-[10px] text-[#9ca3af] transition-transform duration-150"
-                :class="menuOpen && 'rotate-180'"
-              >▾</span>
+              <span class="user-trigger__name">{{ username }}</span>
+              <span class="user-trigger__caret" :class="{ 'is-open': menuOpen }">▾</span>
             </button>
           </template>
-          <div ref="menuContentRef">
-            <div class="px-4 pt-3.5 pb-3 border-b border-[#253141]">
-              <div class="text-sm font-bold text-white leading-tight">{{ username }}</div>
-              <div class="text-xs mt-1" :class="store.isAdmin ? 'text-[#93c5fd]' : 'text-[#9ca3af]'">
-                {{ store.isAdmin ? '管理员' : '普通用户' }}
+          <div ref="menuContentRef" class="user-menu">
+            <div class="user-menu__header">
+              <div class="user-menu__title">{{ username }}</div>
+              <div
+                class="user-menu__role"
+                :class="store.isAdmin ? 'user-menu__role--admin' : 'user-menu__role--user'"
+              >
+                {{ store.isAdmin ? "管理员" : "普通用户" }}
               </div>
             </div>
-            <button
-              type="button"
-              class="flex items-center gap-2.5 w-full px-4 py-3 text-left text-sm text-[#cbd5e1] hover:bg-[rgba(59,130,246,0.12)] cursor-pointer border-none"
-              @click="goProfile"
-            >
-              <span class="text-base">👤</span> 个人资料
+            <button type="button" class="user-menu__item" @click="goProfile">
+              <span class="user-menu__icon">👤</span>
+              个人资料
             </button>
-            <button
-              v-if="store.isAdmin"
-              type="button"
-              class="flex items-center gap-2.5 w-full px-4 py-3 text-left text-sm text-[#cbd5e1] hover:bg-[rgba(59,130,246,0.12)] cursor-pointer border-none"
-              @click="goAdminUsers"
-            >
-              <span class="text-base">🛡️</span> 用户管理
+            <button v-if="store.isAdmin" type="button" class="user-menu__item" @click="goAdminUsers">
+              <span class="user-menu__icon">🛡️</span>
+              用户管理
             </button>
-            <div class="h-px bg-[#253141]"></div>
-            <button
-              type="button"
-              class="flex items-center gap-2.5 w-full px-4 py-3 text-left text-sm text-[#ef4444] hover:bg-[rgba(239,68,68,0.08)] cursor-pointer border-none"
-              @click="doLogout"
-            >
-              <span class="text-base">↩</span> 退出登录
+            <div class="user-menu__divider"></div>
+            <button type="button" class="user-menu__item user-menu__item--danger" @click="doLogout">
+              <span class="user-menu__icon">↩</span>
+              退出登录
             </button>
           </div>
         </el-popover>
       </div>
     </nav>
 
-    <div class="flex-1 overflow-auto">
+    <div class="layout-main">
       <router-view />
     </div>
   </div>
@@ -237,6 +227,21 @@ $spacing-xl: 32px;
 
 $radius-md: 6px;
 $transition-fast: 0.15s ease;
+$panel-sunken: #1a2332;
+$divider: #253141;
+
+.layout-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+}
+
+.layout-main {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
 
 .top-nav {
   height: 60px;
@@ -289,13 +294,14 @@ $transition-fast: 0.15s ease;
   }
 
   .nav-tab {
-    padding: $spacing-sm $spacing-md;
+    padding: 9px $spacing-md;
     border-radius: $radius-md;
     color: $text-secondary;
     cursor: pointer;
     transition: all $transition-fast;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     position: relative;
     border: 1px solid transparent;
 
@@ -307,6 +313,7 @@ $transition-fast: 0.15s ease;
 
     &.active {
       color: $accent-text;
+      font-weight: 700;
       background: rgba($accent-blue, 0.16);
       border-color: rgba($accent-blue, 0.45);
 
@@ -359,6 +366,119 @@ $transition-fast: 0.15s ease;
       border-color: $border-strong;
       background: rgba($accent-blue, 0.1);
     }
+  }
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition: background $transition-fast, border-color $transition-fast;
+
+  &:hover:not(.is-open) {
+    background: rgba($accent-blue, 0.1);
+  }
+
+  &.is-open {
+    background: $panel-sunken;
+    border-color: $border-strong;
+  }
+
+  &__avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    border-radius: 50%;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  &__caret {
+    font-size: 10px;
+    color: $text-secondary;
+    transition: transform 0.15s ease;
+
+    &.is-open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.user-menu {
+  &__header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid $divider;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #ffffff;
+  }
+
+  &__role {
+    margin-top: 4px;
+    font-size: 12px;
+
+    &--admin {
+      color: $accent-text;
+    }
+
+    &--user {
+      color: $text-secondary;
+    }
+  }
+
+  &__item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #cbd5e1;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+
+    &:hover {
+      background: rgba($accent-blue, 0.12);
+    }
+
+    &--danger {
+      color: #ef4444;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.08);
+      }
+    }
+  }
+
+  &__icon {
+    font-size: 16px;
+  }
+
+  &__divider {
+    height: 1px;
+    background: $divider;
   }
 }
 </style>
