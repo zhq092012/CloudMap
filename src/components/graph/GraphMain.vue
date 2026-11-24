@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { Graph } from "@antv/g6";
+import { CanvasEvent, Graph } from "@antv/g6";
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useHomeStore } from "@/store/modules/homeStore";
 
@@ -416,6 +416,19 @@ const graphHighlightStyle = {
   dimEdge: { opacity: 0.1, lineWidth: 1 },
 } as const;
 
+/** 样式补丁写入后刷新画布，保证取消高亮立即可见 */
+const refreshGraphAfterStyleChange = () => {
+  if (!graph) return;
+  void graph.draw();
+};
+
+/** 清空选中信息与关系高亮（点画布空白时） */
+const clearGraphSelection = () => {
+  selectedNode.value = null;
+  store.selectedGraphAggId = null;
+  resetGraphRelationHighlight();
+};
+
 /** 取消节点关系高亮，恢复全部节点与边的初始样式 */
 const resetGraphRelationHighlight = () => {
   if (!graph) return;
@@ -438,6 +451,7 @@ const resetGraphRelationHighlight = () => {
         style: { ...(edgeStyleBase.get(e.id as string) ?? {}) },
       }));
     if (edgePatches.length) graph.updateEdgeData(edgePatches);
+    refreshGraphAfterStyleChange();
   } catch {
     /* 实例重建中忽略 */
   }
@@ -493,6 +507,7 @@ const applyGraphRelationHighlight = (nodeId: string) => {
         return { id, style: { ...base, ...graphHighlightStyle.dimEdge } };
       });
     if (edgePatches.length) graph.updateEdgeData(edgePatches);
+    refreshGraphAfterStyleChange();
   } catch {
     /* 实例重建中忽略 */
   }
@@ -664,6 +679,7 @@ const render = async () => {
 
     graph.on("combo:click", (evt: any) => {
       try {
+        resetGraphRelationHighlight();
         const id = evt.itemId ?? evt.target?.id;
         if (!id) return;
         const d = graph?.getComboData(id);
@@ -681,10 +697,19 @@ const render = async () => {
       }
     });
 
-    graph.on("canvas:click", () => {
-      selectedNode.value = null;
-      store.selectedGraphAggId = null;
-      resetGraphRelationHighlight();
+    /** 画布空白处：取消选中与关系高亮 */
+    graph.on(CanvasEvent.CLICK, () => {
+      clearGraphSelection();
+    });
+
+    /**
+     * 情感模式下大圆 Combo 占据大部分可视区，点击其空白不会触发 canvas:click；
+     * 点 Combo 空白时仍取消节点关系高亮（详情由 combo:click 更新）。
+     */
+    graph.on("click", (evt: any) => {
+      if (evt.targetType === "combo" && focusedGraphNodeId) {
+        resetGraphRelationHighlight();
+      }
     });
 
     await graph.render();
@@ -739,9 +764,7 @@ watch(
     } else {
       // 切出图谱：仅清空选中态与挂起的渲染任务，保留 G6 实例不销毁，
       // 切回时 render() 走快速路径（数据未变即 setSize+fitView 秒开，不重跑力导向布局）
-      selectedNode.value = null;
-      store.selectedGraphAggId = null;
-      resetGraphRelationHighlight();
+      clearGraphSelection();
       if (renderTimer) clearTimeout(renderTimer);
       settleTimers.forEach((t) => clearTimeout(t));
       settleTimers = [];
