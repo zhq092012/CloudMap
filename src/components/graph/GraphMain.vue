@@ -79,6 +79,35 @@ const emptyMsg = ref("暂无图谱数据，请确认开源情报文章已加载�
 const loading = ref(false);
 
 const MAX_NODES = 400;
+/** fitView 上下留白；左右来自态势页 --map-chrome-*（避开侧栏遮挡） */
+const GRAPH_VIEWPORT_PAD_Y = 56;
+/** 态势页侧栏布局变化时派发，用于重算视口 padding */
+const SITUATION_CHROME_EVENT = "situation-chrome-change";
+
+/**
+ * 读取态势监控页左右浮层占位（与 mapChromeLayoutVars 一致）。
+ * 返回 G6 padding：[top, right, bottom, left]。
+ */
+const getGraphViewportPadding = (): [number, number, number, number] => {
+  const host = containerRef.value?.closest(".situation-monitor-page");
+  const style = getComputedStyle(host ?? document.documentElement);
+  const left = Number.parseFloat(style.getPropertyValue("--map-chrome-left")) || 372;
+  const right = Number.parseFloat(style.getPropertyValue("--map-chrome-right")) || 392;
+  return [GRAPH_VIEWPORT_PAD_Y, right, GRAPH_VIEWPORT_PAD_Y, left];
+};
+
+/** 按当前侧栏占位适配视口并略微缩小，避免最右侧「中立」Combo 落在右栏下方点不到 */
+const fitGraphView = () => {
+  if (!graph) return;
+  try {
+    graph.setOptions({ padding: getGraphViewportPadding() });
+    void graph.fitView().then(() => {
+      if (graph) graph.zoomTo(graph.getZoom() * 0.7);
+    });
+  } catch {
+    /* ignore */
+  }
+};
 
 const sentimentColor = (s?: string): string => {
   switch (s) {
@@ -220,7 +249,7 @@ const buildArticleGraph = () => {
         fill,
         stroke,
         lineWidth: isBreaking ? 3 : 2,
-        zIndex: 1,
+        zIndex: groupBy === "sentiment" ? 30 : 1,
         labelText: label,
         labelFill: "#e2e8f0",
         labelFontSize: 50,
@@ -340,6 +369,7 @@ const buildArticleGraph = () => {
         },
         style: {
           padding: 40,
+          pointerEvents: "none",
           fill: sentimentComboFill(s),
           fillOpacity: 0.45,
           stroke: sentimentColor(s),
@@ -370,22 +400,6 @@ const buildArticleGraph = () => {
     groupBy,
   };
 };
-
-/** 情感分组外轮廓（布局完成后随节点位置包裹，强化「成簇」观感） */
-const buildSentimentHullPlugins = (memberIds: Record<(typeof SENTIMENT_GROUP_KEYS)[number], string[]>) =>
-  SENTIMENT_GROUP_KEYS.filter((s) => memberIds[s].length > 0).map((s) => ({
-    type: "hull",
-    key: `sentiment-hull-${s}`,
-    members: memberIds[s],
-    padding: 48,
-    concavity: Infinity,
-    corner: "rounded" as const,
-    fill: sentimentComboFill(s),
-    fillOpacity: 0.22,
-    stroke: sentimentColor(s),
-    strokeOpacity: 0.85,
-    lineWidth: 2.5,
-  }));
 
 /** @antv/layout v2 combo-combined：外层 grid 摆放大圆，内层 force 排文章 */
 /** 当前关系高亮的焦点节点 id；点空白或切换节点时重置 */
@@ -513,10 +527,72 @@ const applyGraphRelationHighlight = (nodeId: string) => {
   }
 };
 
+/** 从指针事件取画布坐标，用于 Combo 区域兜底命中文章节点 */
+const getClickCanvasPoint = (evt: any): [number, number] | null => {
+  if (!graph) return null;
+  const raw = evt.nativeEvent ?? evt;
+  const clientX = raw.clientX ?? evt.client?.x;
+  const clientY = raw.clientY ?? evt.client?.y;
+  if (typeof clientX !== "number" || typeof clientY !== "number") return null;
+  const pt = graph.getCanvasByClient([clientX, clientY]);
+  return [pt[0], pt[1]];
+};
+
+/**
+ * 在画布坐标附近选取最近的文章节点（Combo 大圆底可穿透时兜底）。
+ * @param comboId 限定在某一情感 Combo 内
+ */
+const pickNearestArticleNodeAtCanvas = (
+  point: [number, number],
+  comboId?: string,
+  maxDist = 150,
+): string | undefined => {
+  if (!graph) return undefined;
+  let best: { id: string; d: number } | undefined;
+  for (const n of graph.getNodeData()) {
+    const raw = (n.data || {}) as Record<string, any>;
+    if (raw.kind !== "article") continue;
+    if (comboId && n.combo !== comboId) continue;
+    const pos = graph.getElementPosition(n.id);
+    const d = Math.hypot(pos[0] - point[0], pos[1] - point[1]);
+    if (d > maxDist) continue;
+    if (!best || d < best.d) best = { id: n.id, d };
+  }
+  return best?.id;
+};
+
+/** 选中节点：更新信息卡、右侧列表与关系高亮 */
+const selectGraphNode = (id: string) => {
+  if (!graph) return;
+  const d = graph.getNodeData(id);
+  const raw = (d?.data || {}) as Record<string, any>;
+  selectedNode.value = {
+    title: (raw.title as string) ?? id,
+    kind: (raw.kind as string) ?? "article",
+    country: raw.country,
+    authorName: raw.authorName,
+    sentiment: raw.sentiment,
+    isBreaking: raw.isBreaking,
+    source: raw.source,
+    publishedAt: raw.publishedAt,
+    count: raw.count,
+  };
+  if (raw.kind === "country" || raw.kind === "author") {
+    store.selectedGraphAggId = id;
+  } else if (raw.kind === "article") {
+    if (store.graphFilter.groupBy === "sentiment") {
+      store.selectedGraphAggId = `sentiment:${raw.sentiment || "neutral"}`;
+    } else {
+      store.selectedGraphAggId = `country:${raw.country || "未知国家"}`;
+    }
+  }
+  applyGraphRelationHighlight(id);
+};
+
 const buildSentimentComboLayout = () => ({
   type: "combo-combined",
   comboPadding: 40,
-  comboSpacing: 140,
+  comboSpacing: 180,
   layout: (comboId: string | null) => {
     if (comboId == null) {
       return {
@@ -591,8 +667,7 @@ const render = async () => {
       const cw = el.clientWidth || el.parentElement?.clientWidth || window.innerWidth;
       const ch = el.clientHeight || el.parentElement?.clientHeight || window.innerHeight;
       graph.setSize(cw, ch);
-      graph.fitView();
-      graph.zoomTo(graph.getZoom() * 0.7);
+      fitGraphView();
       return;
     } catch {
       destroyGraph(); // 恢复失败则回退到完整重建
@@ -621,6 +696,7 @@ const render = async () => {
       height: ch,
       autoResize: true,
       autoFit: "view",
+      padding: getGraphViewportPadding(),
       data: graphData,
       layout: isSentimentCombo ? buildSentimentComboLayout() : { ...graphForceLayout },
       combo: isSentimentCombo
@@ -630,10 +706,11 @@ const render = async () => {
               fillOpacity: 0.4,
               strokeOpacity: 0.95,
               lineWidth: 3,
+              pointerEvents: "none",
             },
           }
         : undefined,
-      plugins: isSentimentCombo ? buildSentimentHullPlugins(data.sentimentMemberIds) : [],
+      plugins: [],
       // 注意：不要设置 node: { type: "circle" } 之类的全局默认——
       // G6 v5 的 getElementType 取 `options[node].type || datum.type`，
       // 全局默认会覆盖数据里每个节点的 type，导致三角形/菱形/正方形全部变圆形。
@@ -648,30 +725,7 @@ const render = async () => {
       try {
         const id = evt.itemId ?? evt.target?.id;
         if (!id) return;
-        const d = graph?.getNodeData(id);
-        const raw = (d?.data || {}) as Record<string, any>;
-        selectedNode.value = {
-          title: (raw.title as string) ?? id,
-          kind: (raw.kind as string) ?? "article",
-          country: raw.country,
-          authorName: raw.authorName,
-          sentiment: raw.sentiment,
-          isBreaking: raw.isBreaking,
-          source: raw.source,
-          publishedAt: raw.publishedAt,
-          count: raw.count,
-        };
-        // 点击聚合锚点（国家 / 作者）时，把 id 写入 store，供右侧 RightGraphList 列出对应文章
-        if (raw.kind === "country" || raw.kind === "author") {
-          store.selectedGraphAggId = id;
-        } else if (raw.kind === "article") {
-          if (store.graphFilter.groupBy === "sentiment") {
-            store.selectedGraphAggId = `sentiment:${raw.sentiment || "neutral"}`;
-          } else {
-            store.selectedGraphAggId = `country:${raw.country || "未知国家"}`;
-          }
-        }
-        applyGraphRelationHighlight(id);
+        selectGraphNode(id);
       } catch {
         /* 节点不存在时忽略 */
       }
@@ -682,6 +736,14 @@ const render = async () => {
         resetGraphRelationHighlight();
         const id = evt.itemId ?? evt.target?.id;
         if (!id) return;
+        const canvasPt = getClickCanvasPoint(evt);
+        if (canvasPt) {
+          const picked = pickNearestArticleNodeAtCanvas(canvasPt, id);
+          if (picked) {
+            selectGraphNode(picked);
+            return;
+          }
+        }
         const d = graph?.getComboData(id);
         const raw = (d?.data || {}) as Record<string, any>;
         if (raw.kind !== "sentiment") return;
@@ -721,12 +783,7 @@ const render = async () => {
   // 力导向布局异步收敛，渲染后延时重新自适应视口，并额外缩小默认显示比例
   const settle = () => {
     if (token !== renderToken || !graph) return;
-    try {
-      graph.fitView();
-      if (graph) graph.zoomTo(graph.getZoom() * 0.7);
-    } catch {
-      /* ignore */
-    }
+    fitGraphView();
     loading.value = false;
   };
   if (token === renderToken) {
@@ -750,9 +807,15 @@ const handleResize = () => {
   if (!graph || !containerRef.value || store.mapLeftTab !== "graph") return;
   try {
     graph.setSize(containerRef.value.clientWidth, containerRef.value.clientHeight);
+    fitGraphView();
   } catch {
     /* ignore */
   }
+};
+
+const handleSituationChromeChange = () => {
+  if (store.mapLeftTab !== "graph" || !graph) return;
+  fitGraphView();
 };
 
 // 进入「态势图谱」模式时渲染（此时容器才有真实尺寸）
@@ -782,11 +845,13 @@ watch(
 
 onMounted(() => {
   window.addEventListener("resize", handleResize);
+  window.addEventListener(SITUATION_CHROME_EVENT, handleSituationChromeChange);
   if (store.mapLeftTab === "graph") nextTick(() => render());
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
+  window.removeEventListener(SITUATION_CHROME_EVENT, handleSituationChromeChange);
   if (renderTimer) clearTimeout(renderTimer);
   destroyGraph();
 });

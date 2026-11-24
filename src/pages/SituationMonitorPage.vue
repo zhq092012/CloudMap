@@ -17,7 +17,7 @@
 /**
  * 态势监控路由页：编排地图/图谱主视区与左右侧栏，自身不直接挂载地图子组件。
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useHomeStore } from "@/store/modules/homeStore";
 import { mapChromeLayoutVars } from "@/constants/mapChromeLayout";
 import SituationMonitorMapStage from "@/components/situation/situationMonitor/SituationMonitorMapStage.vue";
@@ -42,6 +42,11 @@ const sideLayoutStyle = computed(() =>
  * 返回 boolean。左栏 Tab 为 graph 时为 true。
  */
 const isGraphMode = computed(() => store.mapLeftTab === "graph");
+
+/** 侧栏收起/展开改变浮层边距时通知图谱重算 fitView padding（画布尺寸本身不变） */
+watch([leftPanelCollapsed, rightPanelCollapsed], () => {
+  window.dispatchEvent(new Event("situation-chrome-change"));
+});
 </script>
 
 <style scoped lang="scss">
