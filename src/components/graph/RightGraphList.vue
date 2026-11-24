@@ -53,7 +53,13 @@
       </div>
     </div>
 
-    <el-dialog v-model="articleDialogVisible" append-to-body plain width="520px" :close-on-click-modal="false"
+    <el-dialog
+      v-model="articleDialogVisible"
+      append-to-body
+      plain
+      class="article-read-dialog"
+      width="520px"
+      :close-on-click-modal="false"
       title="文章详情" @close="closeDialog">
       <div class="dialog-content">
         <div class="dialog-title">{{ selectedArticle?.title || "暂无标题" }}</div>

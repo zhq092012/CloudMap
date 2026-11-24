@@ -189,7 +189,14 @@
       </div>
     </div>
 
-    <el-dialog v-model="detailVisible" plain width="520px" :close-on-click-modal="false" title="事件详情"
+    <el-dialog
+      v-model="detailVisible"
+      append-to-body
+      plain
+      class="article-read-dialog"
+      width="520px"
+      :close-on-click-modal="false"
+      title="事件详情"
     @closed="detailEvent = null">
     <div v-loading="detailLoading" class="dialog-content">
       <div class="dialog-title">{{ detailEvent?.name || "暂无标题" }}</div>

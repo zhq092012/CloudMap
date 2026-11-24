@@ -21,7 +21,13 @@
       <AnomalySignsRightPanelHypothesisTab v-show="activeTab === 'hypothesis'" :panel="hypothesisPanel" />
     </div>
 
-    <el-dialog v-model="briefingDialogVisible" plain width="960px" append-to-body :close-on-click-modal="false"
+    <el-dialog
+      v-model="briefingDialogVisible"
+      plain
+      class="article-read-dialog"
+      width="960px"
+      append-to-body
+      :close-on-click-modal="false"
       title="异常征候简报详情">
       <BriefingDialog heading="异常征候简报" :state="briefingState" :briefing="briefingData" :error="briefingError"
         @regenerate="doGenerateBriefing" @close="briefingDialogVisible = false" />

@@ -1,3 +1,4 @@
+<!-- 图谱主画布 -->
 <template>
   <div class="graph-wrapper relative h-full w-full bg-[#0b0f1a]">
     <!-- 画布（置于最底层，铺满容器） -->
@@ -25,7 +26,8 @@
         <div class="info-type">国家：{{ selectedNode.country || "未知" }}</div>
         <div class="info-type">作者：{{ selectedNode.authorName || "未知" }}</div>
         <div class="info-type">
-          情感：<span :style="{ color: sentimentColor(selectedNode.sentiment) }">{{ sentimentLabel(selectedNode.sentiment) }}</span>
+          情感：<span :style="{ color: sentimentColor(selectedNode.sentiment) }">{{ sentimentLabel(selectedNode.sentiment)
+            }}</span>
           <span v-if="selectedNode.isBreaking" class="info-breaking">· 异常</span>
         </div>
         <div class="info-type" v-if="selectedNode.source">来源：{{ selectedNode.source }}</div>
@@ -359,7 +361,8 @@ const render = async () => {
       // 全局默认会覆盖数据里每个节点的 type，导致三角形/菱形/正方形全部变圆形。
       edge: { type: "line" },
       behaviors: ["drag-canvas", "zoom-canvas", "drag-element", "hover-activate"],
-      animation: true,
+      // 关闭节点/视口过渡动画，布局结果直接落位
+      animation: false,
     });
 
     // 点击节点查看详情（try/catch 防御：极端情况下节点可能已被重建移除）

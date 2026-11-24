@@ -52,8 +52,8 @@
     </div>
 
     <!-- 文章简介弹窗 -->
-    <el-dialog v-model="articleDialogVisible" plain class="anomaly-dialog" width="520px" :close-on-click-modal="false"
-      title="文章简介" @close="closeDialog">
+    <el-dialog v-model="articleDialogVisible" append-to-body plain class="anomaly-dialog article-read-dialog" width="920px"
+      :close-on-click-modal="false" title="文章简介" @close="closeDialog">
       <div class="dialog-content">
         <div class="dialog-title">{{ selectedArticle?.title || "暂无标题" }}</div>
         <div class="dialog-meta">
@@ -71,8 +71,8 @@
     </el-dialog>
 
     <!-- 警告信息弹窗 -->
-    <el-dialog v-model="warningDialogVisible" plain class="anomaly-dialog" width="880px" :close-on-click-modal="false"
-      title="⚠️ 警告信息">
+    <el-dialog v-model="warningDialogVisible" append-to-body plain class="anomaly-dialog article-read-dialog" width="920px"
+      :close-on-click-modal="false" title="⚠️ 警告信息">
       <WarningDialog :article="warningArticle" :state="warningState" :content="warningContent" :error="warningError"
         :analyzed-at="warningAnalyzedAt" @retry="reanalyzeWarning" @reanalyze="reanalyzeWarning" />
     </el-dialog>

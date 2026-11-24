@@ -8,37 +8,30 @@
     </div>
 
     <div class="rp-sections flex-1 min-h-0 overflow-y-auto custom-scrollbar px-2.5 py-2 space-y-2">
+      <!-- 潜在异常区块 -->
       <PotentialAnomalySection :data="panelMock.potentialAnomaly" @action="onPotentialAnomalyAction" />
+      <!-- 能力变化区块 -->
       <CapabilityChangeSection :data="panelMock.capabilityChange" @export="onCapabilityExport" />
-      <SituationReportSection
-        :data="panelMock.situationReport"
-        :has-briefing="hasBriefing"
-        :overview-html="overviewHtml"
-        :overview-date="overviewDate"
-        @view-detail="showReportDetail"
-        @map-locate="onSituationMapLocate"
-        @export="onSituationExport"
-        @regenerate="doGenerateBriefing"
-      />
+      <!-- 态势报告区块 -->
+      <SituationReportSection :data="panelMock.situationReport" :has-briefing="hasBriefing"
+        :overview-html="overviewHtml" :overview-date="overviewDate" @view-detail="showReportDetail"
+        @map-locate="onSituationMapLocate" @export="onSituationExport" @regenerate="doGenerateBriefing" />
+      <!-- 重点关注区块 -->
       <KeyFocusSection :data="panelMock.keyFocus" @dismiss="onKeyFocusDismiss" />
+      <!-- 指挥终端区块 -->
       <CommandTerminalSection class="rp-terminal-section" />
     </div>
 
     <el-dialog
       v-model="briefingDialogVisible"
       plain
+      class="article-read-dialog"
       width="960px"
       append-to-body
       :close-on-click-modal="false"
       title="态势监控简报详情">
-      <BriefingDialog
-        heading="态势监控简报"
-        :state="briefingState"
-        :briefing="briefingData"
-        :error="briefingError"
-        @regenerate="doGenerateBriefing"
-        @close="briefingDialogVisible = false"
-      />
+      <BriefingDialog heading="态势监控简报" :state="briefingState" :briefing="briefingData" :error="briefingError"
+        @regenerate="doGenerateBriefing" @close="briefingDialogVisible = false" />
     </el-dialog>
   </div>
 </template>

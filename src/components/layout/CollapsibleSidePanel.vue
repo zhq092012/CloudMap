@@ -1,34 +1,18 @@
+<!-- 可折叠侧边栏 -->
 <template>
-  <aside
-    class="csp"
-    :class="[
-      `csp--${side}`,
-      `csp--${layout}`,
-      { 'csp--collapsed': collapsed },
-    ]"
-    :style="rootStyle"
-    :aria-label="ariaLabel || label"
-  >
-    <button
-      v-if="collapsed"
-      type="button"
-      class="csp__rail-btn"
-      :title="`展开${label}`"
-      @click="collapsed = false"
-    >
+  <aside class="csp" :class="[
+    `csp--${side}`,
+    `csp--${layout}`,
+    { 'csp--collapsed': collapsed },
+  ]" :style="rootStyle" :aria-label="ariaLabel || label">
+    <button v-if="collapsed" type="button" class="csp__rail-btn" :title="`展开${label}`" @click="collapsed = false">
       <span class="csp__rail-icon" aria-hidden="true">{{ side === "left" ? "›" : "‹" }}</span>
       <span class="csp__rail-label">{{ label }}</span>
     </button>
 
     <template v-else>
-      <button
-        type="button"
-        class="csp__edge-collapse"
-        :class="`csp__edge-collapse--${side}`"
-        :title="`收起${label}`"
-        :aria-label="`收起${label}`"
-        @click="collapsed = true"
-      >
+      <button type="button" class="csp__edge-collapse" :class="`csp__edge-collapse--${side}`" :title="`收起${label}`"
+        :aria-label="`收起${label}`" @click="collapsed = true">
         <span class="csp__edge-collapse-icon" aria-hidden="true">{{
           side === "left" ? "‹" : "›"
         }}</span>

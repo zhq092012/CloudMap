@@ -100,21 +100,12 @@
       <!-- 「待研判」分组 -->
       <div v-else class="anomaly-list">
         <div v-if="filteredAnomalies.length === 0" class="anomaly-empty">暂无数据</div>
-        <div
-          v-for="item in filteredAnomalies"
-          :key="item.id"
-          class="anomaly-item"
-          :class="{ 'anomaly-item--pending': activeAnomalyTab === 'pending' }"
-        >
+        <div v-for="item in filteredAnomalies" :key="item.id" class="anomaly-item"
+          :class="{ 'anomaly-item--pending': activeAnomalyTab === 'pending' }">
           <!-- 待研判：左勾选（纵向居中）| 标题行右侧为状态 tag +「确认」tag -->
           <template v-if="activeAnomalyTab === 'pending'">
-            <input
-              v-model="selectedIds"
-              type="checkbox"
-              class="anomaly-checkbox anomaly-item-select"
-              :value="item.id"
-              @click.stop
-            />
+            <input v-model="selectedIds" type="checkbox" class="anomaly-checkbox anomaly-item-select" :value="item.id"
+              @click.stop />
             <div class="anomaly-item-main">
               <div class="anomaly-item-head">
                 <span class="anomaly-item-name" :title="item.name">{{
@@ -124,12 +115,8 @@
                   <span class="anomaly-item-status" :class="statusClass(item.status)">{{
                     statusText(item.status)
                   }}</span>
-                  <button
-                    type="button"
-                    class="anomaly-item-status is-confirm-tag"
-                    :disabled="pendingAction"
-                    @click.stop="confirmOne(item)"
-                  >
+                  <button type="button" class="anomaly-item-status is-confirm-tag" :disabled="pendingAction"
+                    @click.stop="confirmOne(item)">
                     确认
                   </button>
                 </div>
@@ -205,75 +192,76 @@
       </div>
 
     </div>
+
+    <!-- 「异常」分组条目的「查看详情」弹窗（挂载到 body，避免与侧栏 flex 争高） -->
+    <el-dialog v-model="detailVisible" append-to-body plain class="anomaly-dialog article-read-dialog" width="920px"
+      :close-on-click-modal="false" title="事件详情" @closed="detailEvent = null">
+      <div v-loading="detailLoading" class="dialog-content">
+        <div class="dialog-title">
+          <span class="dialog-title-mark">◆</span>
+          <span>{{ detailEvent?.name || "暂无标题" }}</span>
+        </div>
+        <div class="dialog-meta">
+          <span class="dialog-country">异常类型：{{ assetTypeLabel(detailEvent?.assetType) }}</span>
+          <span class="dialog-country">区域：{{ detailEvent?.location || "未知区域" }}</span>
+        </div>
+        <div class="dialog-meta">
+          <span class="dialog-country">时间：{{ formatEventTime(detailEvent?.eventTime) }}</span>
+          <span class="dialog-country">综合威胁度：{{ detailEvent?.threatLevel ?? "--" }}</span>
+          <span class="dialog-country">置信度：{{ Math.round(Number(detailEvent?.confidence) || 0) }}%</span>
+          <span class="dialog-country">偏离度：{{ detailEvent?.deviationScore ?? "--" }}</span>
+        </div>
+
+        <div v-if="detailArticle" class="dialog-section">
+          <div class="dialog-meta">
+            <span class="dialog-country">国家：{{ detailArticle.country || "未知国家" }}</span>
+            <span class="dialog-country">来源：{{ detailArticle.author || detailArticle.source || "未知来源" }}</span>
+          </div>
+          <p class="dialog-body">{{ detailArticle.content || detailArticle.summary || "暂无内容" }}</p>
+        </div>
+
+        <div v-else-if="detailIsTrajectory" class="dialog-section">
+          <div class="dialog-subtitle">轨迹目标</div>
+          <div class="dialog-meta">
+            <span class="dialog-country">呼号：{{ detailEvent?.source || "--" }}</span>
+            <span class="dialog-country">资产 ID：{{ detailSigint?.assetId || detailEvent?.assetId || "--" }}</span>
+            <span v-if="detailSigint?.aircraftType" class="dialog-country">机型：{{ detailSigint.aircraftType }}</span>
+          </div>
+          <div v-if="detailSigint" class="dialog-meta">
+            <span class="dialog-country">最新位置：{{ formatCoord(detailSigint.lat, detailSigint.lng) }}</span>
+            <span v-if="detailSigint.alt != null" class="dialog-country">高度：{{ Math.round(Number(detailSigint.alt))
+              }}</span>
+            <span v-if="detailSigint.speed != null" class="dialog-country">速度：{{ Math.round(Number(detailSigint.speed))
+              }}kt</span>
+            <span v-if="detailSigint.heading != null" class="dialog-country">航向：{{
+              Math.round(Number(detailSigint.heading))
+              }}°</span>
+          </div>
+          <div v-else class="dialog-meta">
+            <span class="dialog-date">无 sigint_latest 最新快照（目标可能已离开监测范围）</span>
+          </div>
+          <div v-if="detailTrajectoryPoints.length" class="dialog-meta">
+            <span class="dialog-country">轨迹点数：{{ detailTrajectoryPoints.length }}</span>
+            <span v-if="detailEvidence?.distanceKm != null" class="dialog-country">距警戒区：{{
+              Number(detailEvidence.distanceKm).toFixed(0) }}km</span>
+            <span v-if="detailEvidence?.deviationScore != null" class="dialog-country">偏离度：{{
+              detailEvidence.deviationScore
+              }}</span>
+          </div>
+          <p v-if="detailTrajectorySummary" class="dialog-body">{{ detailTrajectorySummary }}</p>
+          <p v-else class="dialog-body">暂无轨迹快照数据</p>
+        </div>
+
+        <p v-else class="dialog-body">暂无详细信息</p>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" class="dialog-close-btn" @click="detailVisible = false">关闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
-  <!-- 「异常」分组条目的「查看详情」弹窗（结构同 WarningLeftPanel.vue 的事件详情） -->
-  <el-dialog v-model="detailVisible" plain class="anomaly-dialog" width="520px" :close-on-click-modal="false"
-    title="事件详情" @closed="detailEvent = null">
-    <div v-loading="detailLoading" class="dialog-content">
-      <div class="dialog-title">
-        <span class="dialog-title-mark">◆</span>
-        <span>{{ detailEvent?.name || "暂无标题" }}</span>
-      </div>
-      <div class="dialog-meta">
-        <span class="dialog-country">异常类型：{{ assetTypeLabel(detailEvent?.assetType) }}</span>
-        <span class="dialog-country">区域：{{ detailEvent?.location || "未知区域" }}</span>
-      </div>
-      <div class="dialog-meta">
-        <span class="dialog-country">时间：{{ formatEventTime(detailEvent?.eventTime) }}</span>
-        <span class="dialog-country">综合威胁度：{{ detailEvent?.threatLevel ?? "--" }}</span>
-        <span class="dialog-country">置信度：{{ Math.round(Number(detailEvent?.confidence) || 0) }}%</span>
-        <span class="dialog-country">偏离度：{{ detailEvent?.deviationScore ?? "--" }}</span>
-      </div>
-
-      <div v-if="detailArticle" class="dialog-section">
-        <div class="dialog-meta">
-          <span class="dialog-country">国家：{{ detailArticle.country || "未知国家" }}</span>
-          <span class="dialog-country">来源：{{ detailArticle.author || detailArticle.source || "未知来源" }}</span>
-        </div>
-        <p class="dialog-body">{{ detailArticle.content || detailArticle.summary || "暂无内容" }}</p>
-      </div>
-
-      <div v-else-if="detailIsTrajectory" class="dialog-section">
-        <div class="dialog-subtitle">轨迹目标</div>
-        <div class="dialog-meta">
-          <span class="dialog-country">呼号：{{ detailEvent?.source || "--" }}</span>
-          <span class="dialog-country">资产 ID：{{ detailSigint?.assetId || detailEvent?.assetId || "--" }}</span>
-          <span v-if="detailSigint?.aircraftType" class="dialog-country">机型：{{ detailSigint.aircraftType }}</span>
-        </div>
-        <div v-if="detailSigint" class="dialog-meta">
-          <span class="dialog-country">最新位置：{{ formatCoord(detailSigint.lat, detailSigint.lng) }}</span>
-          <span v-if="detailSigint.alt != null" class="dialog-country">高度：{{ Math.round(Number(detailSigint.alt))
-          }}</span>
-          <span v-if="detailSigint.speed != null" class="dialog-country">速度：{{ Math.round(Number(detailSigint.speed))
-          }}kt</span>
-          <span v-if="detailSigint.heading != null" class="dialog-country">航向：{{
-            Math.round(Number(detailSigint.heading))
-          }}°</span>
-        </div>
-        <div v-else class="dialog-meta">
-          <span class="dialog-date">无 sigint_latest 最新快照（目标可能已离开监测范围）</span>
-        </div>
-        <div v-if="detailTrajectoryPoints.length" class="dialog-meta">
-          <span class="dialog-country">轨迹点数：{{ detailTrajectoryPoints.length }}</span>
-          <span v-if="detailEvidence?.distanceKm != null" class="dialog-country">距警戒区：{{
-            Number(detailEvidence.distanceKm).toFixed(0) }}km</span>
-          <span v-if="detailEvidence?.deviationScore != null" class="dialog-country">偏离度：{{
-            detailEvidence.deviationScore
-          }}</span>
-        </div>
-        <p v-if="detailTrajectorySummary" class="dialog-body">{{ detailTrajectorySummary }}</p>
-        <p v-else class="dialog-body">暂无轨迹快照数据</p>
-      </div>
-
-      <p v-else class="dialog-body">暂无详细信息</p>
-    </div>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button type="primary" class="dialog-close-btn" @click="detailVisible = false">关闭</el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <script setup lang="ts">
