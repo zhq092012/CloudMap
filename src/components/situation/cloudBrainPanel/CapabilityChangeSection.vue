@@ -18,7 +18,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in data.dimensions" :key="row.name">
+        <tr v-for="row in activeDimensions" :key="row.name">
           <td>{{ row.name }}</td>
           <td class="text-center col-blue font-mono">{{ row.blue }}</td>
           <td class="text-center col-red font-mono">{{ row.red }}</td>
@@ -35,26 +35,30 @@
         :key="snap.id"
         type="button"
         class="snap-block"
-        :class="{ 'snap-block--current': snap.isCurrent }"
+        :class="{ 'snap-block--active': snap.id === selectedSnap }"
         :title="snap.label"
-        @click="selectedSnap = snap.id"
+        :aria-pressed="snap.id === selectedSnap"
+        @click="selectSnapshot(snap.id)"
       />
     </div>
     <div class="snap-labels">
-      <span
+      <button
         v-for="snap in data.snapshots"
         :key="`lbl-${snap.id}`"
+        type="button"
         class="snap-label"
-        :class="{ 'snap-label--current': snap.id === selectedSnap || snap.isCurrent }"
+        :class="{ 'snap-label--active': snap.id === selectedSnap }"
+        @click="selectSnapshot(snap.id)"
       >
-        {{ snap.isCurrent ? "当前" : snap.label }}
-      </span>
+        {{ snapLabelText(snap) }}
+      </button>
     </div>
   </CloudBrainSectionShell>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted, watch } from "vue";
+import type { CapabilitySnapshot } from "@/mock/cloudBrainPanel";
 import * as echarts from "echarts";
 import CloudBrainSectionShell from "./CloudBrainSectionShell.vue";
 import type { CapabilityChangePanelData, CapabilityDimensionScore } from "@/mock/cloudBrainPanel";
@@ -69,10 +73,33 @@ const emit = defineEmits<{
 }>();
 
 const radarRef = ref<HTMLDivElement | null>(null);
-/** 当前选中的快照 id（交互占位） */
-const selectedSnap = ref(
-  props.data.snapshots.find((s) => s.isCurrent)?.id ?? props.data.snapshots.at(-1)?.id ?? "",
-);
+
+const defaultSnapshotId = () =>
+  props.data.snapshots.find((s) => s.isCurrent)?.id ?? props.data.snapshots.at(-1)?.id ?? "";
+
+/** 当前选中的快照 id */
+const selectedSnap = ref(defaultSnapshotId());
+
+/**
+ * 当前快照对应的能力维度（表格与雷达图数据源）。
+ */
+const activeDimensions = computed(() => {
+  const key = selectedSnap.value;
+  const bySnap = props.data.dimensionsBySnapshot?.[key];
+  if (bySnap?.length) return bySnap;
+  return props.data.dimensions;
+});
+
+const selectSnapshot = (id: string) => {
+  if (!props.data.snapshots.some((s) => s.id === id)) return;
+  selectedSnap.value = id;
+};
+
+/** 时间轴标签：最新快照在选中时显示「当前」 */
+const snapLabelText = (snap: CapabilitySnapshot) => {
+  if (snap.id === selectedSnap.value && snap.isCurrent) return "当前";
+  return snap.label;
+};
 
 let chart: echarts.ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
@@ -101,12 +128,13 @@ const trendClass = (trend: CapabilityDimensionScore["trend"]) => {
  * 构建雷达图 option。
  */
 function buildOption(): echarts.EChartsOption {
-  const indicators = props.data.dimensions.map((d) => ({
+  const dimensions = activeDimensions.value;
+  const indicators = dimensions.map((d) => ({
     name: d.name,
     max: 100,
   }));
-  const blueSeries = props.data.dimensions.map((d) => d.blue);
-  const redSeries = props.data.dimensions.map((d) => d.red);
+  const blueSeries = dimensions.map((d) => d.blue);
+  const redSeries = dimensions.map((d) => d.red);
 
   return {
     backgroundColor: "transparent",
@@ -174,10 +202,14 @@ onUnmounted(() => {
   chart = null;
 });
 
+watch(activeDimensions, () => {
+  chart?.setOption(buildOption(), true);
+});
+
 watch(
-  () => props.data.dimensions,
+  () => props.data.snapshots,
   () => {
-    chart?.setOption(buildOption(), true);
+    selectedSnap.value = defaultSnapshotId();
   },
   { deep: true },
 );
@@ -256,11 +288,23 @@ watch(
   border-radius: 2px;
   opacity: 0.55;
   cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.snap-block--current,
-.snap-block:hover {
+.snap-block:hover:not(.snap-block--active) {
+  opacity: 0.75;
+}
+
+/** 当前选中的时间点：黄色高亮 */
+.snap-block--active {
   opacity: 1;
+  background: #facc15;
+  border-color: #fde047;
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.85);
 }
 
 .snap-labels {
@@ -271,12 +315,26 @@ watch(
 
 .snap-label {
   flex: 1;
+  padding: 3px 0;
   text-align: center;
   font-size: 9px;
   color: #6b7280;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
-.snap-label--current {
-  color: #5eead4;
+.snap-label:hover:not(.snap-label--active) {
+  color: #9ca3af;
+}
+
+.snap-label--active {
+  color: #facc15;
+  font-weight: 700;
+  background: rgba(250, 204, 21, 0.12);
 }
 </style>

@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import CollapsibleSidePanel from "@/components/layout/CollapsibleSidePanel.vue";
 import SituationStrip from "@/components/situation/SituationStrip.vue";
-import RightPanel from "@/components/situation/RightPanel.vue";
+import RightPanel from "@/components/situation/CloudBrainPanel.vue";
 import RightGraphList from "@/components/graph/RightGraphList.vue";
 import SurveillanceMapLeft from "@/components/situation/SurveillanceMapLeft.vue";
 

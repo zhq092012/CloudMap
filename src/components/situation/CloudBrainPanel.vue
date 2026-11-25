@@ -1,11 +1,15 @@
 ﻿<template>
   <div
     class="w-95 h-full absolute right-0 top-0 z-1000 bg-[#111827]/95 border-l border-[#2d3a4d] text-[#e5e7eb] flex flex-col font-sans select-none backdrop-blur-sm overflow-hidden">
-    <div class="shrink-0 px-2.5 pt-2.5 pb-2 border-b border-[#2d3a4d]">
-      <h2 class="text-[13.5px] font-bold tracking-wider text-[#e5e7eb] flex items-center gap-1.5">
-        🧠 云脑智能面板
-      </h2>
-    </div>
+    <CloudBrainPanelHeader
+      class="rp-header"
+      title="云脑智能面板"
+      leading-icon="🧠"
+      :summary-text="cloudBrainSummaryText"
+      @refresh="onCloudBrainRefresh"
+      @export="onCloudBrainExport"
+      @pin="onCloudBrainPin"
+    />
 
     <div class="rp-sections flex-1 min-h-0 overflow-y-auto custom-scrollbar px-2.5 py-2 space-y-2">
       <!-- 潜在异常区块 -->
@@ -13,33 +17,34 @@
       <!-- 能力变化区块 -->
       <CapabilityChangeSection :data="panelMock.capabilityChange" @export="onCapabilityExport" />
       <!-- 态势报告区块 -->
-      <SituationReportSection :data="panelMock.situationReport" :has-briefing="hasBriefing"
-        :overview-html="overviewHtml" :overview-date="overviewDate" @view-detail="showReportDetail"
-        @map-locate="onSituationMapLocate" @export="onSituationExport" @regenerate="doGenerateBriefing" />
+      <SituationReportSection
+        v-model:detail-visible="briefingDialogVisible"
+        :data="panelMock.situationReport"
+        :has-briefing="hasBriefing"
+        :overview-html="overviewHtml"
+        :overview-date="overviewDate"
+        briefing-heading="态势监控简报"
+        :load-state="briefingState"
+        :briefing="briefingData"
+        :briefing-error="briefingError"
+        @view-detail="showReportDetail"
+        @map-locate="onSituationMapLocate"
+        @export="onSituationExport"
+        @regenerate="doGenerateBriefing"
+      />
       <!-- 重点关注区块 -->
       <KeyFocusSection :data="panelMock.keyFocus" @dismiss="onKeyFocusDismiss" />
       <!-- 指挥终端区块 -->
       <CommandTerminalSection class="rp-terminal-section" />
     </div>
 
-    <el-dialog
-      v-model="briefingDialogVisible"
-      plain
-      class="article-read-dialog"
-      width="960px"
-      append-to-body
-      :close-on-click-modal="false"
-      title="态势监控简报详情">
-      <BriefingDialog heading="态势监控简报" :state="briefingState" :briefing="briefingData" :error="briefingError"
-        @regenerate="doGenerateBriefing" @close="briefingDialogVisible = false" />
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ElMessage } from "element-plus";
-import BriefingDialog from "@/components/Dialogs/BriefingDialog.vue";
+import CloudBrainPanelHeader from "@/components/situation/cloudBrainPanel/CloudBrainPanelHeader.vue";
 import PotentialAnomalySection from "@/components/situation/cloudBrainPanel/PotentialAnomalySection.vue";
 import CapabilityChangeSection from "@/components/situation/cloudBrainPanel/CapabilityChangeSection.vue";
 import SituationReportSection from "@/components/situation/cloudBrainPanel/SituationReportSection.vue";
@@ -62,6 +67,25 @@ const {
 
 /** 云脑智能面板各 section 的 Mock 数据（后续可改为 API） */
 const panelMock = ref(cloudBrainPanelMock);
+
+/** 顶栏菜单「复制摘要」用文本 */
+const cloudBrainSummaryText = computed(() => {
+  const r = panelMock.value.situationReport;
+  return `${r.title}\n\n${r.summary}`;
+});
+
+const onCloudBrainRefresh = () => {
+  void doGenerateBriefing();
+  ElMessage.success("已刷新云脑面板（Mock）");
+};
+
+const onCloudBrainExport = () => {
+  ElMessage.info("云脑面板导出（Mock，待接业务）");
+};
+
+const onCloudBrainPin = () => {
+  ElMessage.info("已固定云脑面板（Mock）");
+};
 
 /** 潜在异常区块按钮占位交互 */
 const onPotentialAnomalyAction = (key: string) => {
@@ -98,6 +122,11 @@ const onKeyFocusDismiss = (id: string) => {
 </script>
 
 <style scoped>
+.rp-header {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

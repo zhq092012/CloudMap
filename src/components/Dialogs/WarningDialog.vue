@@ -1,3 +1,4 @@
+<!-- 异常预警弹窗 -->
 <template>
   <div class="wd">
     <div class="wd-header">
@@ -145,9 +146,26 @@ const openSource = () => {
     background: #111827;
     border: 1px solid #2d3a4d;
 
-    &.lvl-高 { color: #fca5a5; background: rgba(239, 68, 68, 0.12); border-color: #ef4444; font-weight: 700; }
-    &.lvl-中 { color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; font-weight: 700; }
-    &.lvl-低 { color: #93c5fd; background: rgba(59, 130, 246, 0.12); border-color: #3b82f6; font-weight: 700; }
+    &.lvl-高 {
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.12);
+      border-color: #ef4444;
+      font-weight: 700;
+    }
+
+    &.lvl-中 {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.12);
+      border-color: #f59e0b;
+      font-weight: 700;
+    }
+
+    &.lvl-低 {
+      color: #93c5fd;
+      background: rgba(59, 130, 246, 0.12);
+      border-color: #3b82f6;
+      font-weight: 700;
+    }
   }
 }
 
@@ -196,12 +214,26 @@ const openSource = () => {
 }
 
 .wd-source {
-  :deep(.el-collapse-item__header) { background: transparent; border-bottom-color: #2d3a4d; }
-  :deep(.el-collapse-item__wrap) { background: transparent; border-bottom-color: #2d3a4d; }
-  :deep(.el-collapse-item__content) { color: #9ca3af; }
+  :deep(.el-collapse-item__header) {
+    background: transparent;
+    border-bottom-color: #2d3a4d;
+  }
+
+  :deep(.el-collapse-item__wrap) {
+    background: transparent;
+    border-bottom-color: #2d3a4d;
+  }
+
+  :deep(.el-collapse-item__content) {
+    color: #9ca3af;
+  }
 }
 
-.wd-source-title { color: #9ca3af; font-size: 12px; }
+.wd-source-title {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
 .wd-source-text {
   font-size: 12px;
   line-height: 1.7;
@@ -225,6 +257,7 @@ const openSource = () => {
   color: #cbd5e1;
   word-break: break-word;
 }
+
 .markdown-body :deep(h1),
 .markdown-body :deep(h2),
 .markdown-body :deep(h3),
@@ -234,22 +267,59 @@ const openSource = () => {
   color: #93c5fd;
   line-height: 1.35;
 }
-.markdown-body :deep(h1) { font-size: 14px; }
-.markdown-body :deep(h2) { font-size: 13px; }
-.markdown-body :deep(h3) { font-size: 12px; }
-.markdown-body :deep(h4) { font-size: 12px; }
-.markdown-body :deep(p) { margin: 4px 0; }
+
+.markdown-body :deep(h1) {
+  font-size: 14px;
+}
+
+.markdown-body :deep(h2) {
+  font-size: 13px;
+}
+
+.markdown-body :deep(h3) {
+  font-size: 12px;
+}
+
+.markdown-body :deep(h4) {
+  font-size: 12px;
+}
+
+.markdown-body :deep(p) {
+  margin: 4px 0;
+}
+
 .markdown-body :deep(ul),
 .markdown-body :deep(ol) {
   padding-left: 18px;
   margin: 4px 0;
 }
-.markdown-body :deep(li) { margin: 2px 0; }
-.markdown-body :deep(ul li) { list-style: disc; }
-.markdown-body :deep(ol li) { list-style: decimal; }
-.markdown-body :deep(strong) { color: #bfdbfe; font-weight: 700; }
-.markdown-body :deep(em) { color: #cbd5e1; }
-.markdown-body :deep(a) { color: #93c5fd; text-decoration: underline; }
+
+.markdown-body :deep(li) {
+  margin: 2px 0;
+}
+
+.markdown-body :deep(ul li) {
+  list-style: disc;
+}
+
+.markdown-body :deep(ol li) {
+  list-style: decimal;
+}
+
+.markdown-body :deep(strong) {
+  color: #bfdbfe;
+  font-weight: 700;
+}
+
+.markdown-body :deep(em) {
+  color: #cbd5e1;
+}
+
+.markdown-body :deep(a) {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
 .markdown-body :deep(code) {
   background: #111827;
   border: 1px solid #2d3a4d;
@@ -259,6 +329,7 @@ const openSource = () => {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #fca5a5;
 }
+
 .markdown-body :deep(pre) {
   background: #111827;
   border: 1px solid #2d3a4d;
@@ -267,6 +338,7 @@ const openSource = () => {
   overflow-x: auto;
   margin: 6px 0;
 }
+
 .markdown-body :deep(pre code) {
   background: none;
   border: none;
@@ -274,12 +346,14 @@ const openSource = () => {
   color: #cbd5e1;
   font-size: 11px;
 }
+
 .markdown-body :deep(blockquote) {
   border-left: 3px solid #3b82f6;
   padding-left: 8px;
   color: #cbd5e1;
   margin: 6px 0;
 }
+
 .markdown-body :deep(hr) {
   border: none;
   border-top: 1px solid #2d3a4d;

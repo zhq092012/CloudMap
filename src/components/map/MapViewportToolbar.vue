@@ -1,3 +1,4 @@
+<!-- 地图视图控制栏小组件 -->
 <template>
   <nav class="map-vp-toolbar" aria-label="地图视图控制">
     <label class="map-vp-check">

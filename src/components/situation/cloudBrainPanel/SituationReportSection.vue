@@ -57,14 +57,40 @@
         <button type="button" class="btn-ghost" @click="emit('regenerate')">重新生成</button>
       </div>
     </div>
+
+    <el-dialog
+      v-model="detailVisible"
+      plain
+      class="article-read-dialog"
+      width="1160px"
+      append-to-body
+      align-center
+      :close-on-click-modal="false"
+      destroy-on-close
+      :title="detailDialogTitle"
+    >
+      <SituationReportDialog
+        variant="briefing"
+        :heading="briefingHeading"
+        :load-state="loadState"
+        :briefing="briefing"
+        :error="briefingError"
+        @regenerate="emit('regenerate')"
+        @close="detailVisible = false"
+      />
+    </el-dialog>
   </CloudBrainSectionShell>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import CloudBrainSectionShell from "./CloudBrainSectionShell.vue";
+import SituationReportDialog from "@/components/Dialogs/SituationReportDialog.vue";
+import type { AnomalyBriefing } from "@/api/briefings";
+import type { BriefingDialogState } from "@/components/Dialogs/SituationReportDialog.vue";
 import type { SituationReportPanelData } from "@/mock/cloudBrainPanel";
 
-defineProps<{
+const props = defineProps<{
   /** 态势报告卡片 Mock / API 数据 */
   data: SituationReportPanelData;
   /** 是否已有后端简报 */
@@ -73,6 +99,13 @@ defineProps<{
   overviewHtml?: string;
   /** 简报日期展示 */
   overviewDate?: string | null;
+  /** 与 CloudBrainPanel 同步的简报详情弹窗显隐 */
+  detailVisible?: boolean;
+  /** 简报详情弹窗内标题 */
+  briefingHeading?: string;
+  loadState?: BriefingDialogState;
+  briefing?: AnomalyBriefing | null;
+  briefingError?: string;
 }>();
 
 const emit = defineEmits<{
@@ -80,7 +113,24 @@ const emit = defineEmits<{
   "map-locate": [];
   export: [];
   regenerate: [];
+  "update:detailVisible": [visible: boolean];
 }>();
+
+/**
+ * 计算详情弹窗显隐，与父组件 briefingDialogVisible 双向同步。
+ * 返回 boolean。组件内 el-dialog v-model 绑定此值。
+ * 作用：点击「查看详情」后父级打开弹窗并拉取简报，本节展示 SituationReportDialog 简报形态。
+ */
+const detailVisible = computed({
+  get: () => props.detailVisible ?? false,
+  set: (visible: boolean) => emit("update:detailVisible", visible),
+});
+
+/**
+ * 计算 el-dialog 顶栏标题。
+ * 返回 string。默认「态势报告详情」。
+ */
+const detailDialogTitle = computed(() => `${props.briefingHeading ?? "态势报告"}详情`);
 </script>
 
 <style scoped>

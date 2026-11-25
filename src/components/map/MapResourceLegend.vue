@@ -1,3 +1,4 @@
+<!-- 地图资源图标说明小组件 -->
 <template>
   <aside
     class="map-resource-legend"

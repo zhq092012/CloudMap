@@ -1,6 +1,14 @@
 ﻿<template>
   <aside class="asrp-root" aria-label="云脑智能面板">
-    <h2 class="asrp-root__title">🧠 云脑智能面板</h2>
+    <CloudBrainPanelHeader
+      class="asrp-root__header"
+      title="云脑智能面板"
+      leading-icon="🧠"
+      :summary-text="cloudBrainSummaryText"
+      @refresh="onCloudBrainRefresh"
+      @export="onCloudBrainExport"
+      @pin="onCloudBrainPin"
+    />
 
     <nav class="asrp-root__tabs" role="tablist" aria-label="异常分析视图">
       <button v-for="tab in tabs" :key="tab.key" type="button" role="tab" class="asrp-root__tab"
@@ -29,17 +37,26 @@
       append-to-body
       :close-on-click-modal="false"
       title="异常征候简报详情">
-      <BriefingDialog heading="异常征候简报" :state="briefingState" :briefing="briefingData" :error="briefingError"
-        @regenerate="doGenerateBriefing" @close="briefingDialogVisible = false" />
+      <SituationReportDialog
+        variant="briefing"
+        heading="异常征候简报"
+        :load-state="briefingState"
+        :briefing="briefingData"
+        :error="briefingError"
+        @regenerate="doGenerateBriefing"
+        @close="briefingDialogVisible = false"
+      />
     </el-dialog>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { ElMessage } from "element-plus";
+import CloudBrainPanelHeader from "@/components/situation/cloudBrainPanel/CloudBrainPanelHeader.vue";
 import { getAnomalyStats } from "@/api/anomalies";
 import type { AnomalyStats } from "@/api/anomalies";
-import BriefingDialog from "@/components/Dialogs/BriefingDialog.vue";
+import SituationReportDialog from "@/components/Dialogs/SituationReportDialog.vue";
 import AnomalySignsRightPanelOverviewTab from "@/components/anomaly/anomalySigns/AnomalySignsRightPanelOverviewTab.vue";
 import AnomalySignsRightPanelDeepTab from "@/components/anomaly/anomalySigns/AnomalySignsRightPanelDeepTab.vue";
 import AnomalySignsRightPanelHypothesisTab from "@/components/anomaly/anomalySigns/AnomalySignsRightPanelHypothesisTab.vue";
@@ -74,13 +91,47 @@ const {
   doGenerateBriefing,
 } = useBriefing();
 
-onMounted(async () => {
+/** 顶栏「复制摘要」：优先简报纯文本，否则统计摘要 */
+const cloudBrainSummaryText = computed(() => {
+  if (overviewHtml.value) {
+    return overviewHtml.value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+  const s = overviewStats.value;
+  if (!s) return "异常征候云脑面板（暂无摘要）";
+  const pending = s.status?.pending ?? s.status?.["待研判"] ?? 0;
+  const confirmed = s.status?.confirmed ?? s.status?.["已确认"] ?? 0;
+  return `异常总数 ${s.total}，待研判 ${pending}，已确认 ${confirmed}。`;
+});
+
+const reloadOverviewStats = async () => {
   try {
     overviewStats.value = await getAnomalyStats();
   } catch (error) {
     console.error("[AnomalySignsRightPanel] 获取异常统计失败:", error);
     overviewStats.value = null;
+    throw error;
   }
+};
+
+const onCloudBrainRefresh = async () => {
+  try {
+    await reloadOverviewStats();
+    ElMessage.success("已刷新异常征候云脑面板");
+  } catch {
+    ElMessage.error("刷新失败，请稍后重试");
+  }
+};
+
+const onCloudBrainExport = () => {
+  ElMessage.info("云脑面板导出（Mock，待接业务）");
+};
+
+const onCloudBrainPin = () => {
+  ElMessage.info("已固定云脑面板（Mock）");
+};
+
+onMounted(() => {
+  void reloadOverviewStats();
 });
 </script>
 
@@ -102,15 +153,10 @@ onMounted(async () => {
   user-select: none;
 }
 
-.asrp-root__title {
-  flex-shrink: 0;
-  margin: 0 0 10px;
-  padding-bottom: 8px;
-  font-size: 13.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #e5e7eb;
-  border-bottom: 1px solid #2d3a4d;
+.asrp-root__header {
+  margin: -4px -2px 10px;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .asrp-root__tabs {

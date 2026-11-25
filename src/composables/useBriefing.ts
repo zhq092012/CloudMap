@@ -4,28 +4,49 @@ import { getTodayBriefing, getLatestBriefing, generateBriefing } from "@/api/bri
 import type { AnomalyBriefing } from "@/api/briefings";
 import { extractOverview } from "@/utils/briefingExtract";
 
-// 渲染为纯函数，跨调用共享安全；行为与既有 WarningRightPanel 的 overviewMd 逐字一致
+/**
+ * 异常态势简报概览渲染器
+ * 渲染为纯函数，跨调用共享安全；行为与既有 WarningRightPanel 的 overviewMd 逐字一致
+ */
 const overviewMd = new MarkdownIt({ html: false, linkify: true, breaks: true });
 
 export function useBriefing() {
-  // — 简报详情弹窗状态（原 WarningRightPanel L467-470）
+  /**
+   * 简报详情弹窗状态
+   */
   const briefingDialogVisible = ref(false);
+  /**
+   * 简报状态
+   */
   const briefingState = ref<"loading" | "generating" | "ready" | "error">("loading");
+  /**
+   * 简报数据
+   */
   const briefingData = ref<AnomalyBriefing | null>(null);
+  /**
+   * 简报错误
+   */
   const briefingError = ref("");
 
-  // — 卡片总览展示状态（原 WarningRightPanel L476-478）
+  /**
+   * 卡片总览展示状态
+   */
   const overviewHtml = ref("");
   const overviewDate = ref<string | null>(null);
   const hasBriefing = ref(false);
 
-  // 原 WarningRightPanel L480-500
+  /**
+   * 重置简报概览
+   */
   const resetOverview = () => {
     overviewHtml.value = "";
     overviewDate.value = null;
     hasBriefing.value = false;
   };
 
+  /**
+   * 加载简报概览
+   */
   const loadOverview = async () => {
     try {
       const b = await getLatestBriefing();
@@ -42,7 +63,9 @@ export function useBriefing() {
     }
   };
 
-  // 原 WarningRightPanel L507-522
+  /**
+   * 加载简报
+   */
   const loadBriefing = async () => {
     briefingState.value = "loading";
     briefingError.value = "";
@@ -60,7 +83,9 @@ export function useBriefing() {
     }
   };
 
-  // 原 WarningRightPanel L524-541
+  /**
+   * 生成简报
+   */
   const doGenerateBriefing = async () => {
     briefingState.value = "generating";
     briefingError.value = "";
@@ -80,13 +105,17 @@ export function useBriefing() {
     }
   };
 
-  // 原 WarningRightPanel L502-505
+  /**
+   * 显示简报详情
+   */
   const showReportDetail = () => {
     briefingDialogVisible.value = true;
     loadBriefing();
   };
 
-  // 原 WarningRightPanel onMounted 中的 loadOverview()（L582）；两面板都需挂载即刷新
+  /**
+   * 挂载时加载简报
+   */
   onMounted(loadOverview);
 
   return {

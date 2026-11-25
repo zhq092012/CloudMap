@@ -1,18 +1,10 @@
+<!-- 地图节点统计分类小组件 -->
 <template>
-  <div
-    ref="dockRootRef"
-    class="map-node-dock"
-    :class="{ 'map-node-dock--collapsed': collapsed }"
-    role="region"
-    aria-label="地图节点统计分类"
-  >
+  <div ref="dockRootRef" class="map-node-dock" :class="{ 'map-node-dock--collapsed': collapsed }" role="region"
+    aria-label="地图节点统计分类">
     <div class="dock-summary">
       <header class="dock-categories">
-        <div
-          v-for="cat in data.categories"
-          :key="cat.key"
-          class="dock-cat"
-        >
+        <div v-for="cat in data.categories" :key="cat.key" class="dock-cat">
           <div class="dock-cat__head">
             <span class="dock-cat__title">{{ cat.title }}</span>
             <span class="dock-cat__sub">{{ cat.subtitle }}</span>
@@ -22,111 +14,79 @@
             <span class="dock-cat__delta">↑ +{{ cat.delta }}</span>
           </div>
           <div class="dock-cat__bar">
-            <span
-              v-for="(color, i) in cat.barColors"
-              :key="i"
-              class="dock-cat__bar-seg"
-              :style="{ background: color }"
-            />
+            <span v-for="(color, i) in cat.barColors" :key="i" class="dock-cat__bar-seg"
+              :style="{ background: color }" />
           </div>
         </div>
       </header>
-      <button
-        type="button"
-        class="dock-toggle"
-        :aria-expanded="!collapsed"
-        :aria-label="collapsed ? '展开节点列表' : '收起节点列表'"
-        @click="toggleCollapsed"
-      >
+      <button type="button" class="dock-toggle" :aria-expanded="!collapsed"
+        :aria-label="collapsed ? '展开节点列表' : '收起节点列表'" @click="toggleCollapsed">
         <span class="dock-toggle__label">{{ collapsed ? "展开" : "收起" }}</span>
         <span class="dock-toggle__chevron" aria-hidden="true">{{ collapsed ? "⌃" : "⌄" }}</span>
       </button>
     </div>
 
     <template v-if="!collapsed">
-    <div class="dock-filters">
-      <button
-        v-for="tab in filterTabs"
-        :key="tab.id"
-        type="button"
-        class="filter-pill"
-        :class="{ 'filter-pill--active': tab.id === activeFilterId }"
-        @click="activeFilterId = tab.id"
-      >
-        {{ tab.label }} {{ tab.count }}
-      </button>
-    </div>
-
-    <div class="dock-todo">
-      <span class="dock-todo__text">
-        报告建议待办 ({{ data.reportTodo.pendingCount }})
-        <em>{{ data.reportTodo.reportId }}</em>
-      </span>
-      <div class="dock-todo__actions">
-        <button type="button" class="todo-btn todo-btn--primary" @click="onViewReport">
-          查看报告
+      <div class="dock-filters">
+        <button v-for="tab in filterTabs" :key="tab.id" type="button" class="filter-pill"
+          :class="{ 'filter-pill--active': tab.id === activeFilterId }" @click="activeFilterId = tab.id">
+          {{ tab.label }} {{ tab.count }}
         </button>
-        <template v-for="s in data.reportTodo.suggestions" :key="s.id">
-          <span class="todo-meta">{{ s.action }}</span>
-          <button type="button" class="todo-link" @click="onTodoView(s.id)">{{ s.targetLabel }}</button>
-          <button type="button" class="todo-link" @click="onTodoExec(s.id)">执行</button>
-        </template>
       </div>
-    </div>
 
-    <ul class="dock-list custom-scrollbar">
-      <li v-for="item in data.listItems" :key="item.id" class="dock-row">
-        <label class="dock-row__check">
-          <input
-            v-model="selectedIds"
-            type="checkbox"
-            :value="item.id"
-          />
-        </label>
-        <span class="dock-row__icon" :class="`dock-row__icon--${item.kind}`">{{ item.icon }}</span>
-        <div class="dock-row__main">
-          <div class="dock-row__title">{{ item.title }}</div>
-          <div v-if="item.subtitle" class="dock-row__sub">{{ item.subtitle }}</div>
+      <div class="dock-todo">
+        <span class="dock-todo__text">
+          报告建议待办 ({{ data.reportTodo.pendingCount }})
+          <em>{{ data.reportTodo.reportId }}</em>
+        </span>
+        <div class="dock-todo__actions">
+          <button type="button" class="todo-btn todo-btn--primary" @click="onViewReport">
+            查看报告
+          </button>
+          <template v-for="s in data.reportTodo.suggestions" :key="s.id">
+            <span class="todo-meta">{{ s.action }}</span>
+            <button type="button" class="todo-link" @click="onTodoView(s.id)">{{ s.targetLabel }}</button>
+            <button type="button" class="todo-link" @click="onTodoExec(s.id)">执行</button>
+          </template>
         </div>
-        <div class="dock-row__right">
-          <span class="dock-row__badge" :class="`dock-row__badge--${item.kind}`">{{ item.badge }}</span>
-          <span v-if="item.time" class="dock-row__time">{{ item.time }}</span>
-          <button type="button" class="row-btn" @click="onViewItem(item.id)">查看</button>
-          <button type="button" class="row-btn row-btn--ghost" aria-label="更多">…</button>
-        </div>
-      </li>
-    </ul>
-
-    <footer class="dock-toolbar">
-      <span class="toolbar-count">已选 {{ selectedIds.length }} 项</span>
-      <div class="toolbar-btns">
-        <button type="button" class="tool-btn" @click="onBatch('confirm')">批量确认</button>
-        <button type="button" class="tool-btn" @click="onBatch('exclude')">批量排除</button>
-        <button type="button" class="tool-btn" @click="onBatch('locate')">批量定位</button>
-        <button type="button" class="tool-btn tool-btn--accent" @click="onBatch('basket')">加入分析篮</button>
       </div>
-      <button type="button" class="toolbar-clear" @click="selectedIds = []">取消选择</button>
-    </footer>
+
+      <ul class="dock-list custom-scrollbar">
+        <li v-for="item in data.listItems" :key="item.id" class="dock-row">
+          <label class="dock-row__check">
+            <input v-model="selectedIds" type="checkbox" :value="item.id" />
+          </label>
+          <span class="dock-row__icon" :class="`dock-row__icon--${item.kind}`">{{ item.icon }}</span>
+          <div class="dock-row__main">
+            <div class="dock-row__title">{{ item.title }}</div>
+            <div v-if="item.subtitle" class="dock-row__sub">{{ item.subtitle }}</div>
+          </div>
+          <div class="dock-row__right">
+            <span class="dock-row__badge" :class="`dock-row__badge--${item.kind}`">{{ item.badge }}</span>
+            <span v-if="item.time" class="dock-row__time">{{ item.time }}</span>
+            <button type="button" class="row-btn" @click="onViewItem(item.id)">查看</button>
+            <button type="button" class="row-btn row-btn--ghost" aria-label="更多">…</button>
+          </div>
+        </li>
+      </ul>
+
+      <footer class="dock-toolbar">
+        <span class="toolbar-count">已选 {{ selectedIds.length }} 项</span>
+        <div class="toolbar-btns">
+          <button type="button" class="tool-btn" @click="onBatch('confirm')">批量确认</button>
+          <button type="button" class="tool-btn" @click="onBatch('exclude')">批量排除</button>
+          <button type="button" class="tool-btn" @click="onBatch('locate')">批量定位</button>
+          <button type="button" class="tool-btn tool-btn--accent" @click="onBatch('basket')">加入分析篮</button>
+        </div>
+        <button type="button" class="toolbar-clear" @click="selectedIds = []">取消选择</button>
+      </footer>
     </template>
 
-    <el-dialog
-      v-model="reportDialogVisible"
-      plain
-      width="1160px"
-      append-to-body
-      align-center
-      :close-on-click-modal="false"
-      modal-class="map-dock-report-overlay"
-      class="map-dock-report-dialog"
-      destroy-on-close
-      title="综合态势报告"
-    >
-      <SituationReportDialog
-        @close="reportDialogVisible = false"
-        @map-locate="onReportMapLocate"
-        @export-pdf="onReportExportPdf"
-        @export-report="onReportExport"
-      />
+    <el-dialog v-model="reportDialogVisible" plain width="1160px" append-to-body align-center
+      :close-on-click-modal="false" modal-class="map-dock-report-overlay" class="map-dock-report-dialog"
+      destroy-on-close title="综合态势报告">
+      <SituationReportDialog @close="reportDialogVisible = false" @map-locate="onReportMapLocate"
+        @export-pdf="onReportExportPdf" @export-report="onReportExport" />
     </el-dialog>
   </div>
 </template>
@@ -644,5 +604,4 @@ const onBatch = (action: string) => {
   background: #2d3a4d;
   border-radius: 3px;
 }
-
 </style>

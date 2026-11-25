@@ -1,17 +1,13 @@
 ﻿<template>
   <div class="da-cloud-brain" aria-label="云脑智能分析">
-    <header class="da-cloud-brain__header">
-        <div class="da-cloud-brain__header-main">
-          <span class="da-cloud-brain__pin" aria-hidden="true">⌁</span>
-          <h2 class="da-cloud-brain__title">云脑智能分析</h2>
-          <span v-if="mock.live" class="da-cloud-brain__live">● 实时</span>
-        </div>
-        <div class="da-cloud-brain__header-actions">
-          <button type="button" class="da-cloud-brain__icon-btn" title="更多" aria-label="更多">
-            ⋯
-          </button>
-        </div>
-    </header>
+    <CloudBrainPanelHeader
+      title="云脑智能分析"
+      :summary-text="cloudBrainSummaryText"
+      :initial-live="mock.live"
+      @refresh="onHeaderRefresh"
+      @export="onHeaderExport"
+      @pin="onHeaderPin"
+    />
 
       <div class="da-cloud-brain__scroll custom-scrollbar">
         <CloudBrainSectionShell title="智能分析" icon="◑" :default-expanded="true">
@@ -67,11 +63,31 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { ElMessage } from "element-plus";
 import CloudBrainSectionShell from "@/components/situation/cloudBrainPanel/CloudBrainSectionShell.vue";
+import CloudBrainPanelHeader from "@/components/situation/cloudBrainPanel/CloudBrainPanelHeader.vue";
 import { deepAnalysisCloudBrainMock } from "@/mock/deepAnalysisCloudBrain";
 
 /** 云脑栏展示用 Mock */
 const mock = deepAnalysisCloudBrainMock;
+
+/** 顶栏「复制摘要」用纯文本 */
+const cloudBrainSummaryText = computed(() =>
+  [mock.intelligentAnalysis.subtitle, ...mock.intelligentAnalysis.bullets, ...mock.keyEvidence].join("\n"),
+);
+
+const onHeaderRefresh = () => {
+  ElMessage.success("已刷新云脑分析（Mock）");
+};
+
+const onHeaderExport = () => {
+  ElMessage.info("导出（Mock，待接业务）");
+};
+
+const onHeaderPin = () => {
+  ElMessage.info("已固定面板（Mock）");
+};
 
 /**
  * 智能终端占位：后续接 CommandTerminal / 对话抽屉。
@@ -98,79 +114,6 @@ function onFooterAction(actionId: string): void {
   min-height: 0;
   user-select: none;
   background: rgba(17, 24, 39, 0.96);
-}
-
-.da-cloud-brain__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-shrink: 0;
-  padding: 10px 10px 8px;
-  border-bottom: 1px solid #2d3a4d;
-}
-
-.da-cloud-brain__header-main {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.da-cloud-brain__pin {
-  font-size: 14px;
-  color: #60a5fa;
-  line-height: 1;
-}
-
-.da-cloud-brain__title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #93c5fd;
-  white-space: nowrap;
-}
-
-.da-cloud-brain__live {
-  flex-shrink: 0;
-  margin-left: 2px;
-  padding: 1px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.35);
-  border-radius: 999px;
-}
-
-.da-cloud-brain__header-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.da-cloud-brain__icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  font-size: 14px;
-  line-height: 1;
-  color: #9ca3af;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.da-cloud-brain__icon-btn:hover {
-  color: #e5e7eb;
-  background: #253141;
 }
 
 .da-cloud-brain__scroll {
